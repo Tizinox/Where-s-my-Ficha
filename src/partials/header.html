@@ -1,0 +1,260 @@
+<!-- ==============================================================
+         HEADER BAR
+         ============================================================== -->
+    <header id="app-header" :class="{ '!hidden': $store.app.activeView === 'tierlist' && $store.tierlist.isZenMode }">
+
+      <!-- ──── Nivel 1 y 2: Navegación General y Contexto de Entidad (Visible en el Editor) ──── -->
+      <div x-show="$store.app.activeView === 'editor'" class="flex items-center gap-1.5 shrink-0">
+        <!-- 1. Navegación General: Botón de Retorno Primario -->
+        <button id="btn-back-to-dashboard" type="button"
+          class="px-2.5 py-1.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-parchment-cream hover:text-white transition-all text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer hover:border-white/30"
+          @click="$store.app.openDashboardView()" title="Regresar al Panel Principal de Personajes">
+          <svg class="w-3.5 h-3.5 text-parchment-cream/80 shrink-0" xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="m12 19-7-7 7-7" />
+            <path d="M19 12H5" />
+          </svg>
+          <span class="hidden xl:inline">Panel de Personajes</span>
+          <span class="hidden md:inline xl:hidden">Panel</span>
+        </button>
+
+        <!-- Separador sutil -->
+        <div class="h-4 w-px bg-white/15 hidden md:block shrink-0"></div>
+
+        <!-- 2. Contexto de Entidad: Badge con Acento Neón de Identidad -->
+        <button id="btn-dashboard" type="button"
+          class="px-3 py-1.5 rounded-xl border border-[var(--accent,#00F0FF)]/60 bg-[var(--accent,#00F0FF)]/10 text-white hover:bg-[var(--accent,#00F0FF)]/20 transition-all text-xs font-title font-bold uppercase tracking-wider flex items-center gap-2 max-w-[120px] sm:max-w-[160px] md:max-w-[190px] lg:max-w-[220px] shadow-[0_0_12px_var(--accent-glow)] shrink-0 cursor-pointer group"
+          @click="$store.app.openDashboardView()"
+          :title="`Operativo activo: ${$store.characters.active?.name ?? 'Sin personaje'}`">
+          <div class="w-2 h-2 rounded-full bg-[var(--accent,#00F0FF)] shadow-[0_0_6px_var(--accent,#00F0FF)] shrink-0">
+          </div>
+          <span class="truncate tracking-wide" x-text="$store.characters.active?.name ?? 'Seleccionar'"></span>
+        </button>
+
+        <!-- Grupo de Acciones Rápidas (Favorito y Bloqueo) con separación y centrado simétrico -->
+        <div class="flex items-center gap-1.5 ml-1.5 shrink-0">
+          <!-- Toggle Favorito en Header -->
+          <button type="button" @click="$store.characters.toggleFavorite($store.characters.activeId)"
+            class="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-xl border transition-all text-xs flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+            :class="$store.characters.active?.isFavorite ? 'bg-amber-500/20 border-amber-400/60 text-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.4)]' : 'bg-white/5 border-white/10 text-white/40 hover:text-amber-300 hover:border-amber-400/40'"
+            :title="$store.characters.active?.isFavorite ? 'Ficha Favorita ★ (Clic para desmarcar)' : 'Marcar ficha como favorita ★'">
+            <svg class="w-3.5 h-3.5 block"
+              :class="$store.characters.active?.isFavorite ? 'fill-amber-400 text-amber-400' : 'fill-none stroke-current'"
+              xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+              </polygon>
+            </svg>
+          </button>
+
+          <!-- Toggle Bloqueo / Protección contra Edición en Header (100% centrado y simétrico) -->
+          <button type="button" @click="$store.characters.toggleLocked($store.characters.activeId)"
+            class="w-7.5 h-7.5 sm:w-8 sm:h-8 rounded-xl border transition-all text-xs flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
+            :class="$store.characters.active?.isLocked ? 'bg-amber-500/20 border-amber-400/60 text-amber-300 shadow-[0_0_10px_rgba(245,158,11,0.3)]' : 'bg-white/5 border-white/10 text-white/40 hover:text-white hover:border-white/20'"
+            :title="$store.characters.active?.isLocked ? 'Ficha protegida contra edición 🔒 (Clic para desbloquear)' : 'Proteger ficha contra edición 🔓'">
+            <svg class="w-3.5 h-3.5 block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ──── Nivel Contextual: Botón Retorno en la Cabecera al estar en Vista Configuraciones ──── -->
+      <template x-if="$store.app.activeView === 'settings'">
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="btn-back-from-settings" type="button"
+            class="px-3 py-1.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-parchment-cream hover:text-white transition-all text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer hover:border-white/30"
+            @click="$store.settings.closeModal()" title="Salir de Configuraciones y volver a la vista anterior">
+            <svg class="w-3.5 h-3.5 text-parchment-cream/80 shrink-0" xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="m12 19-7-7 7-7" />
+              <path d="M19 12H5" />
+            </svg>
+            <span
+              x-text="$store.app.previousView === 'editor' && $store.characters.active ? 'Volver a la Ficha' : 'Volver al Panel'"></span>
+          </button>
+        </div>
+      </template>
+
+      <!-- ──── Switcher de Modo: Fichas vs Tier List (Visible en Dashboard y Tier List) ──── -->
+      <div x-show="$store.app.activeView === 'dashboard' || $store.app.activeView === 'tierlist'"
+        class="p-0.5 sm:p-1 rounded-xl bg-[#080b11] border border-white/20 backdrop-blur-md flex items-center shadow-lg gap-0.5 sm:gap-1 shrink-0 whitespace-nowrap"
+        role="group" aria-label="Vista principal">
+        <button type="button"
+          class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer select-none shrink-0 whitespace-nowrap"
+          :class="$store.app.activeView === 'dashboard' ? 'bg-[var(--accent,#00F0FF)] text-black font-extrabold shadow-md shadow-[var(--accent,#00F0FF)]/25' : 'text-slate-300 hover:text-white hover:bg-white/10'"
+          @click="$store.app.openDashboardView()"
+          title="Panel y Gestión de Fichas de Rol">
+          <i data-lucide="users" class="w-3.5 h-3.5 shrink-0"></i>
+          <span>Fichas</span>
+        </button>
+        <button type="button"
+          class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer select-none shrink-0 whitespace-nowrap"
+          :class="$store.app.activeView === 'tierlist' ? 'bg-purple-500 text-white font-extrabold shadow-md shadow-purple-500/25' : 'text-slate-300 hover:text-white hover:bg-white/10'"
+          @click="$store.app.openTierListView()"
+          title="Creador de Tier List">
+          <i data-lucide="trophy" class="w-3.5 h-3.5 shrink-0" :class="$store.app.activeView === 'tierlist' ? 'text-amber-300' : 'text-amber-400'"></i>
+          <span>Tier List</span>
+        </button>
+      </div>
+
+      <!-- ──── Botón Ir al Editor (Visible si hay personaje activo y no está deshabilitado en ajustes) ──── -->
+      <template x-if="($store.app.activeView === 'dashboard' || $store.app.activeView === 'tierlist') && $store.characters.active && !$store.settings.hideRecentSheetButton">
+        <button id="btn-go-to-editor" type="button"
+          class="px-3.5 py-1.5 rounded-xl border border-amber-400/50 bg-amber-400/10 text-amber-300 hover:bg-amber-400/20 hover:border-amber-400 hover:text-white transition-all text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 shrink-0 cursor-pointer shadow-[0_0_12px_rgba(251,191,36,0.2)] hover:shadow-[0_0_18px_rgba(251,191,36,0.45)] group"
+          @click="$store.app.openEditorView()" title="Ir al Editor del Personaje Activo">
+          <span class="text-amber-400/90 group-hover:text-amber-300 transition-colors hidden sm:inline">Abrir Ficha:</span>
+          <strong
+            class="text-white group-hover:text-amber-200 truncate max-w-[120px] sm:max-w-[160px] font-title font-bold tracking-wide transition-colors"
+            x-text="$store.characters.active?.name"></strong>
+          <svg class="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-200 group-hover:translate-x-0.5 transition-all shrink-0"
+            xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
+        </button>
+      </template>
+
+      <!-- Divider -->
+      <div class="header-divider mx-1 shrink-0" x-show="$store.app.activeView === 'editor'"></div>
+
+      <!-- ──── 3. Modo de Aplicación: Segmented Toggle Control (Switch de Dos Estados) ──── -->
+      <div x-show="$store.app.activeView === 'editor'"
+        class="p-0.5 sm:p-1 rounded-xl bg-[#080b11] border border-white/20 backdrop-blur-md flex items-center shadow-lg gap-0.5 sm:gap-1 shrink-0 whitespace-nowrap"
+        role="group" aria-label="Modo de visualización">
+        <button id="btn-mode-edit" type="button"
+          class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer select-none shrink-0 whitespace-nowrap"
+          :class="$store.app.editMode ? 'bg-[var(--accent,#00F0FF)] text-black font-extrabold shadow-md shadow-[var(--accent,#00F0FF)]/25' : 'text-slate-300 hover:text-white hover:bg-white/10'"
+          @click="$store.characters.active?.isLocked ? $store.app.toast('Ficha protegida contra edición. Desbloquéala desde el candado para editar.', 'warning') : ($store.app.editMode || $store.app.toggleEditMode())"
+          aria-pressed="true" title="Modo Edición (Ctrl + E)">
+          <i data-lucide="pen-line" class="w-3.5 h-3.5 shrink-0"></i>
+          <span class="whitespace-nowrap leading-none hidden sm:inline">Modo Edición</span>
+          <span class="whitespace-nowrap leading-none sm:hidden">Edición</span>
+        </button>
+        <button id="btn-mode-preview" type="button"
+          class="px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer select-none shrink-0 whitespace-nowrap"
+          :class="!$store.app.editMode ? 'bg-amber-400 text-black font-extrabold shadow-md shadow-amber-400/25' : 'text-slate-300 hover:text-white hover:bg-white/10'"
+          @click="$store.app.editMode && $store.app.toggleEditMode()" aria-pressed="false"
+          title="Vista Previa (Ctrl + P)">
+          <i data-lucide="eye" class="w-3.5 h-3.5 shrink-0"></i>
+          <span class="whitespace-nowrap leading-none hidden sm:inline">Vista Previa</span>
+          <span class="whitespace-nowrap leading-none sm:hidden">Previa</span>
+        </button>
+      </div>
+
+      <!-- Spacer -->
+      <div class="flex-1 min-w-[6px]"></div>
+
+      <!-- ──── Métrica Global de Completitud (Visible en Editor View) ──── -->
+      <div x-show="$store.app.activeView === 'editor' && $store.characters.active && !$store.settings.hideCompletenessBar" x-cloak
+        x-data="{ get completionPct() { return $store.characters.overallCompletion; } }"
+        class="hidden xl:flex items-center gap-2 px-2.5 py-1 rounded-xl border border-white/10 bg-black/40 backdrop-blur-md text-xs font-mono shadow-sm shrink-0 whitespace-nowrap">
+        <span class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">Completitud:</span>
+        <div class="flex items-center gap-1.5">
+          <div class="w-14 h-1.5 bg-white/10 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-500"
+              :style="`width: ${completionPct}%; background: ${completionPct >= 80 ? '#10b981' : completionPct >= 45 ? ($store.settings.accentColor || '#00F0FF') : '#f59e0b'};`">
+            </div>
+          </div>
+          <span class="font-bold font-title text-[11px]"
+            :class="completionPct >= 80 ? 'text-emerald-400' : completionPct >= 45 ? 'text-cyan-400' : 'text-amber-400'"
+            x-text="`${completionPct}%`"></span>
+        </div>
+      </div>
+
+      <!-- ──── Acciones de exportación / Estado ──── -->
+      <!-- Indicador Dinámico de Auto-Guardado Inteligente -->
+      <div class="flex items-center no-print shrink-0 whitespace-nowrap" x-show="$store.characters.active" x-cloak>
+        <!-- Estado 1: Guardando... -->
+        <template x-if="$store.characters.saveStatus === 'saving'">
+          <div
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-accent-cyan/15 border border-accent-cyan/40 text-accent-cyan text-[11px] font-mono font-bold uppercase tracking-wider shadow-sm shrink-0 whitespace-nowrap select-none">
+            <svg class="animate-spin w-3.5 h-3.5 text-accent-cyan shrink-0" xmlns="http://www.w3.org/2000/svg"
+              fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+            <span class="whitespace-nowrap leading-none hidden sm:inline">Guardando...</span>
+          </div>
+        </template>
+
+        <!-- Estado 2: Cambios Pendientes -->
+        <template x-if="$store.characters.saveStatus === 'pending'">
+          <button type="button" @click="$store.characters.forceSave()"
+            :title="`Hay cambios pendientes. Auto-guardado en curso (${$store.characters.autoSaveIntervalLabel}). Clic o Ctrl+S para guardar inmediatamente.`"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm shrink-0 whitespace-nowrap select-none">
+            <span class="relative flex h-2 w-2 shrink-0">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+            <span class="whitespace-nowrap leading-none hidden sm:inline">Guardar (Ctrl+S)</span>
+            <span class="whitespace-nowrap leading-none sm:hidden">Guardar</span>
+          </button>
+        </template>
+
+        <!-- Estado 3: Guardado ✓ -->
+        <template x-if="$store.characters.saveStatus === 'saved' || $store.characters.saveStatus === 'idle'">
+          <button type="button" @click="$store.characters.forceSave()"
+            :title="`Guardado automáticamente en Dexie.js (${$store.characters.autoSaveIntervalLabel}). Clic o Ctrl+S para forzar guardado.`"
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-[11px] font-mono font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm shrink-0 whitespace-nowrap select-none">
+            <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span class="whitespace-nowrap leading-none hidden sm:inline">Guardado</span>
+          </button>
+        </template>
+
+        <!-- Estado 4: Error al Guardar -->
+        <template x-if="$store.characters.saveStatus === 'error'">
+          <button type="button" @click="$store.characters.forceSave()"
+            title="Error al persistir datos. Clic para reintentar."
+            class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-rose-500/20 border border-rose-500/50 text-rose-400 hover:bg-rose-500/30 text-[11px] font-mono font-bold uppercase tracking-wider animate-bounce cursor-pointer shadow-[0_0_10px_rgba(244,63,94,0.3)] shrink-0 whitespace-nowrap select-none">
+            <svg class="w-3.5 h-3.5 text-rose-400 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+              fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            <span class="whitespace-nowrap leading-none hidden sm:inline">Error</span>
+          </button>
+        </template>
+      </div>
+
+
+
+      <!-- Botón Consola de Comandos (Ctrl + `) -->
+      <button id="btn-dev-console" type="button" @click="$store.devConsole.toggleModal()"
+        class="header-btn-ghost text-xs px-2 sm:px-2.5 py-1.5 flex items-center gap-1.5 cursor-pointer no-print font-mono shrink-0 text-emerald-400 hover:text-emerald-300 border-emerald-500/20 hover:border-emerald-500/40"
+        title="Consola de Comandos (Ctrl + `)">
+        <i data-lucide="terminal" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+        <span class="hidden 2xl:inline text-[11px]">Consola</span>
+      </button>
+
+      <!-- Botón Atajos de Teclado (Shift + ?) -->
+      <button type="button" @click="$store.app.toggleHotkeysModal()"
+        class="header-btn-ghost text-xs px-2 sm:px-2.5 py-1.5 flex items-center gap-1.5 cursor-pointer no-print font-mono shrink-0"
+        title="Guía de Atajos de Teclado (Shift + ?)">
+        <i data-lucide="keyboard" class="w-3.5 h-3.5 text-accent-gold shrink-0"></i>
+        <span class="hidden 2xl:inline text-[11px]">Atajos</span>
+      </button>
+
+      <!-- Acceso Rápido Nuevo Personaje (Acceso secundario simplificado en el Editor, oculto en Dashboard) -->
+      <button id="btn-new-char" type="button"
+        class="header-btn-ghost text-xs px-2 sm:px-2.5 py-1.5 flex items-center gap-1.5 cursor-pointer no-print font-mono shrink-0"
+        x-show="$store.app.activeView === 'editor'" @click="$store.characters.createNew()"
+        title="Crear nueva ficha de rol en blanco">
+        <i data-lucide="plus" class="w-3.5 h-3.5 text-accent-cyan shrink-0"></i>
+        <span class="hidden lg:inline text-[11px]">Nuevo</span>
+      </button>
+
+
+    </header>

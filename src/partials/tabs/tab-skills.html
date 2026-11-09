@@ -1,0 +1,1052 @@
+<!-- =========================================================
+           PESTAÑA 7: HABILIDADES
+           ========================================================= -->
+          <div x-show="$store.app.currentTab === 'skills'" class="space-y-6" data-tab-section="skills" x-data="{
+              searchQuery: '',
+              typeFilter: 'all',
+              tagFilter: null,
+              collapsedMap: {},
+              confirmDeleteId: null,
+              draggedIndex: null,
+              dragOverIndex: null,
+              isDraggingSkillImg: null,
+              skillUrlInputId: null,
+              skillUrlValue: '',
+
+              init() {
+                this.loadCollapsedState();
+                this.$watch('$store.characters.activeId', () => {
+                  this.loadCollapsedState();
+                });
+              },
+
+              loadCollapsedState() {
+                const charId = Alpine.store('characters')?.activeId;
+                if (!charId) return;
+                try {
+                  const raw = localStorage.getItem('superficha_skills_collapsed_' + charId);
+                  this.collapsedMap = raw ? JSON.parse(raw) : {};
+                } catch (e) {
+                  this.collapsedMap = {};
+                }
+              },
+
+              saveCollapsedState() {
+                const charId = Alpine.store('characters')?.activeId;
+                if (!charId) return;
+                try {
+                  localStorage.setItem('superficha_skills_collapsed_' + charId, JSON.stringify(this.collapsedMap));
+                } catch (e) {}
+              },
+
+              isDraggingCard: false,
+
+              isSkillCollapsed(skill) {
+                if (!skill || !skill.id) return false;
+                return Boolean(this.collapsedMap[skill.id]);
+              },
+
+              toggleSkill(skillId) {
+                if (this.isDraggingCard) return;
+                if (!skillId) return;
+                const next = !Boolean(this.collapsedMap[skillId]);
+                this.collapsedMap = { ...this.collapsedMap, [skillId]: next };
+                this.saveCollapsedState();
+              },
+
+              expandAll() {
+                const skills = Alpine.store('characters')?.active?.skills || [];
+                const map = {};
+                skills.forEach(s => { map[s.id] = false; });
+                this.collapsedMap = map;
+                this.saveCollapsedState();
+                Alpine.store('app')?.toast('Todas las habilidades expandidas.', 'info', 1500);
+              },
+
+              collapseAll() {
+                const skills = Alpine.store('characters')?.active?.skills || [];
+                const map = {};
+                skills.forEach(s => { map[s.id] = true; });
+                this.collapsedMap = map;
+                this.saveCollapsedState();
+                Alpine.store('app')?.toast('Todas las habilidades colapsadas.', 'info', 1500);
+              },
+
+              onAddSkill(type) {
+                const newId = Alpine.store('characters').addSkill(type);
+                if (newId) {
+                  this.collapsedMap[newId] = false;
+                  this.saveCollapsedState();
+                }
+              },
+
+              onDuplicateSkill(skillId) {
+                const newId = Alpine.store('characters').duplicateSkill(skillId);
+                if (newId) {
+                  this.collapsedMap[newId] = false;
+                  this.saveCollapsedState();
+                }
+              },
+
+              onDragStart(e, index) {
+                if (!Alpine.store('app').editMode) {
+                  e.preventDefault();
+                  return;
+                }
+                this.draggedIndex = index;
+                this.isDraggingCard = true;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', String(index));
+                const card = e.currentTarget.closest('.skill-card');
+                if (card && e.dataTransfer.setDragImage) {
+                  const rect = card.getBoundingClientRect();
+                  e.dataTransfer.setDragImage(card, e.clientX - rect.left, e.clientY - rect.top);
+                }
+              },
+
+              onDragOver(e, index) {
+                if (!Alpine.store('app').editMode || this.draggedIndex === null) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                this.dragOverIndex = index;
+              },
+
+              onDrop(e, targetIndex) {
+                if (!Alpine.store('app').editMode || this.draggedIndex === null) return;
+                e.preventDefault();
+                if (this.draggedIndex !== targetIndex) {
+                  Alpine.store('characters').reorderSkills(this.draggedIndex, targetIndex);
+                }
+                this.draggedIndex = null;
+                this.dragOverIndex = null;
+              },
+
+              onDragEnd() {
+                this.draggedIndex = null;
+                this.dragOverIndex = null;
+                setTimeout(() => {
+                  this.isDraggingCard = false;
+                }, 100);
+              },
+
+              addTag(skill, event) {
+                const val = event.target.value?.trim();
+                if (!val) return;
+                if (!Array.isArray(skill.tags)) skill.tags = [];
+                const parts = val.split(',').map(p => p.trim()).filter(Boolean);
+                parts.forEach(p => {
+                  if (!skill.tags.includes(p)) {
+                    skill.tags.push(p);
+                  }
+                });
+                event.target.value = '';
+                Alpine.store('characters').scheduleAutoSave();
+              },
+
+              removeTag(skill, tagIndex) {
+                if (!Array.isArray(skill.tags)) return;
+                skill.tags.splice(tagIndex, 1);
+                Alpine.store('characters').scheduleAutoSave();
+              },
+
+              get allTags() {
+                const set = new Set();
+                const list = Alpine.store('characters')?.active?.skills ?? [];
+                list.forEach(s => {
+                  if (Array.isArray(s.tags)) {
+                    s.tags.forEach(t => { if (t && String(t).trim()) set.add(String(t).trim()); });
+                  }
+                });
+                return Array.from(set);
+              },
+
+              get filteredSkills() {
+                let list = Alpine.store('characters')?.active?.skills ?? [];
+                if (this.typeFilter !== 'all') {
+                  list = list.filter(s => s.type === this.typeFilter);
+                }
+                if (this.tagFilter) {
+                  list = list.filter(s => Array.isArray(s.tags) && s.tags.includes(this.tagFilter));
+                }
+                if (this.searchQuery.trim()) {
+                  const q = this.searchQuery.trim().toLowerCase();
+                  list = list.filter(s =>
+                    (s.title || '').toLowerCase().includes(q) ||
+                    (s.summary || '').toLowerCase().includes(q) ||
+                    (s.effect || '').toLowerCase().includes(q) ||
+                    (s.tier || '').toLowerCase().includes(q) ||
+                    (s.elementType || '').toLowerCase().includes(q) ||
+                    (s.range || '').toLowerCase().includes(q) ||
+                    (s.condicion || '').toLowerCase().includes(q) ||
+                    (Array.isArray(s.tags) && s.tags.some(t => String(t).toLowerCase().includes(q)))
+                  );
+                }
+                return list;
+              }
+            }" class="space-y-6">
+
+            <!-- Toolbar Superior: Encabezado, Contador y Acciones Globales -->
+            <div class="flex items-center justify-between flex-wrap gap-3">
+              <div class="flex items-center gap-3">
+                <div
+                  class="category-header-icon-box w-9 h-9 rounded-xl bg-accent-cyan/15 border border-accent-cyan/40 flex items-center justify-center text-accent-cyan shrink-0"
+                  style="box-shadow: 0 0 12px var(--accent-glow);">
+                  <i data-lucide="zap" class="w-4.5 h-4.5"></i>
+                </div>
+                <div>
+                  <h3 class="category-header-title">Habilidades del Personaje</h3>
+                  <p class="category-header-desc">Gestiona las habilidades activas, pasivas, técnicas y dones de combate.</p>
+                </div>
+              </div>
+
+              <!-- Botones de Acción Global -->
+              <div class="flex items-center flex-wrap gap-2">
+                <!-- Expandir todo / Colapsar todo -->
+                <div x-show="($store.characters.active?.skills?.length ?? 0) > 0"
+                  class="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10 shadow-sm">
+                  <button type="button"
+                    class="text-xs py-1 px-2.5 gap-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 font-mono font-bold transition-all flex items-center cursor-pointer"
+                    @click="expandAll()" title="Expandir todas las tarjetas">
+                    <i data-lucide="chevrons-down-up" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Expandir todo</span>
+                  </button>
+                  <button type="button"
+                    class="text-xs py-1 px-2.5 gap-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 font-mono font-bold transition-all flex items-center cursor-pointer"
+                    @click="collapseAll()" title="Colapsar todas las tarjetas">
+                    <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Colapsar todo</span>
+                  </button>
+                </div>
+
+                <!-- Añadir Pasiva / Activa -->
+                <button type="button" class="header-btn-secondary text-xs gap-1.5" @click="onAddSkill('passive')"
+                  x-show="$store.app.editMode">
+                  <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+                  + Pasiva
+                </button>
+                <button type="button" class="header-btn-accent text-xs gap-1.5" @click="onAddSkill('active')"
+                  x-show="$store.app.editMode">
+                  <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+                  + Activa
+                </button>
+              </div>
+            </div>
+
+            <!-- Barra de Búsqueda y Filtros por Tags / Tipo -->
+            <div x-show="($store.characters.active?.skills?.length ?? 0) > 0"
+              class="p-3.5 rounded-xl bg-black/40 border border-white/10 space-y-2.5">
+              <div class="flex items-center flex-wrap gap-2.5">
+                <!-- Buscador por texto -->
+                <div class="relative flex-1 min-w-[200px]">
+                  <i data-lucide="search"
+                    class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                  <input type="text" x-model="searchQuery"
+                    placeholder="Buscar habilidad por nombre, efecto, elemento o tag..."
+                    style="padding-left: 2.25rem !important; padding-right: 2rem !important;"
+                    class="form-input text-xs !pl-9 !pr-8 py-1.5 w-full bg-black/50 border-white/15 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400" />
+                  <button x-show="searchQuery" type="button" @click="searchQuery = ''"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+
+                <!-- Filtro por Tipo -->
+                <div
+                  class="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10 text-xs">
+                  <button type="button" class="px-2.5 py-1 rounded-lg font-mono font-bold transition-all cursor-pointer"
+                    :class="typeFilter === 'all' ? 'shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+                    :style="typeFilter === 'all' ? `background-color: ${$store.settings.accentColor || '#00F0FF'}; color: #000000; box-shadow: 0 0 12px ${$store.app.hexToRgba($store.settings.accentColor || '#00F0FF', 0.45)};` : ''"
+                    @click="typeFilter = 'all'">
+                    Todas (<span x-text="($store.characters.active?.skills ?? []).length"></span>)
+                  </button>
+                  <button type="button" class="px-2.5 py-1 rounded-lg font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                    :class="typeFilter === 'active' ? 'shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+                    :style="typeFilter === 'active' ? `background-color: ${$store.settings.accentColor || '#00F0FF'}; color: #000000; box-shadow: 0 0 12px ${$store.app.hexToRgba($store.settings.accentColor || '#00F0FF', 0.45)};` : ''"
+                    @click="typeFilter = 'active'">
+                    <i data-lucide="zap" class="w-3 h-3"></i>
+                    Activas (<span
+                      x-text="($store.characters.active?.skills ?? []).filter(s => s.type === 'active').length"></span>)
+                  </button>
+                  <button type="button" class="px-2.5 py-1 rounded-lg font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                    :class="typeFilter === 'passive' ? 'shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+                    :style="typeFilter === 'passive' ? `background-color: ${$store.settings.secondaryColor || '#FF0077'}; color: #000000; box-shadow: 0 0 12px ${$store.app.hexToRgba($store.settings.secondaryColor || '#FF0077', 0.45)};` : ''"
+                    @click="typeFilter = 'passive'">
+                    <i data-lucide="shield" class="w-3 h-3"></i>
+                    Pasivas (<span
+                      x-text="($store.characters.active?.skills ?? []).filter(s => s.type === 'passive').length"></span>)
+                  </button>
+                </div>
+              </div>
+
+              <!-- Nube de Tags para filtrado rápido -->
+              <div x-show="allTags.length > 0"
+                class="flex items-center flex-wrap gap-1.5 pt-1.5 border-t border-white/10">
+                <span class="text-[11px] text-ink-slate font-medium mr-1 flex items-center gap-1">
+                  <i data-lucide="tags" class="w-3 h-3 text-accent-gold"></i> Tags:
+                </span>
+                <button type="button" class="skill-tag-filter" :class="tagFilter === null ? 'active' : ''"
+                  @click="tagFilter = null">
+                  Todos
+                </button>
+                <template x-for="tag in allTags" :key="tag">
+                  <button type="button" class="skill-tag-filter" :class="tagFilter === tag ? 'active' : ''"
+                    @click="tagFilter = (tagFilter === tag ? null : tag)">
+                    <span x-text="'#' + tag"></span>
+                  </button>
+                </template>
+              </div>
+            </div>
+
+            <!-- Estado: Sin habilidades -->
+            <div x-show="!$store.characters.active?.skills?.length"
+              class="flex flex-col items-center justify-center py-16 gap-4 text-ink-slate form-card text-center">
+              <i data-lucide="zap" class="w-14 h-14 opacity-20 text-accent-gold"></i>
+              <div class="text-center space-y-1">
+                <p class="font-title text-xl text-parchment-peach/60">Sin habilidades registradas</p>
+                <p class="text-sm" x-show="$store.app.editMode">
+                  Usa los botones superiores para añadir una habilidad activa o pasiva a este personaje.
+                </p>
+              </div>
+              <div class="flex gap-2" x-show="$store.app.editMode">
+                <button type="button" class="header-btn-secondary text-xs gap-1.5" @click="onAddSkill('passive')">
+                  <i data-lucide="shield" class="w-3.5 h-3.5"></i> + Pasiva
+                </button>
+                <button type="button" class="header-btn-accent text-xs gap-1.5" @click="onAddSkill('active')">
+                  <i data-lucide="zap" class="w-3.5 h-3.5"></i> + Activa
+                </button>
+              </div>
+            </div>
+
+            <!-- Estado: Búsqueda sin resultados -->
+            <div x-show="($store.characters.active?.skills?.length > 0) && filteredSkills.length === 0"
+              class="form-card text-center py-10 space-y-2">
+              <i data-lucide="search-x" class="w-8 h-8 mx-auto text-ink-slate opacity-40"></i>
+              <p class="text-sm text-ink-slate">No se encontraron habilidades que coincidan con los filtros aplicados.
+              </p>
+              <button type="button" class="header-btn-ghost text-xs mx-auto gap-1"
+                @click="searchQuery = ''; typeFilter = 'all'; tagFilter = null">
+                <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer filtros
+              </button>
+            </div>
+
+            <!-- Lista de Cards de Habilidades -->
+            <div class="space-y-4" x-show="filteredSkills.length > 0">
+              <template x-for="(skill, sIndex) in filteredSkills" :key="skill.id">
+                <div class="skill-card group transition-all" :class="[
+                    skill.type === 'active' ? 'is-active' : 'is-passive',
+                    isSkillCollapsed(skill) ? 'is-collapsed' : 'is-expanded',
+                    draggedIndex === sIndex ? 'is-dragging' : '',
+                    dragOverIndex === sIndex ? 'is-drag-over' : ''
+                  ]"
+                  @dragover="onDragOver($event, sIndex)" @drop="onDrop($event, sIndex)" @dragend="onDragEnd()">
+
+                  <!-- ════ CABECERA DE LA TARJETA (ZONA EXCLUSIVA DE ARRASTRE) ════ -->
+                  <div class="skill-card-header flex items-center justify-between gap-3 select-none cursor-pointer"
+                    :draggable="$store.app.editMode"
+                    @dragstart="onDragStart($event, sIndex)"
+                    @click="toggleSkill(skill.id)">
+
+                    <!-- Lado Izquierdo: Handle drag + Thumbnail + Título + Resumen preview -->
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <!-- Handle Drag y Drop (Modo Edición) -->
+                      <div x-show="$store.app.editMode" class="skill-drag-handle p-1 shrink-0 cursor-grab active:cursor-grabbing"
+                        title="Arrastrar para reordenar" @click.stop>
+                        <svg class="w-4 h-4 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/>
+                          <circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>
+                        </svg>
+                      </div>
+
+                      <!-- Thumbnail Miniatura (si tiene imagen) -->
+                      <template x-if="skill.imageDataUrl">
+                        <div class="skill-thumb-mini relative overflow-hidden"
+                          draggable="false"
+                          @click.stop="$store.app.openLightbox(skill.imageDataUrl)"
+                          title="Clic para ver a pantalla completa">
+                          <img :src="skill.imageDataUrl" class="thumb-blur-backdrop" alt="" />
+                          <img :src="skill.imageDataUrl" :alt="skill.title || 'Habilidad'"
+                            class="relative z-10 w-full h-full object-center"
+                            :style="skill.imageTransform || ''"
+                            :class="(skill.imageFit || 'cover') === 'contain' ? 'fit-contain' : 'fit-cover'" />
+                        </div>
+                      </template>
+
+                      <!-- Textos del Header -->
+                      <div class="min-w-0 flex-1 space-y-0.5">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <h4 class="font-title text-base font-bold text-parchment-peach truncate"
+                            x-text="skill.title || 'Nueva Habilidad (Sin título)'"></h4>
+
+                          <!-- Badge de Rango en Header si existe -->
+                          <template x-if="skill.tier && String(skill.tier).trim()">
+                            <span
+                              class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-accent-gold/15 border border-accent-gold/30 text-accent-gold shrink-0">
+                              <svg class="w-3 h-3 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="8" r="6"/>
+                                <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                              </svg>
+                              <span x-text="skill.tier"></span>
+                            </span>
+                          </template>
+
+                          <!-- Badge de Elemento si existe -->
+                          <template x-if="skill.elementType && String(skill.elementType).trim()">
+                            <span
+                              class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-accent-copper/15 border border-accent-copper/30 text-accent-copper shrink-0">
+                              <svg class="w-3 h-3 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                              </svg>
+                              <span x-text="skill.elementType"></span>
+                            </span>
+                          </template>
+                        </div>
+
+                        <!-- Resumen corto cuando está colapsada -->
+                        <p x-show="isSkillCollapsed(skill)" class="text-xs text-ink-slate truncate italic font-sans"
+                          x-text="skill.summary || skill.effect || 'Sin descripción detallada...'"></p>
+
+                        <!-- Chips de Tags en Header Colapsado -->
+                        <div x-show="isSkillCollapsed(skill) && Array.isArray(skill.tags) && skill.tags.length > 0"
+                          class="flex items-center flex-wrap gap-1 pt-0.5">
+                          <template x-for="t in skill.tags" :key="t">
+                            <span
+                              class="text-[10px] px-1.5 py-0.2 rounded bg-parchment-brown/20 text-ink-slate font-sans"
+                              x-text="'#' + t"></span>
+                          </template>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Lado Derecho: Selector Tipo Unificado + Duplicar + Borrar + Chevron Colapso -->
+                    <div class="flex items-center gap-2 shrink-0" @click.stop draggable="false">
+                      <!-- Selector Unificado Activa / Pasiva -->
+                      <template x-if="$store.app.editMode">
+                        <select class="skill-type-select" x-model="skill.type"
+                          @change="$store.characters.scheduleAutoSave()">
+                          <option value="active">Activa</option>
+                          <option value="passive">Pasiva</option>
+                        </select>
+                      </template>
+                      <template x-if="!$store.app.editMode">
+                        <span class="skill-type-badge"
+                          :class="skill.type === 'active' ? 'active-badge' : 'passive-badge'">
+                          <template x-if="skill.type === 'active'">
+                            <svg class="w-3 h-3 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                          </template>
+                          <template x-if="skill.type !== 'active'">
+                            <svg class="w-3 h-3 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+                            </svg>
+                          </template>
+                          <span x-text="skill.type === 'active' ? 'Activa' : 'Pasiva'"></span>
+                        </span>
+                      </template>
+
+                      <!-- Botón Duplicar Habilidad (Modo Edición) -->
+                      <button x-show="$store.app.editMode" type="button"
+                        class="header-btn-ghost p-1.5 rounded hover:text-accent-gold transition-colors cursor-pointer"
+                        @click.stop="onDuplicateSkill(skill.id)" title="Duplicar habilidad">
+                        <svg class="w-3.5 h-3.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                          <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                        </svg>
+                      </button>
+
+                      <!-- Botón Eliminar con Confirmación Visible -->
+                      <div x-show="$store.app.editMode" class="relative">
+                        <template x-if="confirmDeleteId !== skill.id">
+                          <button type="button"
+                            class="header-btn-ghost p-1.5 rounded text-ink-slate hover:text-accent-ruby hover:bg-accent-ruby/15 transition-colors cursor-pointer"
+                            @click.stop="confirmDeleteId = skill.id" title="Eliminar habilidad">
+                            <svg class="w-3.5 h-3.5 text-accent-ruby pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M3 6h18"/>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                              <line x1="10" x2="10" y1="11" y2="17"/>
+                              <line x1="14" x2="14" y1="11" y2="17"/>
+                            </svg>
+                          </button>
+                        </template>
+
+                        <template x-if="confirmDeleteId === skill.id">
+                          <div class="skill-delete-confirm" @click.stop>
+                            <span class="font-bold">¿Borrar?</span>
+                            <button type="button"
+                              class="px-1.5 py-0.5 rounded bg-accent-ruby text-white font-semibold text-[11px] hover:bg-red-600 cursor-pointer"
+                              @click.stop="$store.characters.removeSkill(skill.id); confirmDeleteId = null">
+                              Sí
+                            </button>
+                            <button type="button"
+                              class="px-1.5 py-0.5 rounded bg-white/10 text-parchment-cream text-[11px] hover:bg-white/20 cursor-pointer"
+                              @click.stop="confirmDeleteId = null">
+                              No
+                            </button>
+                          </div>
+                        </template>
+                      </div>
+
+                      <!-- Botón Chevron para Colapsar / Expandir -->
+                      <button type="button"
+                        class="header-btn-ghost p-1.5 rounded text-ink-slate hover:text-parchment-cream cursor-pointer"
+                        @click.stop="toggleSkill(skill.id)"
+                        :title="isSkillCollapsed(skill) ? 'Expandir habilidad' : 'Colapsar habilidad'">
+                        <svg x-show="isSkillCollapsed(skill)" class="w-4 h-4 text-accent-gold pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m6 9 6 6 6-6"/>
+                        </svg>
+                        <svg x-show="!isSkillCollapsed(skill)" class="w-4 h-4 text-accent-gold pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="m18 15-6-6-6 6"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- ════ CUERPO EXPANDIDO DE LA TARJETA ════ -->
+                  <div x-show="!isSkillCollapsed(skill)" x-collapse x-cloak
+                    class="mt-2.5 pt-2.5 border-t border-parchment-brown/25">
+
+                    <!-- MODO EDICIÓN: Formulario completo aplanado -->
+                    <div x-show="$store.app.editMode" class="space-y-4">
+
+                      <!-- Fila 1: Título y Resumen corto (1 línea) -->
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label class="form-label">Título de la Habilidad</label>
+                          <input type="text" class="form-input"
+                            placeholder="Nombre de la habilidad (ej: Llama Devastadora)" x-model="skill.title"
+                            @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+                        <div>
+                          <label class="form-label">
+                            Resumen corto <span class="normal-case opacity-60">(1 línea para vista rápida)</span>
+                          </label>
+                          <input type="text" class="form-input"
+                            placeholder="Ej: Ráfaga de proyectiles ígneos a media distancia." x-model="skill.summary"
+                            @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+                      </div>
+
+                      <!-- Fila 2: Explicación / Efecto y Condición de Activación -->
+                      <div class="grid grid-cols-1 gap-4" :class="skill.type === 'passive' ? 'md:grid-cols-2' : ''">
+                        <div>
+                          <label class="form-label">Explicación / Efecto</label>
+                          <textarea class="form-textarea" rows="3"
+                            placeholder="Describe en detalle cómo opera esta habilidad, sus efectos en combate y reglas asociadas..."
+                            x-model="skill.effect" @input="$store.characters.scheduleAutoSave()"></textarea>
+                        </div>
+
+                        <!-- Condición de activación (Solo Pasivas) -->
+                        <div x-show="skill.type === 'passive'">
+                          <label class="form-label flex items-center gap-1">
+                            <svg class="w-3 h-3 text-accent-gold pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                              <path d="M12 8v4"/>
+                              <path d="M12 16h.01"/>
+                            </svg>
+                            Condición de Activación <span class="normal-case opacity-60">(Solo Pasivas)</span>
+                          </label>
+                          <input type="text" class="form-input"
+                            placeholder="Ej: Al recibir daño crítico, al estar por debajo del 25% de salud, pasiva permanente..."
+                            x-model="skill.condicion" @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+                      </div>
+
+                      <!-- Fila 3: TD, CD, Coste/Recurso (3 Columnas compartidas - Solo Activas) -->
+                      <div x-show="skill.type === 'active'" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- TD: Duración -->
+                        <div>
+                          <label class="form-label flex items-center gap-1">
+                            <svg class="w-3 h-3 text-ink-slate pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="12" r="10"/>
+                              <polyline points="12 6 12 12 16 14"/>
+                            </svg> TD (Duración)
+                            <span class="normal-case ml-1 opacity-60">[Opcional]</span>
+                          </label>
+                          <input type="text" class="form-input" placeholder="Ej: 2 turnos, 10s, instantáneo..."
+                            x-model="skill.td" @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+
+                        <!-- CD: Enfriamiento -->
+                        <div>
+                          <label class="form-label flex items-center gap-1">
+                            <svg class="w-3 h-3 text-ink-slate pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                              <path d="M3 3v5h5"/>
+                              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                              <path d="M16 21h5v-5"/>
+                            </svg> CD (Enfriamiento)
+                            <span class="normal-case ml-1 opacity-60">[Opcional]</span>
+                          </label>
+                          <input type="text" class="form-input" placeholder="Ej: 3 turnos, 30s, 1 combate..."
+                            x-model="skill.cd" @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+
+                        <!-- Coste / Recurso -->
+                        <div>
+                          <label class="form-label flex items-center gap-1">
+                            <svg class="w-3 h-3 text-accent-gold pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M6 3h12l4 6-10 13L2 9Z"/>
+                              <path d="M11 3 8 9l4 13 4-13-3-6"/>
+                              <path d="M2 9h20"/>
+                            </svg> Coste / Recurso
+                            <span class="normal-case ml-1 opacity-60">[Opcional]</span>
+                          </label>
+                          <input type="text" class="form-input" placeholder="Ej: 2 PM, 1 Carga, 10% salud..."
+                            x-model="skill.cost" @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+                      </div>
+
+                      <!-- Fila 4: Rango de Habilidad, Alcance, Elemento (3 Columnas) -->
+                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <!-- Rango de la Habilidad -->
+                        <div>
+                          <label class="form-label flex items-center gap-1">
+                            <svg class="w-3 h-3 text-accent-gold pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="8" r="6"/>
+                              <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                            </svg>
+                            Rango de la Habilidad <span class="normal-case opacity-60">(Opcional)</span>
+                          </label>
+                          <input type="text" class="form-input text-xs"
+                            placeholder="Ej: Básica, Avanzada, Suprema, Grado 1..." x-model="skill.tier"
+                            @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+
+                        <!-- Alcance / Rango -->
+                        <div>
+                          <label class="form-label flex items-center gap-1">
+                            <svg class="w-3 h-3 text-ink-teal pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="12" r="10"/>
+                              <circle cx="12" cy="12" r="6"/>
+                              <circle cx="12" cy="12" r="2"/>
+                            </svg>
+                            Alcance / Rango <span class="normal-case opacity-60">(Opcional)</span>
+                          </label>
+                          <input type="text" class="form-input text-xs"
+                            placeholder="Ej: Melé, 15m, Campo visual, Global..." x-model="skill.range"
+                            @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+
+                        <!-- Elemento / Tipo de Daño -->
+                        <div>
+                          <label class="form-label flex items-center gap-1">
+                            <svg class="w-3 h-3 text-accent-copper pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                            </svg>
+                            Elemento / Daño <span class="normal-case opacity-60">(Opcional)</span>
+                          </label>
+                          <input type="text" class="form-input text-xs"
+                            placeholder="Ej: Fuego, Cortante, Psíquico, Sagrado..." x-model="skill.elementType"
+                            @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+                      </div>
+
+                      <!-- Fila 5: Sistema de Tags Libres y Repercusión / Desventaja -->
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Chips de Tags libres -->
+                        <div>
+                          <label class="form-label flex items-center gap-1">
+                            <svg class="w-3 h-3 text-accent-gold pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="m15 5 6.3 6.3a2.4 2.4 0 0 1 0 3.4L17 19a2.4 2.4 0 0 1-3.4 0L7.3 12.7A2 2 0 0 1 6.7 11.3V5a2 2 0 0 1 2-2h6.3a2 2 0 0 1 1.4.6Z"/>
+                              <path d="m10 8 .01 0"/>
+                            </svg>
+                            Etiquetas / Categorías <span class="normal-case opacity-60">(Tags libres)</span>
+                          </label>
+                          <div
+                            class="form-input flex items-center flex-wrap gap-1.5 p-2 min-h-[42px] bg-parchment-brown/10">
+                            <!-- Chips añadidos -->
+                            <template x-for="(t, tIndex) in (skill.tags ?? [])" :key="tIndex">
+                              <span class="skill-tag-chip" :class="skill.type === 'passive' ? 'passive-tag' : ''">
+                                <span x-text="'#' + t"></span>
+                                <button type="button" class="skill-tag-chip-remove" @click="removeTag(skill, tIndex)"
+                                  title="Quitar tag">
+                                  <svg class="w-2.5 h-2.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 6 6 18"></path>
+                                    <path d="m6 6 12 12"></path>
+                                  </svg>
+                                </button>
+                              </span>
+                            </template>
+
+                            <!-- Input inline para añadir tag -->
+                            <input type="text" class="skill-tag-input" placeholder="+ Añadir tag (Enter o coma)..."
+                              @keydown.enter.prevent="addTag(skill, $event)" @blur="addTag(skill, $event)" />
+                          </div>
+                        </div>
+
+                        <!-- Repercusión / Desventaja -->
+                        <div>
+                          <label class="form-label flex items-center gap-1">
+                            <svg class="w-3 h-3 text-accent-copper pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                              <line x1="12" y1="9" x2="12" y2="13"/>
+                              <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            Repercusión / Desventaja <span class="normal-case opacity-60">(Opcional)</span>
+                          </label>
+                          <input type="text" class="form-input text-xs"
+                            placeholder="Ej: Produce fatiga extrema, consume 10% salud al fallar..."
+                            x-model="skill.drawback" @input="$store.characters.scheduleAutoSave()" />
+                        </div>
+                      </div>
+
+                      <!-- Fila 6: Visualizador Completo y Carga de Imagen / GIF -->
+                      <div class="pt-3 border-t border-parchment-brown/20">
+                        <label class="form-label flex items-center gap-1 mb-2">
+                          <i data-lucide="image" class="w-3.5 h-3.5 text-accent-gold"></i>
+                          Imagen o GIF Demostrativo <span class="normal-case opacity-60">(Vista completa sin cortes con
+                            opción de zoom)</span>
+                        </label>
+
+                        <div class="flex items-start flex-wrap sm:flex-nowrap gap-4">
+                          <!-- Visualizador Box con Widescreen 16:9, Drag y Drop Activo y Fondo Oscuro -->
+                          <div class="skill-thumb-box group cursor-pointer relative overflow-hidden transition-all duration-200"
+                            :class="{ 'ring-2 ring-accent-gold shadow-lg shadow-accent-gold/20 scale-[1.01]': isDraggingSkillImg === skill.id }"
+                            @dragover.prevent="isDraggingSkillImg = skill.id"
+                            @dragleave.prevent="if (isDraggingSkillImg === skill.id) isDraggingSkillImg = null"
+                            @drop.prevent="
+                              isDraggingSkillImg = null;
+                              const f = $event.dataTransfer?.files?.[0];
+                              if (f && f.type.startsWith('image/')) {
+                                $store.app.openCropper(f, 'skill', skill.id);
+                              } else {
+                                $store.app.toast('Arrastra un archivo de imagen o GIF válido.', 'warning');
+                              }
+                            "
+                            @click="skill.imageDataUrl ? $store.app.openLightbox(skill.imageDataUrl) : null"
+                            :title="skill.imageDataUrl ? 'Clic para ampliar a pantalla completa' : 'Arrastra una imagen o GIF aquí'">
+
+                            <!-- Imagen presente -->
+                            <div x-show="skill.imageDataUrl" class="w-full h-full relative">
+                              <img :src="skill.imageDataUrl" class="thumb-blur-backdrop" alt="" />
+                              <img :src="skill.imageDataUrl" :alt="skill.title || 'Imagen de habilidad'"
+                                class="relative z-10 w-full h-full object-center transition-transform duration-200"
+                                :style="skill.imageTransform || ''"
+                                :class="(skill.imageFit || 'cover') === 'contain' ? 'fit-contain' : 'fit-cover'" />
+
+                              <!-- Overlay sutil de Lightbox -->
+                              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center pointer-events-none">
+                                <span class="px-2 py-0.5 rounded bg-black/75 border border-white/20 text-white font-hud text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-lg">
+                                  <i data-lucide="zoom-in" class="w-3 h-3 text-accent-gold"></i>
+                                  <span>Lightbox</span>
+                                </span>
+                              </div>
+                            </div>
+
+                            <!-- Fallback sin imagen (Placeholder interactivo con Drag y Drop) -->
+                            <div x-show="!skill.imageDataUrl"
+                              class="flex flex-col items-center justify-center gap-1 text-ink-slate p-3 pointer-events-none text-center select-none">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="w-6 h-6 text-accent-gold/60 transition-transform group-hover:scale-110">
+                                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"></path>
+                                <line x1="16" x2="22" y1="5" y2="5"></line>
+                                <line x1="19" x2="19" y1="2" y2="8"></line>
+                                <circle cx="9" cy="9" r="2"></circle>
+                                <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path>
+                              </svg>
+                              <span class="text-[10px] font-hud font-bold text-white/70 uppercase tracking-wider">
+                                Arrastra Imagen / GIF
+                              </span>
+                              <span class="text-[9px] font-mono text-ink-slate">16:9 Widescreen</span>
+                            </div>
+
+                            <!-- Indicador visual flotante de DragOver -->
+                            <div x-show="isDraggingSkillImg === skill.id"
+                              class="absolute inset-0 bg-accent-gold/20 backdrop-blur-[2px] z-30 flex items-center justify-center border-2 border-dashed border-accent-gold rounded-[inherit]">
+                              <span class="px-2.5 py-1 rounded-lg bg-black/90 text-accent-gold font-hud text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-xl">
+                                <i data-lucide="download" class="w-3.5 h-3.5 animate-bounce"></i>
+                                <span>Soltar para Recortar</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          <!-- Controles de la Suite Universal de Manipulación -->
+                          <div class="space-y-2.5 flex-1 min-w-[220px]">
+                            <!-- Barra de Micro-Herramientas (si tiene imagen) -->
+                            <div x-show="skill.imageDataUrl" class="flex items-center gap-1.5 flex-wrap">
+                              <!-- Recortar / Re-encuadrar -->
+                              <button type="button" class="visual-tool-btn" @click="$store.characters.reCropSkillImage(skill.id)"
+                                title="Ajustar recorte y encuadre (16:9)">
+                                <i data-lucide="crop" class="w-3.5 h-3.5"></i>
+                                <span>Recortar</span>
+                              </button>
+
+                              <!-- Rotar 90° -->
+                              <button type="button" class="visual-tool-btn" @click="$store.characters.rotateSkillImage(skill.id)"
+                                title="Rotar 90 grados en sentido horario">
+                                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                                <span>Rotar</span>
+                              </button>
+
+                              <!-- Efecto Espejo -->
+                              <button type="button" class="visual-tool-btn" @click="$store.characters.flipSkillImage(skill.id)"
+                                title="Voltear horizontalmente (Efecto Espejo)">
+                                <i data-lucide="flip-horizontal" class="w-3.5 h-3.5"></i>
+                                <span>Espejo</span>
+                              </button>
+
+                              <!-- Toggle Modo de Ajuste (Encajar vs Rellenar) -->
+                              <button type="button" class="visual-tool-btn"
+                                @click="$store.characters.toggleSkillImageFit(skill.id)"
+                                :title="(skill.imageFit || 'cover') === 'cover' ? 'Modo actual: Rellenar (Cover). Clic para Encajar (Contain)' : 'Modo actual: Encajar (Contain). Clic para Rellenar (Cover)'">
+                                <i :data-lucide="(skill.imageFit || 'cover') === 'cover' ? 'minimize-2' : 'maximize-2'"
+                                  class="w-3.5 h-3.5"></i>
+                                <span
+                                  x-text="(skill.imageFit || 'cover') === 'cover' ? 'Encajar' : 'Rellenar'"></span>
+                              </button>
+
+                              <!-- Quitar -->
+                              <button type="button" class="visual-tool-btn danger"
+                                @click="$store.characters.removeSkillImage(skill.id)" title="Eliminar imagen de la habilidad">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                <span>Quitar</span>
+                              </button>
+                            </div>
+
+                            <!-- Botones Principales de Carga: Archivo Local + URL Externa -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full">
+                              <!-- Subir / Cambiar Archivo -->
+                              <label class="chamfer-btn-primary w-full cursor-pointer select-none text-xs py-1.5">
+                                <i data-lucide="upload" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span class="truncate"
+                                  x-text="skill.imageDataUrl ? 'CAMBIAR' : 'SUBIR ARCHIVO'"></span>
+                                <input type="file" accept="image/*,image/gif" class="hidden"
+                                  @change="$store.characters.uploadSkillImage($event, skill.id)" />
+                              </label>
+
+                              <!-- Botón Cargar por URL -->
+                              <button type="button" class="chamfer-btn-outline w-full cursor-pointer select-none text-xs py-1.5"
+                                :class="{ 'is-active': skillUrlInputId === skill.id }"
+                                @click="skillUrlInputId = skillUrlInputId === skill.id ? null : skill.id; skillUrlValue = '';">
+                                <i data-lucide="link" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span>DESDE URL</span>
+                              </button>
+                            </div>
+
+                            <!-- Input Desplegable de Carga por URL -->
+                            <div x-show="skillUrlInputId === skill.id" x-transition
+                              class="p-2.5 rounded-xl bg-black/85 border border-accent-gold/40 space-y-2">
+                              <label class="text-[10px] font-mono text-accent-gold uppercase tracking-wider flex items-center gap-1">
+                                <i data-lucide="globe" class="w-3 h-3"></i> Enlace Web (Pinterest, ArtStation, Imgur, Pixiv, etc.)
+                              </label>
+                              <div class="flex items-center gap-1.5">
+                                <input type="url" class="form-input text-xs py-1.5 flex-1"
+                                  placeholder="https://... (enlace directo o galería)"
+                                  x-model="skillUrlValue"
+                                  @keydown.enter.prevent="
+                                    if (skillUrlValue.trim()) {
+                                      $store.characters.loadSkillImageFromUrl(skillUrlValue.trim(), skill.id);
+                                      skillUrlValue = '';
+                                      skillUrlInputId = null;
+                                    }
+                                  " />
+                                <button type="button"
+                                  class="px-3 py-1.5 bg-accent-gold text-black font-hud text-xs font-bold uppercase rounded-lg hover:bg-accent-gold/80 transition-colors cursor-pointer"
+                                  @click="
+                                    if (skillUrlValue.trim()) {
+                                      $store.characters.loadSkillImageFromUrl(skillUrlValue.trim(), skill.id);
+                                      skillUrlValue = '';
+                                      skillUrlInputId = null;
+                                    }
+                                  ">
+                                  Cargar
+                                </button>
+                                <button type="button" class="p-1.5 text-ink-slate hover:text-white cursor-pointer"
+                                  @click="skillUrlInputId = null">
+                                  <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- MODO LECTURA: Presentación enriquecida -->
+                    <div x-show="!$store.app.editMode" class="space-y-3 font-sans">
+                      <!-- Resumen corto -->
+                      <template x-if="skill.summary && String(skill.summary).trim()">
+                        <div
+                          class="py-2 px-2.5 rounded-lg bg-parchment-brown/15 border-l-2 border-accent-gold text-xs text-parchment-cream font-medium italic">
+                          <p x-html="$store.app.formatRichText(skill.summary)"></p>
+                        </div>
+                      </template>
+
+                      <!-- Badges de Datos Cortos: Rango, Alcance, Elemento, TD, CD, Coste -->
+                      <div class="flex flex-wrap items-center gap-2">
+                        <!-- Rango de la habilidad -->
+                        <template x-if="skill.tier && String(skill.tier).trim()">
+                          <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-accent-gold/15 border border-accent-gold/30 text-accent-gold"
+                            title="Rango de la Habilidad">
+                            <svg class="w-3.5 h-3.5 text-accent-gold pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="8" r="6"/>
+                              <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+                            </svg>
+                            <span x-text="'Rango: ' + skill.tier"></span>
+                          </span>
+                        </template>
+
+                        <!-- Alcance / Rango -->
+                        <template x-if="skill.range && String(skill.range).trim()">
+                          <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-ink-teal/15 border border-ink-teal/30 text-ink-teal"
+                            title="Alcance">
+                            <svg class="w-3.5 h-3.5 text-ink-teal pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="12" r="10"/>
+                              <circle cx="12" cy="12" r="6"/>
+                              <circle cx="12" cy="12" r="2"/>
+                            </svg>
+                            <span x-text="skill.range"></span>
+                          </span>
+                        </template>
+
+                        <!-- Elemento / Tipo de Daño -->
+                        <template x-if="skill.elementType && String(skill.elementType).trim()">
+                          <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-accent-copper/15 border border-accent-copper/30 text-accent-copper"
+                            title="Elemento">
+                            <svg class="w-3.5 h-3.5 text-accent-copper pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                            </svg>
+                            <span x-text="skill.elementType"></span>
+                          </span>
+                        </template>
+
+                        <!-- TD (Activas) -->
+                        <template x-if="skill.type === 'active' && skill.td && String(skill.td).trim()">
+                          <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-parchment-brown/20 border border-parchment-brown/35 text-parchment-cream"
+                            title="Duración (TD)">
+                            <svg class="w-3.5 h-3.5 text-ink-slate pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <circle cx="12" cy="12" r="10"/>
+                              <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            <span x-text="'TD: ' + skill.td"></span>
+                          </span>
+                        </template>
+
+                        <!-- CD (Activas) -->
+                        <template x-if="skill.type === 'active' && skill.cd && String(skill.cd).trim()">
+                          <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-parchment-brown/20 border border-parchment-brown/35 text-parchment-cream"
+                            title="Enfriamiento (CD)">
+                            <svg class="w-3.5 h-3.5 text-ink-slate pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                              <path d="M3 3v5h5"/>
+                              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                              <path d="M16 21h5v-5"/>
+                            </svg>
+                            <span x-text="'CD: ' + skill.cd"></span>
+                          </span>
+                        </template>
+
+                        <!-- Coste (Activas) -->
+                        <template x-if="skill.type === 'active' && skill.cost && String(skill.cost).trim()">
+                          <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-accent-gold/10 border border-accent-gold/25 text-accent-gold"
+                            title="Coste / Recurso">
+                            <svg class="w-3.5 h-3.5 text-accent-gold pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M6 3h12l4 6-10 13L2 9Z"/>
+                              <path d="M11 3 8 9l4 13 4-13-3-6"/>
+                              <path d="M2 9h20"/>
+                            </svg>
+                            <span x-text="skill.cost"></span>
+                          </span>
+                        </template>
+
+                        <!-- Pasiva: Permanente -->
+                        <template x-if="skill.type === 'passive'">
+                          <span
+                            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-accent-gold/10 border border-accent-gold/25 text-accent-gold">
+                            <svg class="w-3.5 h-3.5 text-accent-gold pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                            </svg>
+                            <span>Permanente</span>
+                          </span>
+                        </template>
+                      </div>
+
+                      <!-- Condición de activación en lectura (Pasivas) -->
+                      <template x-if="skill.type === 'passive' && skill.condicion && String(skill.condicion).trim()">
+                        <div
+                          class="p-2 rounded-lg bg-accent-gold/10 border border-accent-gold/25 text-xs text-parchment-cream flex items-center gap-2">
+                          <svg class="w-4 h-4 text-accent-gold shrink-0 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                            <path d="M12 8v4"/>
+                            <path d="M12 16h.01"/>
+                          </svg>
+                          <span><strong>Activación:</strong> <span x-html="$store.app.formatRichText(skill.condicion)"></span></span>
+                        </div>
+                      </template>
+
+                      <!-- Explicación / Efecto en lectura -->
+                      <div class="text-sm text-parchment-cream/90 leading-relaxed whitespace-pre-line py-1">
+                        <div x-html="$store.app.formatRichText(skill.effect || 'Sin descripción detallada.')"></div>
+                      </div>
+
+                      <!-- Repercusión / Desventaja en lectura -->
+                      <template x-if="skill.drawback && String(skill.drawback).trim()">
+                        <div
+                          class="flex items-start gap-2 p-2.5 rounded-xl bg-accent-copper/10 border border-accent-copper/25 text-xs text-parchment-cream/90">
+                          <svg class="w-4 h-4 text-accent-copper shrink-0 mt-0.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                          </svg>
+                          <div class="space-y-0.5">
+                            <span class="text-accent-copper font-semibold block">Repercusión / Desventaja:</span>
+                            <div x-html="$store.app.formatRichText(skill.drawback)"
+                              class="leading-relaxed whitespace-pre-line text-parchment-cream/80"></div>
+                          </div>
+                        </div>
+                      </template>
+
+                      <!-- Tags Chips en lectura -->
+                      <template x-if="Array.isArray(skill.tags) && skill.tags.length > 0">
+                        <div class="flex items-center flex-wrap gap-1.5 pt-1">
+                          <template x-for="t in skill.tags" :key="t">
+                            <span class="skill-tag-chip" :class="skill.type === 'passive' ? 'passive-tag' : ''"
+                              x-text="'#' + t"></span>
+                          </template>
+                        </div>
+                      </template>
+
+                      <!-- Imagen / GIF en lectura con Blur Backdrop -->
+                      <template x-if="skill.imageDataUrl">
+                        <div class="pt-2 flex items-start gap-4">
+                          <div class="skill-thumb-box cursor-pointer relative overflow-hidden"
+                            @click="$store.app.openLightbox(skill.imageDataUrl)"
+                            title="Clic para ampliar a pantalla completa">
+                            <img :src="skill.imageDataUrl" class="thumb-blur-backdrop" alt="" />
+                            <img :src="skill.imageDataUrl" :alt="skill.title || 'Imagen de habilidad'"
+                              class="relative z-10 w-full h-full object-center"
+                              :style="skill.imageTransform || ''"
+                              :class="(skill.imageFit || 'cover') === 'contain' ? 'fit-contain' : 'fit-cover'" />
+                          </div>
+                          <div class="space-y-1 text-xs text-ink-slate font-sans py-1">
+                            <span class="text-accent-gold font-semibold flex items-center gap-1.5">
+                              <svg class="w-3.5 h-3.5 text-accent-gold pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                                <path d="M5 3v4"/>
+                                <path d="M19 17v4"/>
+                                <path d="M3 5h4"/>
+                                <path d="M17 19h4"/>
+                              </svg> Demostración visual
+                            </span>
+                            <p class="text-parchment-cream/70">Haz clic sobre la imagen o GIF para ampliar a pantalla
+                              completa.</p>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>

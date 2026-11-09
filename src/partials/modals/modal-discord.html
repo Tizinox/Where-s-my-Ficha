@@ -1,0 +1,303 @@
+<!-- ==============================================================
+     DISCORD EXPORT MODAL — Suite Avanzada WYSIWYG
+     ============================================================== -->
+  <div id="discord-modal" class="modal-backdrop no-print" x-show="$store.app.showDiscordModal" x-cloak x-data
+    x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+    @keydown.escape.window="$store.app.closeDiscordModal()">
+    <!-- Click outside to close -->
+    <div class="absolute inset-0" @click="$store.app.closeDiscordModal()"></div>
+
+    <!-- Modal Dialog Window (Render diferido bajo demanda) -->
+    <template x-if="$store.app.showDiscordModal">
+    <div
+      class="modal-box relative max-w-4xl w-full flex flex-col max-h-[90vh] p-0 overflow-hidden bg-[#0d1017] border border-white/20 shadow-2xl rounded-2xl">
+
+      <!-- ── 1. Modal Header y Switch WYSIWYG / Raw ── -->
+      <div class="p-4 sm:p-5 border-b border-white/10 flex flex-wrap items-center justify-between gap-3 bg-black/40">
+        <div class="flex items-center gap-2.5">
+          <div
+            class="w-8 h-8 rounded-lg bg-[#5865F2]/20 border border-[#5865F2]/40 flex items-center justify-center text-[#5865F2] shadow-sm shrink-0">
+            <i data-lucide="message-square-text" class="w-4.5 h-4.5"></i>
+          </div>
+          <div>
+            <h2 class="font-title text-lg text-parchment-peach tracking-wide flex items-center gap-2">
+              Exportar para Discord
+              <span
+                class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#5865F2]/20 border border-[#5865F2]/40 text-[#5865F2] font-bold"
+                x-text="$store.app.discordBlocks.length + ' mensaje' + ($store.app.discordBlocks.length !== 1 ? 's' : '')"></span>
+            </h2>
+            <p class="text-[11px] text-ink-slate font-sans hidden sm:block">
+              Genera y previsualiza la ficha en formato Markdown con el aspecto real de Discord.
+            </p>
+          </div>
+        </div>
+
+        <!-- Segmented Toggle: Vista Discord vs Código Raw -->
+        <div class="flex items-center gap-2">
+          <div class="p-1 rounded-xl bg-[#080b11] border border-white/20 flex items-center shadow-inner gap-1 shrink-0">
+            <button type="button"
+              class="px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer select-none whitespace-nowrap"
+              :class="$store.app.discordPreviewTab === 'wysiwyg' ? 'bg-[#5865F2] text-white font-extrabold shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+              @click="$store.app.setDiscordPreviewTab('wysiwyg')">
+              <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+              <span>Vista Discord</span>
+            </button>
+            <button type="button"
+              class="px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer select-none whitespace-nowrap"
+              :class="$store.app.discordPreviewTab === 'raw' ? 'bg-accent-gold text-black font-extrabold shadow-md' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+              @click="$store.app.setDiscordPreviewTab('raw')">
+              <i data-lucide="code-2" class="w-3.5 h-3.5"></i>
+              <span>Código Raw</span>
+            </button>
+          </div>
+
+          <button class="header-btn-ghost p-1.5 rounded-lg text-slate-400 hover:text-white"
+            @click="$store.app.closeDiscordModal()" aria-label="Cerrar">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── 2. Barra de Configuración y Filtros en Vivo ── -->
+      <div class="p-3 sm:px-5 border-b border-white/10 bg-black/60 space-y-2.5">
+        <div class="flex flex-wrap items-center justify-between gap-2.5 text-xs">
+          <!-- Modos de Formato -->
+          <div class="flex items-center gap-1.5 bg-[#050608] p-1 rounded-xl border border-white/10 shrink-0">
+            <button type="button"
+              class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1 cursor-pointer select-none"
+              :class="$store.app.discordExportOptions.formatMode === 'standard' ? 'bg-white/15 text-white shadow-sm border border-white/20' : 'text-ink-slate hover:text-white'"
+              @click="$store.app.setDiscordFormatMode('standard')" title="Ficha completa con todas las secciones">
+              <i data-lucide="file-text" class="w-3 h-3 text-ink-teal"></i>
+              <span>Estándar (Completo)</span>
+            </button>
+            <button type="button"
+              class="px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold transition-all flex items-center gap-1 cursor-pointer select-none"
+              :class="$store.app.discordExportOptions.formatMode === 'compact' ? 'bg-amber-400/20 text-amber-300 shadow-sm border border-amber-400/40' : 'text-ink-slate hover:text-white'"
+              @click="$store.app.setDiscordFormatMode('compact')"
+              title="Optimizado para caber en 1 solo mensaje (< 1500 caracteres)">
+              <i data-lucide="zap" class="w-3 h-3 text-amber-400"></i>
+              <span>Compacto (&lt; 1500c)</span>
+            </button>
+          </div>
+
+          <!-- Separador Visual y Filtro de Secciones -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <!-- Selector de Separadores -->
+            <div class="flex items-center gap-1.5 bg-[#050608] px-2.5 py-1 rounded-xl border border-white/10">
+              <span class="text-[10px] text-ink-slate font-mono uppercase">Línea:</span>
+              <select class="bg-transparent text-parchment-cream font-mono text-[11px] outline-none cursor-pointer pr-1"
+                :value="$store.app.discordExportOptions.separator"
+                @change="$store.app.setDiscordSeparator($event.target.value)">
+                <template x-for="sep in $store.app.DISCORD_SEPARATORS" :key="sep.id">
+                  <option :value="sep.value" x-text="sep.label" class="bg-[#0f131a] text-parchment-cream"></option>
+                </template>
+              </select>
+            </div>
+
+            <!-- Botón Filtro de Secciones (Visible solo en modo estándar) -->
+            <button type="button" x-show="$store.app.discordExportOptions.formatMode === 'standard'"
+              class="px-2.5 py-1 rounded-xl border transition-all text-[11px] font-mono flex items-center gap-1.5 cursor-pointer select-none"
+              :class="$store.app.discordExportOptions.showSectionMenu ? 'border-accent-cyan bg-accent-cyan/15 text-accent-cyan' : 'border-white/15 bg-[#050608] text-parchment-cream hover:border-white/30'"
+              @click="$store.app.discordExportOptions.showSectionMenu = !$store.app.discordExportOptions.showSectionMenu">
+              <i data-lucide="sliders-horizontal" class="w-3 h-3"></i>
+              <span>Secciones:</span>
+              <strong class="text-white"
+                x-text="`${$store.app.discordExportOptions.selectedSections.length}/10`"></strong>
+              <i data-lucide="chevron-down" class="w-3 h-3 transition-transform"
+                :class="$store.app.discordExportOptions.showSectionMenu ? 'rotate-180' : ''"></i>
+            </button>
+
+            <!-- Métrica de Caracteres Totales -->
+            <div
+              class="px-2.5 py-1 rounded-xl bg-black/40 border border-white/10 text-[11px] font-mono text-slate-300 flex items-center gap-1.5">
+              <span class="text-ink-slate">Total:</span>
+              <strong :class="$store.app.discordFullText.length > 2000 ? 'text-amber-400' : 'text-emerald-400'"
+                x-text="`${$store.app.discordFullText.length} chars`"></strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Desplegable de Selección de Secciones -->
+        <div
+          x-show="$store.app.discordExportOptions.showSectionMenu && $store.app.discordExportOptions.formatMode === 'standard'"
+          x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0 -translate-y-2"
+          x-transition:enter-end="opacity-100 translate-y-0"
+          class="p-3 rounded-xl bg-[#080b11] border border-white/15 space-y-2">
+          <div class="flex items-center justify-between border-b border-white/10 pb-1.5">
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-ink-slate">Filtro Rápido de
+              Secciones (Toggles en Vivo)</span>
+            <div class="flex items-center gap-2">
+              <button type="button" class="text-[10px] font-mono text-accent-cyan hover:underline cursor-pointer"
+                @click="$store.app.toggleAllDiscordSections(true)">Todas</button>
+              <span class="text-white/20">•</span>
+              <button type="button" class="text-[10px] font-mono text-rose-400 hover:underline cursor-pointer"
+                @click="$store.app.toggleAllDiscordSections(false)">Solo Básicos</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 pt-1">
+            <template x-for="sec in $store.app.DISCORD_SECTIONS" :key="sec.id">
+              <button type="button"
+                class="px-2 py-1 rounded-lg border text-[11px] font-mono flex items-center justify-between gap-1 transition-all cursor-pointer select-none text-left"
+                :class="$store.app.discordExportOptions.selectedSections.includes(sec.id) ? 'border-accent-cyan/60 bg-accent-cyan/15 text-white font-bold' : 'border-white/10 bg-black/30 text-ink-slate hover:text-slate-300'"
+                @click="$store.app.toggleDiscordSection(sec.id)">
+                <span class="truncate" x-text="sec.label"></span>
+                <i data-lucide="check" class="w-3 h-3 shrink-0 text-accent-cyan"
+                  x-show="$store.app.discordExportOptions.selectedSections.includes(sec.id)"></i>
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 3. Modal Body: WYSIWYG vs Raw ── -->
+      <div class="modal-body flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 max-h-[58vh]">
+
+        <!-- TAB 1: VISTA DISCORD (SIMULADOR NATIVO WYSIWYG) -->
+        <div x-show="$store.app.discordPreviewTab === 'wysiwyg'" class="space-y-4">
+          <!-- Discord Channel Header Mockup -->
+          <div
+            class="flex items-center gap-2 px-3 py-1.5 rounded-t-xl bg-[#2b2d31] border border-[#3f4147] text-xs font-sans text-[#dbdee1] select-none">
+            <span class="text-lg font-bold text-[#949ba4]">#</span>
+            <span class="font-bold text-white">💬︱presentaciones-personajes</span>
+            <span class="text-[10px] text-[#949ba4] hidden sm:inline">— Simulación de vista previa en Discord</span>
+          </div>
+
+          <!-- Discord Chat Area Container -->
+          <div
+            class="discord-chat-container rounded-b-xl border border-t-0 border-[#3f4147] p-4 space-y-6 shadow-inner">
+            <template x-for="(block, idx) in $store.app.discordBlocks" :key="idx">
+              <div class="discord-message-group p-3 rounded-lg relative group">
+                <!-- Discord Message Header -->
+                <div class="flex items-start justify-between gap-3 mb-2">
+                  <div class="flex items-center gap-3">
+                    <!-- Avatar Thumbnail -->
+                    <div
+                      class="w-10 h-10 rounded-full overflow-hidden bg-[#1e1f22] border border-[#3f4147] flex items-center justify-center shrink-0 shadow relative" style="isolation: isolate;">
+                      <template
+                        x-if="$store.characters.active?.basics?.avatarDataUrl || $store.characters.active?.basics?.iconDataUrl">
+                        <img
+                          :src="$store.characters.active?.basics?.useIconForPfp ? ($store.characters.active?.basics?.iconDataUrl || $store.characters.active?.basics?.avatarDataUrl) : ($store.characters.active?.basics?.avatarDataUrl || $store.characters.active?.basics?.iconDataUrl)"
+                          class="w-full h-full object-cover" alt="" />
+                      </template>
+                      <template
+                        x-if="!$store.characters.active?.basics?.avatarDataUrl && !$store.characters.active?.basics?.iconDataUrl">
+                        <i data-lucide="user-round" class="w-5 h-5 text-[#949ba4]"></i>
+                      </template>
+                    </div>
+
+                    <!-- User Identity y Badge y Timestamp -->
+                    <div>
+                      <div class="flex items-center gap-1.5 flex-wrap">
+                        <span class="font-bold text-[#f2f3f5] text-sm hover:underline cursor-pointer"
+                          x-text="$store.characters.active?.name || 'Operativo'"></span>
+                        <span
+                          class="text-[9px] font-bold uppercase px-1 py-0.2 rounded bg-[#5865F2] text-white font-mono leading-none">
+                          APP / BOT
+                        </span>
+                        <span class="text-[11px] text-[#949ba4] font-sans">
+                          Hoy a las <span
+                            x-text="new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })"></span>
+                        </span>
+                      </div>
+                      <span class="text-[10px] text-[#949ba4] font-mono">
+                        Mensaje <span x-text="idx + 1"></span> de <span x-text="$store.app.discordBlocks.length"></span>
+                        (<span x-text="block.length"></span> chars)
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Botón Copiar Este Mensaje -->
+                  <button type="button"
+                    class="px-2.5 py-1 rounded-md bg-[#2b2d31] hover:bg-[#35373c] border border-[#3f4147] text-[#dbdee1] hover:text-white text-xs font-mono flex items-center gap-1.5 transition-all shadow cursor-pointer shrink-0"
+                    @click="$store.app.copyDiscordBlock(idx)" :title="`Copiar mensaje ${idx + 1}`">
+                    <i data-lucide="copy" class="w-3.5 h-3.5 text-[#5865F2]"></i>
+                    <span class="hidden sm:inline">Copiar Mensaje</span>
+                  </button>
+                </div>
+
+                <!-- Rendered Discord Message Body -->
+                <div class="discord-rendered-body pl-13 pt-1" x-html="$store.app.parseDiscordMarkdownToHtml(block)">
+                </div>
+              </div>
+            </template>
+
+            <!-- Empty state -->
+            <div x-show="!$store.app.discordBlocks.length" class="py-12 text-center text-[#949ba4]">
+              <i data-lucide="file-x" class="w-10 h-10 mx-auto opacity-30 mb-2"></i>
+              <p class="text-sm">No hay contenido seleccionado para exportar.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: CÓDIGO RAW (MARKDOWN CON BARRAS DE PROGRESO) -->
+        <div x-show="$store.app.discordPreviewTab === 'raw'" class="space-y-4">
+          <p class="text-xs text-ink-slate font-sans">
+            Copia cada bloque de texto plano y pégalo en tu canal de rol en Discord (límite de <strong>2 000
+              caracteres</strong> por mensaje).
+          </p>
+
+          <template x-for="(block, idx) in $store.app.discordBlocks" :key="idx">
+            <div class="p-3.5 rounded-xl border border-white/10 bg-black/40 space-y-2.5 shadow-md">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-semibold font-mono"
+                  :class="block.length > 1900 ? 'text-amber-400' : 'text-accent-cyan'">
+                  Bloque <span x-text="idx + 1"></span> /
+                  <span x-text="$store.app.discordBlocks.length"></span>
+                  <span class="ml-2 text-ink-slate font-normal">
+                    — <span x-text="block.length"></span> / 2000 caracteres
+                  </span>
+                </span>
+                <button class="header-btn-accent text-xs gap-1.5 py-1 px-3" @click="$store.app.copyDiscordBlock(idx)">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  Copiar bloque
+                </button>
+              </div>
+
+              <!-- Raw Content Box -->
+              <pre
+                class="w-full bg-[#080b11] border border-white/10 rounded-xl px-4 py-3 text-xs text-parchment-cream font-mono leading-relaxed whitespace-pre-wrap overflow-x-hidden select-all"
+                x-text="block"></pre>
+
+              <!-- Progress Bar per block -->
+              <div class="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-300"
+                  :class="block.length > 1900 ? 'bg-amber-400' : 'bg-accent-cyan'"
+                  :style="`width: ${Math.min(100, Math.round(block.length / 19.5))}%`"></div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Empty state -->
+          <div x-show="!$store.app.discordBlocks.length" class="py-12 text-center text-ink-slate">
+            <i data-lucide="file-x" class="w-10 h-10 mx-auto opacity-30 mb-2"></i>
+            <p class="text-sm">No hay contenido que exportar.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── 4. Modal Footer ── -->
+      <div class="p-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 bg-black/60">
+        <div class="flex items-center gap-2 text-xs text-ink-slate font-mono">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-accent-cyan"></i>
+          <span>Modo: <strong class="text-white"
+              x-text="$store.app.discordExportOptions.formatMode === 'compact' ? 'Compacto (1 Mensaje)' : 'Estándar'"></strong></span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button class="header-btn-ghost text-xs" @click="$store.app.closeDiscordModal()">Cerrar</button>
+          <button
+            class="header-btn-accent text-xs gap-1.5 py-2 px-4 shadow-lg shadow-[#5865F2]/20 border border-[#5865F2]/50 bg-[#5865F2] hover:bg-[#4752C4] text-white"
+            @click="$store.app.copyAllDiscordBlocks()" x-show="$store.app.discordBlocks.length > 0">
+            <i data-lucide="copy-check" class="w-4 h-4"></i>
+            <span>Copiar Todo el Texto</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+    </template>
+  </div>

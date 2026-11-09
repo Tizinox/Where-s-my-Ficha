@@ -1,0 +1,845 @@
+/**
+ * styles/variables.css
+ * Variables globales, tema dark, diseño de íconos y reglas base.
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Directiva Alpine.js Cloak ────────────────────────── */
+[x-cloak] {
+  display: none !important;
+}
+
+.settings-fullscreen-view[style*="display: none"],
+.dashboard-fullscreen-view[style*="display: none"],
+.tierlist-fullscreen-view[style*="display: none"],
+.tierlist-fullscreen-view[style*="display:none"] {
+  display: none !important;
+}
+
+/* El sidebar y el contenido de la ficha solo se muestran en Modo Editor */
+#app:not([data-active-view="editor"]) #app-sidebar,
+#app:not([data-active-view="editor"]) #app-content,
+#app-sidebar[style*="display: none"],
+#app-sidebar[style*="display:none"],
+#app-content[style*="display: none"],
+#app-content[style*="display:none"] {
+  display: none !important;
+}
+
+#app:not([data-active-view="tierlist"]) #main-tierlist-view,
+#app:not([data-active-view="tierlist"]) .tierlist-fullscreen-view {
+  display: none !important;
+}
+
+#app:not([data-active-view="dashboard"]) #main-dashboard-view,
+#app:not([data-active-view="dashboard"]) .dashboard-fullscreen-view {
+  display: none !important;
+}
+
+#app:not([data-active-view="settings"]) #settings-modal-overlay,
+#app:not([data-active-view="settings"]) .settings-fullscreen-view {
+  display: none !important;
+}
+
+/* ========================================================
+   WhereIsMySUPER-Ficha — Cyber / High-Contrast Design System
+   Estética: Stylized Anime · Persona 5 · Valorant · ZZZ
+   ======================================================== */
+
+/* ── Variables CSS Globales ──────────────────────────────── */
+:root {
+  color-scheme: dark;
+
+  --accent-primary: #00F0FF;
+  --accent-primary-rgb: 0, 240, 255;
+  --accent: var(--accent-primary);
+  --accent-secondary: #FF0077;
+  --accent-secondary-rgb: 255, 0, 119;
+  --accent-tertiary: #D4AF37;
+  --accent-tertiary-rgb: 212, 175, 55;
+  --accent-dim: rgba(var(--accent-primary-rgb), 0.18);
+  --accent-secondary-dim: rgba(var(--accent-secondary-rgb), 0.18);
+  --accent-tertiary-dim: rgba(var(--accent-tertiary-rgb), 0.18);
+  --accent-glow: rgba(var(--accent-primary-rgb), 0.35);
+  --accent-secondary-glow: rgba(var(--accent-secondary-rgb), 0.35);
+  --accent-tertiary-glow: rgba(var(--accent-tertiary-rgb), 0.35);
+  --accent-glow-lg: rgba(var(--accent-primary-rgb), 0.12);
+  --accent-text: #000000;
+
+  --bg-panel-custom: #0A0D14;
+  --bg-panel-rgb: 10, 13, 20;
+  --bg-panel: rgba(var(--bg-panel-rgb), 0.95);
+  --bg-panel-2: rgba(var(--bg-panel-rgb), 0.96);
+  --bg-panel-3: rgba(var(--bg-panel-rgb), 0.98);
+  --bg-base: var(--bg-panel-custom, rgba(8, 10, 14, 0.98));
+
+  --border-custom: #222A36;
+  --border-custom-rgb: 34, 42, 54;
+  --border-subtle: rgba(var(--border-custom-rgb), 0.45);
+  --border-panel: var(--border-custom);
+  --border-accent: rgba(var(--accent-primary-rgb), 0.25);
+  --border-secondary: rgba(var(--accent-secondary-rgb), 0.35);
+  --border-tertiary: rgba(var(--accent-tertiary-rgb), 0.35);
+  --border-strong: rgba(var(--accent-primary-rgb), 0.55);
+
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Inter Tight', sans-serif;
+  --font-input: 'JetBrains Mono', monospace;
+  --font-hud: 'Chakra Petch', sans-serif;
+  --font-tierlist: 'Barlow Condensed', sans-serif;
+
+  --font-weight-display: 700;
+  --font-weight-body: 400;
+  --font-weight-input: 400;
+  --font-weight-hud: 600;
+  --font-weight-tierlist: 900;
+
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.70);
+  --text-muted: rgba(255, 255, 255, 0.38);
+
+  --cut-sm: 8px;
+  --cut-md: 14px;
+  --cut-lg: 20px;
+
+  --diagonal-stripe: repeating-linear-gradient(-45deg,
+      transparent,
+      transparent 3px,
+      rgba(255, 255, 255, 0.018) 3px,
+      rgba(255, 255, 255, 0.018) 4px);
+}
+
+/* ── Fallbacks Dinámicos de Identidad Visual (Evita bordes blancos no deseados) ── */
+[class*="border-parchment-brown"],
+.border-parchment-brown\/10,
+.border-parchment-brown\/20,
+.border-parchment-brown\/30,
+.border-parchment-brown\/40,
+.border-parchment-brown\/50 {
+  border-color: var(--border-subtle, rgba(34, 42, 54, 0.45)) !important;
+}
+
+[class*="border-accent-cyan"],
+.border-accent-cyan\/10,
+.border-accent-cyan\/20,
+.border-accent-cyan\/30,
+.border-accent-cyan\/40,
+.border-accent-cyan\/50 {
+  border-color: var(--border-accent, rgba(0, 240, 255, 0.25)) !important;
+}
+
+.bg-accent-cyan\/10,
+.bg-accent-cyan\/15,
+.bg-accent-cyan\/20 {
+  background-color: var(--accent-dim, rgba(0, 240, 255, 0.18)) !important;
+}
+
+.text-accent-cyan {
+  color: var(--accent-primary, #00F0FF) !important;
+}
+
+/* ── Streamline Light Icon Design System (1.25px Ultra-Refined Aesthetic) ─── */
+svg.lucide,
+.lucide,
+[data-lucide],
+i[data-lucide] svg {
+  stroke-width: 1.25px !important;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ── Prevención de CLS: Reserva de caja dimensional para iconos antes de hidratar SVG ── */
+i[data-lucide] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+i[data-lucide].w-3\.5, i[data-lucide].h-3\.5 { width: 0.875rem; height: 0.875rem; }
+i[data-lucide].w-4, i[data-lucide].h-4 { width: 1rem; height: 1rem; }
+i[data-lucide].w-5, i[data-lucide].h-5 { width: 1.25rem; height: 1.25rem; }
+i[data-lucide].w-6, i[data-lucide].h-6 { width: 1.5rem; height: 1.5rem; }
+i[data-lucide].w-7, i[data-lucide].h-7 { width: 1.75rem; height: 1.75rem; }
+i[data-lucide].w-8, i[data-lucide].h-8 { width: 2rem; height: 2rem; }
+i[data-lucide].w-12, i[data-lucide].h-12 { width: 3rem; height: 3rem; }
+i[data-lucide].w-16, i[data-lucide].h-16 { width: 4rem; height: 4rem; }
+
+/* ── Utilidades de Color Cyber-HUD de Alto Contraste ───── */
+.bg-accent,
+.bg-accent-primary,
+.bg-accent-cyan {
+  background-color: var(--accent-primary, #00F0FF) !important;
+  color: #000000 !important;
+}
+.bg-accent-gold {
+  background-color: #f59e0b !important;
+  color: #000000 !important;
+}
+.bg-accent-ruby {
+  background-color: #f43f5e !important;
+  color: #ffffff !important;
+}
+.bg-accent-secondary {
+  background-color: var(--accent-secondary, #FF0077) !important;
+  color: #000000 !important;
+}
+.bg-accent-dim {
+  background-color: var(--accent-dim, rgba(0, 240, 255, 0.18)) !important;
+}
+.text-accent,
+.text-accent-primary,
+.text-accent-cyan {
+  color: var(--accent-primary, #00F0FF) !important;
+}
+.text-accent-ruby {
+  color: #f43f5e !important;
+}
+.text-accent-secondary {
+  color: var(--accent-secondary, #FF0077) !important;
+}
+.border-accent-gold {
+  border-color: #f59e0b !important;
+}
+.border-accent-cyan {
+  border-color: var(--accent-primary, #00F0FF) !important;
+}
+.border-accent-ruby {
+  border-color: #f43f5e !important;
+}
+.border-accent-secondary {
+  border-color: var(--accent-secondary, #FF0077) !important;
+}
+.border-accent-tertiary {
+  border-color: var(--accent-tertiary, #D4AF37) !important;
+}
+.bg-accent-tertiary {
+  background-color: var(--accent-tertiary, #D4AF37) !important;
+  color: #000000 !important;
+}
+.text-accent-tertiary {
+  color: var(--accent-tertiary, #D4AF37) !important;
+}
+
+/* ── Badges y Acentos de Paleta Secundaria & Terciaria ─────────────── */
+.badge-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-family: var(--font-hud, 'Chakra Petch', sans-serif);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--accent-secondary-dim, rgba(255, 0, 119, 0.15));
+  color: var(--accent-secondary, #FF0077);
+  border: 1px solid var(--border-secondary, rgba(255, 0, 119, 0.4));
+  border-radius: 4px;
+}
+
+.badge-tertiary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-family: var(--font-hud, 'Chakra Petch', sans-serif);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--accent-tertiary-dim, rgba(212, 175, 55, 0.15));
+  color: var(--accent-tertiary, #D4AF37);
+  border: 1px solid var(--border-tertiary, rgba(212, 175, 55, 0.4));
+  border-radius: 4px;
+}
+
+.gradient-accent-bar {
+  background: var(--gradient-accent-h, linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%));
+}
+
+.gradient-accent-tri-bar {
+  background: var(--gradient-accent-tri, linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 50%, var(--accent-tertiary) 100%));
+}
+
+/* ── Conexión Dinámica de Superficie y Bordes para Settings, Modales y Ficha ── */
+.settings-fullscreen-view {
+  background-color: var(--bg-base) !important;
+}
+
+.settings-panel-card,
+.settings-fullscreen-view .bg-\[\#0a0c0e\]\/95 {
+  background-color: var(--bg-panel) !important;
+  border-color: var(--border-custom) !important;
+}
+
+.settings-fullscreen-view .border-white\/10 {
+  border-color: var(--border-subtle) !important;
+}
+
+.settings-fullscreen-view .bg-\[\#0a0c0e\] {
+  background-color: var(--bg-base) !important;
+}
+
+.form-card {
+  background-color: var(--bg-panel) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+.form-input,
+.form-textarea,
+.rich-text-editor,
+input.form-input,
+textarea.form-textarea,
+.tab-pane input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not(:focus),
+.tab-pane textarea:not(:focus),
+.tab-pane select:not(:focus),
+.modal-box input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not(:focus),
+.modal-box textarea:not(:focus),
+.form-card input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not(:focus),
+.form-card textarea:not(:focus) {
+  border-color: var(--border-custom) !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   BORDES DE CAJAS CONTENEDORAS Y MÓDULOS DE SECCIÓN (--border-custom)
+   Garantiza que todas las cajas encapsuladoras de módulos en las pestañas
+   y tarjetas de formulario respeten el color de borde configurado por el
+   usuario en Ajustes > Identidad Visual (--border-custom) en lugar de blanco puro.
+   ══════════════════════════════════════════════════════════════ */
+.form-card {
+  border-color: var(--border-custom) !important;
+  border-left-color: var(--accent) !important;
+}
+
+.form-card .p-4.rounded-xl.border,
+.form-card .p-3\.5.rounded-xl.border,
+.form-card .p-3.rounded-xl.border,
+.tab-pane .p-4.rounded-xl.border,
+.tab-pane .p-3\.5.rounded-xl.border,
+.tab-pane .p-3.rounded-xl.border,
+.tab-content .p-4.rounded-xl.border,
+.tab-content .p-3\.5.rounded-xl.border,
+.tab-content .p-3.rounded-xl.border,
+[data-tab-section] .p-4.rounded-xl.border,
+[data-tab-section] .p-3\.5.rounded-xl.border,
+[data-tab-section] .p-3.rounded-xl.border,
+.settings-fullscreen-view .rounded-2xl.border,
+.settings-fullscreen-view .rounded-xl.border,
+.settings-fullscreen-view .rounded-lg.border,
+.settings-fullscreen-view .p-5.rounded-2xl.border,
+.settings-fullscreen-view .p-6.rounded-2xl.border,
+#main-settings-view .rounded-2xl.border,
+#main-settings-view .rounded-xl.border,
+.border-accent-gold\/25,
+.border-accent-cyan\/25,
+.border-accent-ruby\/25,
+.border-accent-copper\/25,
+.border-purple-500\/25,
+.border-accent-gold\/30,
+.border-accent-cyan\/30,
+.border-accent-ruby\/30,
+.border-accent-copper\/30,
+.border-purple-500\/30,
+.border-accent-gold\/40,
+.border-accent-cyan\/40,
+.border-accent-ruby\/40,
+.border-accent-copper\/40,
+.border-purple-500\/40 {
+  border-color: var(--border-custom) !important;
+}
+
+.tab-pane .border-white\/5,
+.tab-pane .border-white\/10,
+.tab-pane .border-white\/15,
+.tab-pane .border-white\/20,
+.tab-content .border-white\/5,
+.tab-content .border-white\/10,
+.tab-content .border-white\/15,
+.tab-content .border-white\/20,
+.modal-box .border-white\/5,
+.modal-box .border-white\/10,
+.modal-box .border-white\/15,
+.modal-box .border-white\/20,
+.form-card .border-white\/5,
+.form-card .border-white\/10,
+.form-card .border-white\/15,
+.form-card .border-white\/20,
+.settings-fullscreen-view .border-white\/5,
+.settings-fullscreen-view .border-white\/10,
+.settings-fullscreen-view .border-white\/15,
+.settings-fullscreen-view .border-white\/20,
+.settings-fullscreen-view .border-parchment-brown\/20,
+.settings-fullscreen-view .border-parchment-brown\/30,
+#main-settings-view .border-white\/5,
+#main-settings-view .border-white\/10,
+#main-settings-view .border-white\/15,
+#main-settings-view .border-white\/20,
+#main-settings-view .border-parchment-brown\/20,
+#main-settings-view .border-parchment-brown\/30 {
+  border-color: var(--border-subtle) !important;
+}
+
+.settings-fullscreen-view .border-b,
+#main-settings-view .border-b {
+  border-bottom-color: var(--border-subtle) !important;
+}
+
+.settings-fullscreen-view .border-t,
+#main-settings-view .border-t {
+  border-top-color: var(--border-subtle) !important;
+}
+
+.modal-box {
+  background-color: var(--bg-panel) !important;
+  border-color: var(--border-custom) !important;
+}
+
+#app-header {
+  background-color: var(--bg-panel) !important;
+  border-bottom-color: var(--border-custom) !important;
+}
+
+#app-sidebar {
+  background-color: var(--bg-panel-2) !important;
+  border-right-color: var(--border-custom) !important;
+}
+
+.dashboard-header-panel {
+  background-color: var(--bg-panel) !important;
+  border-color: var(--border-custom) !important;
+}
+
+/* ── Reset Alpine ──────────────────────────────────────────── */
+[x-cloak] {
+  display: none !important;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+/* ── Body — base con micro-textura diagonal ─────────────── */
+body {
+  background: transparent !important;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--diagonal-stripe);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Scrollbar — cian estilizado ────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-dim);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* ── Tipografías del Sistema ────────────────────────────── */
+.font-title {
+  font-family: var(--font-display, 'Barlow Condensed', sans-serif);
+  font-weight: var(--font-weight-display, 800);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.font-body {
+  font-family: var(--font-body, 'Inter Tight', sans-serif);
+  font-weight: var(--font-weight-body, 400);
+}
+
+.font-input {
+  font-family: var(--font-input, 'JetBrains Mono', monospace);
+  font-weight: var(--font-weight-input, 400);
+}
+
+.font-hud {
+  font-family: var(--font-hud, 'Chakra Petch', sans-serif);
+  font-weight: var(--font-weight-hud, 600);
+}
+
+/* ── Densidad de Interfaz (Compacta, Normal, Cómoda) ─────── */
+
+/* ══════════════════════════════════════════════════════════
+   1. MODO COMPACTO (DENSIDAD ALTA / MÁXIMO ESPACIO DE TRABAJO)
+   ══════════════════════════════════════════════════════════ */
+[data-density="compact"] {
+  --cut-sm: 4px;
+  --cut-md: 8px;
+  --cut-lg: 12px;
+}
+
+/* Tarjetas principales y paneles */
+[data-density="compact"] .form-card {
+  padding: 12px 14px !important;
+}
+
+[data-density="compact"] .p-4 { padding: 0.65rem !important; }
+[data-density="compact"] .p-5 { padding: 0.85rem !important; }
+[data-density="compact"] .p-6 { padding: 1rem !important; }
+[data-density="compact"] .p-8 { padding: 1.25rem !important; }
+
+/* Separaciones verticales y cuadrículas */
+[data-density="compact"] .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.85rem !important;
+}
+[data-density="compact"] .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.6rem !important;
+}
+[data-density="compact"] .space-y-3\.5 > :not([hidden]) ~ :not([hidden]),
+[data-density="compact"] .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.45rem !important;
+}
+[data-density="compact"] .space-y-2\.5 > :not([hidden]) ~ :not([hidden]),
+[data-density="compact"] .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.35rem !important;
+}
+
+/* Espaciados entre columnas y filas (Gaps) */
+[data-density="compact"] .gap-8 { gap: 1rem !important; }
+[data-density="compact"] .gap-6 { gap: 0.75rem !important; }
+[data-density="compact"] .gap-4 { gap: 0.5rem !important; }
+[data-density="compact"] .gap-3 { gap: 0.4rem !important; }
+[data-density="compact"] .gap-2\.5 { gap: 0.35rem !important; }
+[data-density="compact"] .gap-2 { gap: 0.3rem !important; }
+
+/* Controles de Entrada (Inputs, Textareas, Selects) */
+[data-density="compact"] .form-input,
+[data-density="compact"] input.form-input,
+[data-density="compact"] select.form-input {
+  min-height: 32px !important;
+  padding: 4px 10px !important;
+  font-size: 0.82rem !important;
+}
+
+[data-density="compact"] .form-textarea,
+[data-density="compact"] textarea.form-textarea,
+[data-density="compact"] .rich-text-editor {
+  min-height: 65px !important;
+  padding: 6px 10px !important;
+  font-size: 0.82rem !important;
+}
+
+[data-density="compact"] .form-label {
+  margin-bottom: 2px !important;
+  font-size: 0.62rem !important;
+}
+
+/* Encabezados y títulos */
+[data-density="compact"] .form-card-title {
+  padding-bottom: 6px !important;
+  margin-bottom: 2px !important;
+  font-size: 0.88rem !important;
+}
+
+[data-density="compact"] .category-header-title {
+  font-size: 0.92rem !important;
+}
+
+[data-density="compact"] .category-header-desc {
+  font-size: 0.7rem !important;
+  line-height: 1.25 !important;
+  margin-top: 1px !important;
+}
+
+[data-density="compact"] .category-header-icon-box {
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+[data-density="compact"] .category-header-icon-box i,
+[data-density="compact"] .category-header-icon-box svg {
+  width: 1rem !important;
+  height: 1rem !important;
+}
+
+/* Tarjetas de atributos, habilidades, armas y lectura */
+[data-density="compact"] .power-attribute-card {
+  padding: 0.5rem 0.65rem !important;
+}
+
+[data-density="compact"] .skill-card,
+[data-density="compact"] .weapon-card {
+  padding: 0.65rem !important;
+}
+
+[data-density="compact"] .read-card {
+  padding: 0.5rem 0.75rem !important;
+}
+
+[data-density="compact"] .header-btn {
+  padding: 4px 8px !important;
+  font-size: 0.72rem !important;
+}
+
+[data-density="compact"] .text-sm {
+  font-size: 0.8rem !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   2. MODO CÓMODO (DENSIDAD ESPACIOSA / AIREADA)
+   ══════════════════════════════════════════════════════════ */
+[data-density="comfortable"] {
+  --cut-sm: 10px;
+  --cut-md: 16px;
+  --cut-lg: 24px;
+}
+
+/* Tarjetas principales y paneles */
+[data-density="comfortable"] .form-card {
+  padding: 28px !important;
+}
+
+[data-density="comfortable"] .p-4 { padding: 1.35rem !important; }
+[data-density="comfortable"] .p-5 { padding: 1.65rem !important; }
+[data-density="comfortable"] .p-6 { padding: 1.85rem !important; }
+[data-density="comfortable"] .p-8 { padding: 2.5rem !important; }
+
+/* Separaciones verticales y cuadrículas */
+[data-density="comfortable"] .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 2rem !important;
+}
+[data-density="comfortable"] .space-y-4 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.35rem !important;
+}
+[data-density="comfortable"] .space-y-3\.5 > :not([hidden]) ~ :not([hidden]),
+[data-density="comfortable"] .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem !important;
+}
+[data-density="comfortable"] .space-y-2\.5 > :not([hidden]) ~ :not([hidden]),
+[data-density="comfortable"] .space-y-2 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.75rem !important;
+}
+
+/* Espaciados entre columnas y filas (Gaps) */
+[data-density="comfortable"] .gap-8 { gap: 2.25rem !important; }
+[data-density="comfortable"] .gap-6 { gap: 1.75rem !important; }
+[data-density="comfortable"] .gap-4 { gap: 1.25rem !important; }
+[data-density="comfortable"] .gap-3 { gap: 1rem !important; }
+[data-density="comfortable"] .gap-2\.5 { gap: 0.85rem !important; }
+[data-density="comfortable"] .gap-2 { gap: 0.75rem !important; }
+
+/* Controles de Entrada (Inputs, Textareas, Selects) */
+[data-density="comfortable"] .form-input,
+[data-density="comfortable"] input.form-input,
+[data-density="comfortable"] select.form-input {
+  min-height: 46px !important;
+  padding: 12px 16px !important;
+  font-size: 0.92rem !important;
+}
+
+[data-density="comfortable"] .form-textarea,
+[data-density="comfortable"] textarea.form-textarea,
+[data-density="comfortable"] .rich-text-editor {
+  min-height: 115px !important;
+  padding: 14px 16px !important;
+  font-size: 0.92rem !important;
+}
+
+[data-density="comfortable"] .form-label {
+  margin-bottom: 7px !important;
+  font-size: 0.72rem !important;
+}
+
+/* Encabezados y títulos */
+[data-density="comfortable"] .form-card-title {
+  padding-bottom: 16px !important;
+  margin-bottom: 6px !important;
+  font-size: 1.05rem !important;
+}
+
+[data-density="comfortable"] .category-header-title {
+  font-size: 1.12rem !important;
+}
+
+[data-density="comfortable"] .category-header-desc {
+  font-size: 0.82rem !important;
+  line-height: 1.45 !important;
+  margin-top: 4px !important;
+}
+
+[data-density="comfortable"] .category-header-icon-box {
+  width: 2.5rem !important;
+  height: 2.5rem !important;
+}
+
+[data-density="comfortable"] .category-header-icon-box i,
+[data-density="comfortable"] .category-header-icon-box svg {
+  width: 1.35rem !important;
+  height: 1.35rem !important;
+}
+
+/* Tarjetas de atributos, habilidades, armas y lectura */
+[data-density="comfortable"] .power-attribute-card {
+  padding: 1.15rem 1.25rem !important;
+}
+
+[data-density="comfortable"] .skill-card,
+[data-density="comfortable"] .weapon-card {
+  padding: 1.25rem !important;
+}
+
+[data-density="comfortable"] .read-card {
+  padding: 1.15rem 1.25rem !important;
+}
+
+[data-density="comfortable"] .header-btn {
+  padding: 8px 16px !important;
+  font-size: 0.85rem !important;
+}
+
+/* ── Layout Grid ────────────────────────────────────────── */
+#app {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "header  header"
+    "sidebar content";
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   ANIMACIONES GLOBALES
+   ══════════════════════════════════════════════════════════ */
+@keyframes hud-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+
+  50% {
+    box-shadow: 0 0 20px var(--accent-glow), 0 0 40px var(--accent-glow-lg);
+  }
+}
+
+@keyframes clip-reveal {
+  from {
+    clip-path: polygon(0 0, 0 0, 0 100%, 0 100%);
+    opacity: 0;
+  }
+
+  to {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+    opacity: 1;
+  }
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   REFORZAMIENTO DE CONTRASTE Y LEGBILIDAD (WCAG AAA)
+   ══════════════════════════════════════════════════════════ */
+.scrim-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.65) 50%, rgba(0, 0, 0, 0.88) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.read-label,
+.section-title,
+.form-card-title,
+.sidebar-section-label,
+.brand-logo,
+.mode-badge,
+.text-shadow-scrim {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85), 0 2px 8px rgba(0, 0, 0, 0.7) !important;
+}
+
+
+/* ══════════════════════════════════════════════════════════
+   DYNAMIC ACCENT SYSTEM OVERRIDES (UNIFORM THEME ACCENT)
+   Garantiza que todas las utilidades accent-cyan respondan
+   dinámicamente a la variable --accent-primary configurada por el usuario.
+   ══════════════════════════════════════════════════════════ */
+.text-accent-cyan {
+  color: var(--accent-primary, var(--accent, #00f0ff)) !important;
+}
+
+.border-accent-cyan {
+  border-color: var(--accent-primary, var(--accent, #00f0ff)) !important;
+}
+
+.border-accent-cyan\/60,
+.border-accent-cyan\/50,
+.border-accent-cyan\/40,
+.border-accent-cyan\/30,
+.border-accent-cyan\/20,
+.border-accent-cyan\/10 {
+  border-color: var(--border-accent, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.35)) !important;
+}
+
+.bg-accent-cyan {
+  background-color: var(--accent-primary, var(--accent, #00f0ff)) !important;
+}
+
+.bg-accent-cyan\/30,
+.bg-accent-cyan\/20,
+.bg-accent-cyan\/15,
+.bg-accent-cyan\/10,
+.bg-accent-cyan\/5 {
+  background-color: var(--accent-dim, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.15)) !important;
+}
+
+.hover\:bg-accent-cyan:hover {
+  background-color: var(--accent-primary, var(--accent, #00f0ff)) !important;
+}
+
+.hover\:bg-accent-cyan\/20:hover,
+.hover\:bg-accent-cyan\/10:hover {
+  background-color: var(--accent-dim, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.25)) !important;
+}
+
+.hover\:border-accent-cyan:hover {
+  border-color: var(--accent-primary, var(--accent, #00f0ff)) !important;
+}
+
+.focus\:border-accent-cyan:focus {
+  border-color: var(--accent-primary, var(--accent, #00f0ff)) !important;
+}
+
+.shadow-accent-cyan\/20,
+.shadow-accent-cyan\/30,
+.shadow-accent-cyan\/40,
+.shadow-accent-cyan\/50,
+.shadow-accent-cyan\/60 {
+  box-shadow: 0 0 16px var(--accent-glow, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.25)) !important;
+}
+

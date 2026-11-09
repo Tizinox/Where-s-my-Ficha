@@ -1,0 +1,22 @@
+/**
+ * style.css — Orquestador Modular de Estilos
+ * WhereIsMySUPER-Ficha — Cyber / High-Contrast Design System
+ * Estética: Stylized Anime · Persona 5 · Valorant · ZZZ
+ *
+ * Módulos desacoplados:
+ * - styles/variables.css: Directivas Tailwind, CSS variables, tokens de color, íconos y reset base.
+ * - styles/layout.css: Header, barra de navegación, sidebar táctico, contenedor y bordes chamfer.
+ * - styles/forms.css: Tarjetas de formulario, inputs, selectores, controles y formateador flotante.
+ * - styles/components.css: Identidad visual, avatares, habilidades, arsenal, galería y Steam.
+ * - styles/dashboard.css: Panel de personajes, carpetas tácticas, tarjetas y esqueletos HUD.
+ * - styles/tierlist.css: Tableros de Tier List, monumentos de rango y tokens tácticos.
+ * - styles/modals.css: Modales, toasts, confirmaciones, simulador Discord y Splash Screen.
+ */
+
+@import './styles/variables.css';
+@import './styles/layout.css';
+@import './styles/forms.css';
+@import './styles/components.css';
+@import './styles/dashboard.css';
+@import './styles/tierlist.css';
+@import './styles/modals.css';

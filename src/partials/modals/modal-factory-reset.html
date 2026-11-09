@@ -1,0 +1,89 @@
+<!-- ==============================================================
+     MODAL DE SEGURIDAD: PROTOCOLO DE REINICIO DE FÁBRICA
+     ============================================================== -->
+<div id="factory-reset-modal" class="modal-backdrop no-print z-[999999]" x-show="$store.app.showFactoryResetModal"
+  x-cloak x-data x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-150"
+  x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+  @keydown.escape.window="$store.app.closeFactoryResetModal()" role="dialog" aria-modal="true"
+  aria-labelledby="factory-reset-title">
+  <!-- Click outside backdrop -->
+  <div class="absolute inset-0 bg-black/85 backdrop-blur-sm" @click="$store.app.closeFactoryResetModal()"></div>
+
+  <!-- Modal Dialog Window (Render diferido bajo demanda) -->
+  <template x-if="$store.app.showFactoryResetModal">
+    <div
+      class="modal-box relative w-full max-w-lg bg-[#0e0a0c] border-2 border-accent-ruby/60 rounded-2xl shadow-[0_0_60px_rgba(255,0,85,0.3)] p-6 space-y-5 text-parchment-cream overflow-hidden">
+      <!-- Glow ambient light -->
+      <div class="absolute -top-24 -right-24 w-48 h-48 bg-accent-ruby/20 rounded-full blur-3xl pointer-events-none">
+      </div>
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 border-b border-accent-ruby/30 pb-4">
+        <div
+          class="w-10 h-10 rounded-xl bg-accent-ruby/20 border border-accent-ruby/50 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,85,0.3)]">
+          <i data-lucide="shield-alert" class="w-5 h-5 text-accent-ruby"></i>
+        </div>
+        <div>
+          <h2 id="factory-reset-title" class="font-hud font-bold text-base sm:text-lg text-accent-ruby tracking-wide">
+            PROTOCOLO DE REINICIO DE FÁBRICA
+          </h2>
+          <p class="text-[11px] font-mono text-rose-300/80">Acción destructiva e irreversible de datos locales</p>
+        </div>
+      </div>
+
+      <!-- Advertencia y Resumen de Impacto -->
+      <div class="p-4 rounded-xl bg-accent-ruby/10 border border-accent-ruby/30 space-y-2 text-xs leading-relaxed">
+        <p class="font-bold text-rose-200 flex items-center gap-1.5">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-accent-ruby shrink-0"></i>
+          ¿Estás seguro de que deseas restablecer el programa completo?
+        </p>
+        <ul class="list-disc list-inside space-y-1 text-slate-300 text-[11px]">
+          <li>Se eliminarán permanentemente tus <strong class="text-white"
+              x-text="($store.characters.list?.length || 0) + ' fichas de personajes'"></strong>.</li>
+          <li>Se borrarán los temas personalizados, kits creados y configuraciones guardadas.</li>
+          <li>La base de datos local e IndexedDB se resetearán a su estado virgen de fábrica.</li>
+        </ul>
+      </div>
+
+      <!-- Descarga de Seguridad Previa -->
+      <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 text-xs gap-3">
+        <div class="min-w-0">
+          <span class="font-bold text-white block truncate">¿Deseas guardar un backup antes?</span>
+          <span class="text-[10px] text-ink-slate block">Descarga todas tus fichas en un archivo JSON seguro.</span>
+        </div>
+        <button type="button" @click="$store.characters.exportAllJSON()"
+          class="px-3 py-1.5 rounded-lg bg-accent-gold/20 hover:bg-accent-gold hover:text-black border border-accent-gold/50 text-accent-gold font-mono font-bold text-xs transition-all cursor-pointer shrink-0 flex items-center gap-1.5 shadow-sm">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          Descargar Roster
+        </button>
+      </div>
+
+      <!-- Confirmación por Palabra Clave -->
+      <div class="space-y-2 pt-1">
+        <label class="block text-xs font-mono text-slate-300">
+          Para autorizar el borrado, escribe <strong
+            class="text-accent-ruby font-bold select-all tracking-wider">BORRAR</strong> en el campo:
+        </label>
+        <input type="text"
+          class="w-full px-3.5 py-2.5 rounded-xl bg-black/60 border border-accent-ruby/40 text-white font-mono text-sm tracking-widest placeholder:text-slate-600 focus:outline-none focus:border-accent-ruby focus:ring-1 focus:ring-accent-ruby shadow-inner"
+          placeholder='Escribe "BORRAR" aquí...' x-model="$store.app.factoryResetConfirmInput"
+          @keydown.enter="$store.app.factoryResetConfirmInput.trim().toUpperCase() === 'BORRAR' && $store.app.confirmFactoryReset()">
+      </div>
+
+      <!-- Acciones del Modal -->
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+        <button type="button" @click="$store.app.closeFactoryResetModal()"
+          class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-slate-300 hover:text-white transition-all cursor-pointer font-mono">
+          Cancelar
+        </button>
+        <button type="button" @click="$store.app.confirmFactoryReset()"
+          :disabled="$store.app.factoryResetConfirmInput.trim().toUpperCase() !== 'BORRAR'"
+          class="px-4 py-2 rounded-xl bg-accent-ruby text-white hover:bg-rose-600 font-bold text-xs uppercase tracking-wider transition-all cursor-pointer font-mono flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(255,0,85,0.4)]">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          Confirmar y Restablecer
+        </button>
+      </div>
+    </div>
+  </template>
+</div>

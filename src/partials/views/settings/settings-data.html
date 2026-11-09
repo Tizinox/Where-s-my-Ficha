@@ -1,0 +1,621 @@
+<!-- ═════════════════════════════════════════════════════════
+     SUB-TAB 5: DATOS Y EXPORTACIÓN (DISEÑO 2 COLUMNAS WIDESCREEN)
+     ═════════════════════════════════════════════════════════ -->
+<div x-show="$store.settings.activeSubTab === 'data'" x-transition:enter="transition ease-out duration-200"
+  x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+  class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+
+  <!-- COLUMNA IZQUIERDA: GESTIÓN DE DATOS LOCALES y SEGURIDAD -->
+  <div class="space-y-6">
+
+    <!-- Módulo 1: Centro de Datos y Exportación JSON -->
+    <div class="p-5 sm:p-6 rounded-2xl border space-y-4 shadow-xl transition-all"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.25);'">
+      <div class="flex items-center justify-between border-b pb-3 cursor-pointer select-none group"
+        :style="'border-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2);'"
+        @click="$store.settings.toggleDataCenterExpanded()">
+        <div class="flex items-center gap-2 flex-wrap">
+          <h3 class="text-sm font-bold text-parchment-peach flex items-center gap-2">
+            <i data-lucide="database" class="w-4.5 h-4.5" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')"></i>
+            <span>Centro de Datos y Exportación JSON</span>
+          </h3>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded border font-bold"
+            :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.15); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '50; color: ' + ($store.settings.accentColor || '#00f0ff') + ';'">
+            Previsualización Activa
+          </span>
+          <!-- Mini Badge de Estado cuando está plegado -->
+          <span x-show="!$store.settings.dataCenterExpanded"
+            class="text-[10px] font-mono px-2 py-0.5 rounded border font-bold"
+            :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.1); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '35; color: ' + ($store.settings.accentColor || '#00f0ff') + ';'">
+            <span x-text="($store.characters.list?.length === 1 ? '1 Ficha' : ($store.characters.list?.length || 0) + ' Fichas')"></span>
+          </span>
+        </div>
+        <div class="flex items-center gap-2.5 shrink-0">
+          <button type="button"
+            class="px-2.5 py-1 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+            :style="'border-color: ' + ($store.settings.accentColor || '#00f0ff') + '60; background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.15); color: ' + ($store.settings.accentColor || '#00f0ff') + ';'">
+            <span x-text="$store.settings.dataCenterExpanded ? 'Plegar' : 'Desplegar'"></span>
+            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"
+              :class="$store.settings.dataCenterExpanded ? 'rotate-180' : ''"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor Plegable con Animación Suave -->
+      <div x-show="$store.settings.dataCenterExpanded"
+        x-transition:enter="transition ease-out duration-250"
+        x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
+        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+        x-transition:leave-end="opacity-0 -translate-y-2 scale-98"
+        class="space-y-4 pt-1">
+
+        <p class="text-xs text-text-muted leading-relaxed">
+        Gestiona tus personajes con formato JSON nativo sin pérdida de calidad. Arrastra archivos, pega desde el portapapeles o genera respaldos de seguridad.
+      </p>
+
+      <!-- Zona Interactiva Drag y Drop para Previsualización Inmediata -->
+      <div
+        x-data="{ isDragging: false }"
+        @dragover.prevent="isDragging = true"
+        @dragleave.prevent="isDragging = false"
+        @drop.prevent="isDragging = false; $store.characters.handleJSONDrop($event)"
+        @click="$refs.settingsJsonFileInput.click()"
+        class="p-5 sm:p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer text-center relative overflow-hidden group flex flex-col items-center justify-center gap-2"
+        :style="isDragging ? ('border-color: ' + ($store.settings.accentColor || '#00f0ff') + '; background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2); box-shadow: 0 0 30px rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.3); scale: 1.01;') : ('border-color: ' + ($store.settings.borderColor || 'rgba(255,255,255,0.15)') + '; background: rgba(0,0,0,0.4);')">
+        
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center border transition-all shadow-md group-hover:scale-110"
+          :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.12); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '40; color: ' + ($store.settings.accentColor || '#00f0ff') + ';'">
+          <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+        </div>
+
+        <div>
+          <span class="text-xs font-bold text-white font-mono tracking-wide block">
+            Arrastra tu archivo .json aquí para previsualizarlo
+          </span>
+          <span class="text-[11px] text-slate-400 block mt-0.5">
+            O haz clic para examinar archivos en tu equipo
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-1.5 mt-1">
+          <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] font-mono text-slate-400">
+            Ficha Individual
+          </span>
+          <span class="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[9px] font-mono text-slate-400">
+            Backup Roster
+          </span>
+          <span class="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-[9px] font-mono text-emerald-400 font-bold">
+            Inspección Segura
+          </span>
+        </div>
+
+        <input x-ref="settingsJsonFileInput" type="file" accept=".json,application/json" class="hidden"
+          @change="$store.characters.importJSON($event)" />
+      </div>
+
+      <!-- Barra de Acciones Rápidas: Portapapeles y Entrada Manual -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <!-- Pegar Portapapeles -->
+        <button type="button" @click="$store.characters.pasteJSONFromClipboard()"
+          class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border font-mono font-bold text-xs transition-all cursor-pointer group shadow-sm"
+          :style="'border-color: ' + ($store.settings.accentColor || '#00f0ff') + '40; background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.12); color: ' + ($store.settings.accentColor || '#00f0ff') + ';'">
+          <i data-lucide="clipboard" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+          <span>Pegar Portapapeles</span>
+        </button>
+
+        <!-- Entrada Manual (Toggle) -->
+        <button type="button" @click="$store.characters.jsonPreview.manualInputOpen = !$store.characters.jsonPreview.manualInputOpen"
+          class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-white/15 bg-white/5 hover:border-white/30 hover:bg-white/10 text-slate-200 font-mono font-bold text-xs transition-all cursor-pointer group shadow-sm">
+          <i data-lucide="code-2" class="w-4 h-4 group-hover:scale-110 transition-transform" :style="'color: ' + ($store.settings.secondaryColor || '#ff0077')"></i>
+          <span x-text="$store.characters.jsonPreview.manualInputOpen ? 'Cerrar Editor' : 'Entrada Manual'"></span>
+        </button>
+      </div>
+
+      <!-- Drawer de Entrada Manual de Texto JSON -->
+      <div x-show="$store.characters.jsonPreview.manualInputOpen" x-transition class="p-3.5 rounded-xl bg-black/70 border border-white/15 space-y-2">
+        <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
+          <span>Pega el contenido JSON a continuación:</span>
+          <button type="button" @click="$store.characters.jsonPreview.manualInputText = ''" class="text-rose-400 hover:underline">Limpiar</button>
+        </div>
+        <textarea x-model="$store.characters.jsonPreview.manualInputText"
+          placeholder="Pega aquí el código JSON para previsualizarlo..."
+          rows="3"
+          class="w-full p-2.5 rounded-lg bg-black/90 border border-white/20 font-mono text-xs text-emerald-400 placeholder-slate-600 focus:outline-none resize-y"
+          :style="'&:focus { border-color: ' + ($store.settings.accentColor || '#00f0ff') + '; }'"></textarea>
+        <button type="button" @click="$store.characters.processManualJSONInput()"
+          class="w-full py-2 rounded-lg font-mono font-bold text-xs transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-md"
+          :style="'background: ' + ($store.settings.accentColor || '#00f0ff') + '; color: #000;'">
+          <i data-lucide="file-search" class="w-3.5 h-3.5"></i>
+          <span>Procesar e Inspeccionar Ficha</span>
+        </button>
+      </div>
+
+      <!-- Acciones de Exportación Directa -->
+      <div class="pt-2 border-t border-white/10 space-y-2">
+        <span class="text-[11px] font-mono text-slate-400 block font-bold">Descargas y Copia Inmediata:</span>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <!-- 1. Copiar Ficha al Portapapeles (1 clic) -->
+          <button type="button" @click="$store.characters.copyActiveJSONToClipboard()"
+            class="flex flex-col items-center justify-center py-3 px-2 gap-1.5 border border-purple-500/30 bg-purple-500/10 hover:border-purple-500 hover:bg-purple-500/20 rounded-xl cursor-pointer text-center group transition-all"
+            title="Copia el JSON de la ficha activa para compartirlo por chat o Discord">
+            <i data-lucide="copy" class="w-4 h-4 text-purple-300 group-hover:scale-110 transition-transform"></i>
+            <span class="text-xs font-bold text-white font-mono">Copiar Ficha</span>
+            <span class="text-[9px] text-purple-200 truncate max-w-full px-1">Al Portapapeles</span>
+          </button>
+
+          <!-- 2. Descargar Ficha Activa -->
+          <button type="button" @click="$store.characters.exportJSON()"
+            class="flex flex-col items-center justify-center py-3 px-2 gap-1.5 border border-ink-teal/30 bg-ink-teal/10 hover:border-ink-teal hover:bg-ink-teal/20 rounded-xl cursor-pointer text-center group transition-all"
+            title="Descarga el archivo .json de la ficha activa">
+            <i data-lucide="download" class="w-4 h-4 text-ink-teal group-hover:scale-110 transition-transform"></i>
+            <span class="text-xs font-bold text-white font-mono">Ficha Activa</span>
+            <span class="text-[9px] text-ink-slate group-hover:text-cyan-200 truncate max-w-full px-1"
+              x-text="$store.characters.active?.name || 'Actual'"></span>
+          </button>
+
+          <!-- 3. Backup Roster Completo -->
+          <button type="button" @click="$store.characters.exportAllJSON()"
+            class="flex flex-col items-center justify-center py-3 px-2 gap-1.5 border border-accent-gold/30 bg-accent-gold/10 hover:border-accent-gold hover:bg-accent-gold/20 rounded-xl cursor-pointer text-center group transition-all"
+            title="Copia de seguridad completa con todos los personajes y carpetas">
+            <i data-lucide="boxes" class="w-4 h-4 text-accent-gold group-hover:scale-110 transition-transform"></i>
+            <span class="text-xs font-bold text-white font-mono">Backup Roster</span>
+            <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-accent-gold/20 text-accent-gold font-bold"
+              x-text="($store.characters.list?.length === 1 ? '1 ficha' : ($store.characters.list?.length || 0) + ' fichas')"></span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Resumen Informativo de Garantía de Calidad -->
+      <div class="p-3 rounded-xl bg-white/5 border border-white/10 flex items-start gap-2.5 text-[11px] text-slate-300 leading-relaxed">
+        <i data-lucide="shield-check" class="w-4 h-4 text-accent-gold shrink-0 mt-0.5"></i>
+        <div>
+          <strong class="text-white block font-mono">Ventaja del Formato JSON:</strong>
+          Garantiza el 100% de fidelidad de datos, cero compresión borrosa, compatibilidad total con todas las versiones y migración instantánea entre navegadores o dispositivos.
+        </div>
+      </div>
+      </div>
+    </div>
+
+    <!-- Módulo 1B: Exportación por Carpetas (Colecciones Modulares) -->
+    <div class="p-5 sm:p-6 rounded-2xl border space-y-4 shadow-xl transition-all"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + ';'"
+      x-data="{
+        selectedFolderId: $store.characters.folders?.[0]?.id || 'unassigned'
+      }">
+      <div class="flex items-center justify-between border-b pb-3 cursor-pointer select-none group"
+        :style="'border-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2);'"
+        @click="$store.settings.toggleFolderExportExpanded()">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <i data-lucide="folder-output" class="w-5 h-5 shrink-0" :style="'color: ' + ($store.settings.tertiaryColor || '#d4af37')"></i>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-sm font-bold text-parchment-peach tracking-wide">
+                Exportar por Carpetas
+              </h3>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded border font-bold"
+                :style="'background: rgba(' + ($store.settings.hexToRgb($store.settings.tertiaryColor || '#d4af37')?.r || 212) + ',' + ($store.settings.hexToRgb($store.settings.tertiaryColor || '#d4af37')?.g || 175) + ',' + ($store.settings.hexToRgb($store.settings.tertiaryColor || '#d4af37')?.b || 55) + ', 0.15); border-color: ' + ($store.settings.tertiaryColor || '#d4af37') + '50; color: ' + ($store.settings.tertiaryColor || '#d4af37') + ';'"
+                x-text="($store.characters.folders?.length || 0) + ' Carpetas'">
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-400 font-mono">Paquetes modulares por campaña o categoría</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 shrink-0">
+          <button type="button"
+            class="px-2.5 py-1 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+            :style="'border-color: ' + ($store.settings.tertiaryColor || '#d4af37') + '60; background: rgba(' + ($store.settings.hexToRgb($store.settings.tertiaryColor || '#d4af37')?.r || 212) + ',' + ($store.settings.hexToRgb($store.settings.tertiaryColor || '#d4af37')?.g || 175) + ',' + ($store.settings.hexToRgb($store.settings.tertiaryColor || '#d4af37')?.b || 55) + ', 0.15); color: ' + ($store.settings.tertiaryColor || '#d4af37') + ';'">
+            <span x-text="$store.settings.folderExportExpanded ? 'Plegar' : 'Desplegar'"></span>
+            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"
+              :class="$store.settings.folderExportExpanded ? 'rotate-180' : ''"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor Plegable con Animación Suave -->
+      <div x-show="$store.settings.folderExportExpanded"
+        x-transition:enter="transition ease-out duration-250"
+        x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
+        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+        x-transition:leave-end="opacity-0 -translate-y-2 scale-98"
+        class="space-y-4 pt-1">
+
+        <p class="text-xs text-text-muted leading-relaxed">
+        Descarga o copia al portapapeles únicamente las fichas que pertenecen a una carpeta o campaña específica, sin necesidad de exportar todo el roster completo.
+      </p>
+
+      <!-- Selector Visual de Carpetas -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <label class="text-[11px] font-mono text-slate-300 font-bold">Selecciona una colección:</label>
+          <button type="button" @click="$store.characters.openCreateFolderModal()"
+            class="text-[10px] font-mono text-accent-gold hover:underline flex items-center gap-1 cursor-pointer">
+            <i data-lucide="folder-plus" class="w-3 h-3"></i>
+            <span>+ Nueva Carpeta</span>
+          </button>
+        </div>
+        
+        <div class="space-y-1.5 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+          <!-- Opción A: Sin Carpeta / Sueltas -->
+          <button type="button"
+            @click="selectedFolderId = 'unassigned'"
+            class="w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all cursor-pointer group"
+            :class="selectedFolderId === 'unassigned' ? 'bg-accent-gold/15 border-accent-gold text-parchment-cream shadow-sm font-semibold' : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/10'">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-7 h-7 rounded-lg bg-white/10 flex items-center justify-center shrink-0 text-slate-400 group-hover:text-white">
+                <i data-lucide="folder" class="w-3.5 h-3.5"></i>
+              </div>
+              <div class="min-w-0">
+                <span class="text-xs font-bold font-mono block truncate">Sin Carpeta / Independientes</span>
+                <span class="text-[10px] text-slate-400 font-sans block truncate">Personajes no organizados en carpetas</span>
+              </div>
+            </div>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-white/10 text-slate-300 font-bold shrink-0 ml-2"
+              x-text="$store.characters.getFolderCharCount('unassigned') + ' fichas'"></span>
+          </button>
+
+          <!-- Opción B: Carpetas Creadas por el Usuario -->
+          <template x-for="f in $store.characters.folders" :key="f.id">
+            <button type="button"
+              @click="selectedFolderId = f.id"
+              class="w-full flex items-center justify-between p-2.5 rounded-xl border text-left transition-all cursor-pointer group"
+              :class="selectedFolderId === f.id ? 'bg-accent-gold/15 border-accent-gold text-parchment-cream shadow-sm font-semibold' : 'bg-white/5 border-white/10 text-slate-300 hover:border-white/20 hover:bg-white/10'">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border shadow-sm"
+                  :style="`background: ${f.color}20; border-color: ${f.color}50; color: ${f.color};`">
+                  <span x-html="$store.characters.renderFolderIconSvg(f.icon, 'w-3.5 h-3.5', f.color)"></span>
+                </div>
+                <div class="min-w-0">
+                  <span class="text-xs font-bold font-mono block truncate" x-text="f.name"></span>
+                  <span class="text-[10px] text-slate-400 font-sans block truncate">Colección personalizada</span>
+                </div>
+              </div>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-black/40 border border-white/10 text-slate-300 font-bold shrink-0 ml-2"
+                x-text="$store.characters.getFolderCharCount(f.id) + ' fichas'"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+
+      <!-- Panel de Acciones para la Carpeta Seleccionada -->
+      <div class="p-3.5 rounded-xl bg-black/40 border border-white/10 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="min-w-0">
+            <span class="text-[10px] text-slate-400 font-mono block">Carpeta Lista para Exportar:</span>
+            <span class="text-xs font-bold text-accent-gold font-mono truncate block"
+              x-text="$store.characters.getFolderName(selectedFolderId)"></span>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-accent-gold/20 border border-accent-gold/30 text-accent-gold font-bold shrink-0"
+            x-text="$store.characters.getFolderCharCount(selectedFolderId) + ' fichas'"></span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <!-- Descargar JSON de Carpeta -->
+          <button type="button"
+            @click="$store.characters.exportFolderJSON(selectedFolderId)"
+            :disabled="$store.characters.getFolderCharCount(selectedFolderId) === 0"
+            class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-accent-gold/40 bg-accent-gold/15 hover:border-accent-gold hover:bg-accent-gold/25 text-accent-gold font-mono font-bold text-xs transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm group">
+            <i data-lucide="download" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+            <span>Descargar Paquete (.json)</span>
+          </button>
+
+          <!-- Copiar al Portapapeles -->
+          <button type="button"
+            @click="$store.characters.copyFolderJSONToClipboard(selectedFolderId)"
+            :disabled="$store.characters.getFolderCharCount(selectedFolderId) === 0"
+            class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-purple-500/30 bg-purple-500/10 hover:border-purple-500 hover:bg-purple-500/20 text-purple-300 font-mono font-bold text-xs transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm group">
+            <i data-lucide="clipboard" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+            <span>Copiar al Portapapeles</span>
+          </button>
+        </div>
+
+        <p class="text-[10px] text-slate-400 italic font-mono text-center pt-0.5"
+          x-show="$store.characters.getFolderCharCount(selectedFolderId) === 0">
+          ⚠️ Esta carpeta no contiene personajes actualmente. Asigna fichas desde el catálogo.
+        </p>
+      </div>
+      </div>
+    </div>
+
+    <!-- Módulo 2: Zona de Peligro -->
+    <div class="p-5 sm:p-6 rounded-2xl border border-rose-500/40 bg-rose-950/20 space-y-3.5 shadow-xl">
+      <h3
+        class="text-sm font-bold text-rose-400 flex items-center gap-2 border-b border-rose-500/20 pb-3">
+        <i data-lucide="alert-triangle" class="w-4.5 h-4.5 text-rose-400"></i>
+        Reestablecer Valores de Fábrica
+      </h3>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        Esta acción restablecerá todas las configuraciones y personajes a sus valores predeterminados de
+        fábrica. Requiere confirmación de seguridad.
+      </p>
+      <button type="button"
+        class="header-btn-danger w-full justify-center py-3 gap-2 border border-rose-500/50 hover:border-rose-400 rounded-xl cursor-pointer font-mono text-xs uppercase tracking-wider font-bold shadow-lg"
+        @click="$store.app.openFactoryResetModal()">
+        <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
+        Protocolo de Reinicio de Fábrica
+      </button>
+    </div>
+
+  </div>
+
+  <!-- COLUMNA DERECHA: TELEMETRÍA DE ALMACENAMIENTO y EXPORTACIÓN -->
+  <div class="space-y-6">
+
+    <!-- Módulo 4: Telemetría de Almacenamiento y Salud de Caché (HUD en Vivo) -->
+    <div class="p-5 sm:p-6 rounded-2xl border space-y-4 shadow-xl transition-all"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.25);'">
+      <div class="flex items-center justify-between border-b pb-3 cursor-pointer select-none group"
+        :style="'border-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2);'"
+        @click="$store.settings.storageTelemetryExpanded = !$store.settings.storageTelemetryExpanded">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border"
+            :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.15); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '50; color: ' + ($store.settings.accentColor || '#00f0ff') + ';'">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" x2="2" y1="12" y2="12"></line><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path><line x1="6" x2="6.01" y1="16" y2="16"></line><line x1="10" x2="10.01" y1="16" y2="16"></line></svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-sm font-bold text-parchment-peach tracking-wide">
+                Salud de Almacenamiento y Caché
+              </h3>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded border font-bold"
+                :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.15); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '50; color: ' + ($store.settings.accentColor || '#00f0ff') + ';'"
+                x-text="`${$store.settings.storageUsageMB} MB en Disco`">
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-400 font-mono">Monitoreo de cuota IndexedDB, blindaje y purgado</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <button type="button" @click.stop="$store.settings.refreshStorageTelemetry()"
+            class="p-1.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm"
+            title="Refrescar telemetría de disco">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5" :class="$store.settings.storageLoading ? 'animate-spin text-accent-cyan' : ''"></i>
+          </button>
+          <button type="button"
+            class="px-2.5 py-1 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+            :style="'border-color: ' + ($store.settings.accentColor || '#00f0ff') + '60; background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.15); color: ' + ($store.settings.accentColor || '#00f0ff') + ';'">
+            <span x-text="$store.settings.storageTelemetryExpanded ? 'Plegar' : 'Ver HUD'"></span>
+            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"
+              :class="$store.settings.storageTelemetryExpanded ? 'rotate-180' : ''"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor Plegable de Telemetría -->
+      <div x-show="$store.settings.storageTelemetryExpanded" x-transition class="space-y-4 pt-1">
+
+        <!-- Barra de Progreso HUD en Vivo -->
+        <div class="p-3.5 rounded-xl bg-black/70 border border-white/10 space-y-2">
+          <div class="flex items-center justify-between text-xs font-mono">
+            <span class="text-slate-300 flex items-center gap-1.5 font-bold">
+              <i data-lucide="database" class="w-3.5 h-3.5" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')"></i>
+              <span>Espacio Total Utilizado:</span>
+            </span>
+            <span class="text-white font-bold">
+              <strong :style="'color: ' + ($store.settings.accentColor || '#00f0ff')" x-text="`${$store.settings.storageUsageMB} MB`"></strong> / <span class="text-slate-400" x-text="`${$store.settings.storageQuotaGB} GB (Límite Seguro)`"></span>
+            </span>
+          </div>
+
+          <!-- Barra Visual Dinámica -->
+          <div class="w-full h-3 rounded-full bg-white/10 overflow-hidden relative p-0.5">
+            <div class="h-full rounded-full transition-all duration-500 relative"
+              :style="`width: ${Math.max(1, Math.min(100, $store.settings.storagePercentage * 10))}%; background: linear-gradient(90deg, ${$store.settings.accentColor || '#00f0ff'}, ${$store.settings.secondaryColor || '#ff0077'}); box-shadow: 0 0 10px ${$store.settings.accentColor || '#00f0ff'}80;`">
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-0.5">
+            <span>Tope de seguridad de la aplicación (30 GB Máx)</span>
+            <span x-text="`Uso de cuota segura: ${$store.settings.storagePercentage}%`"></span>
+          </div>
+        </div>
+
+        <!-- Módulo de Blindaje de Almacenamiento (Persistencia) -->
+        <div class="p-3.5 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          :class="$store.settings.storageIsPersisted ? 'bg-emerald-950/20 border-emerald-500/30' : 'bg-amber-950/20 border-amber-500/30'">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
+              :class="$store.settings.storageIsPersisted ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'">
+              <i :data-lucide="$store.settings.storageIsPersisted ? 'shield-check' : 'shield-alert'" class="w-4 h-4"></i>
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono font-bold leading-tight"
+                  :class="$store.settings.storageIsPersisted ? 'text-emerald-300' : 'text-amber-300'"
+                  x-text="$store.settings.storageIsPersisted ? 'Almacenamiento Blindado' : 'Almacenamiento Estándar'"></span>
+                <span class="text-[9px] font-mono px-1.5 py-0.2 rounded"
+                  :class="$store.settings.storageIsPersisted ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-300 border border-amber-500/40'"
+                  x-text="$store.settings.storageIsPersisted ? 'Protegido' : 'Best-Effort'"></span>
+              </div>
+              <p class="text-[10px] text-slate-300 leading-tight mt-0.5"
+                x-text="$store.settings.storageIsPersisted ? 'El navegador jamás purgará tus fichas ni tier lists automáticamente.' : 'El navegador podría liberar espacio si el disco del sistema se llena.'"></p>
+            </div>
+          </div>
+
+          <button type="button" x-show="!$store.settings.storageIsPersisted && $store.settings.storagePersistenceSupported"
+            @click="$store.settings.requestPersistence()"
+            class="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 hover:text-white text-xs font-mono font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-sm">
+            <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+            <span>Blindar Datos</span>
+          </button>
+        </div>
+
+        <!-- Desglose Táctico de Peso por Módulo -->
+        <div class="space-y-1.5 text-xs font-mono">
+          <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+            <span class="text-slate-300 flex items-center gap-2">
+              <i data-lucide="users" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span>Fichas Registradas (<span x-text="$store.settings.storageBreakdown.rosterCount"></span>)</span>
+            </span>
+            <strong class="text-white" x-text="`${($store.settings.storageBreakdown.rosterBytes / (1024 * 1024)).toFixed(1)} MB`"></strong>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+            <span class="text-slate-300 flex items-center gap-2">
+              <i data-lucide="trophy" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span>Tier Lists y Tokens (<span x-text="$store.settings.storageBreakdown.tierlistGuestsCount + $store.settings.storageBreakdown.tierlistTemplatesCount"></span>)</span>
+            </span>
+            <strong class="text-white" x-text="`${($store.settings.storageBreakdown.tierlistBytes / (1024 * 1024)).toFixed(1)} MB`"></strong>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+            <span class="text-slate-300 flex items-center gap-2">
+              <i data-lucide="image" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span>Fondos de Pantalla Cyber</span>
+            </span>
+            <strong class="text-white" x-text="`${($store.settings.storageBreakdown.backgroundsBytes / (1024 * 1024)).toFixed(1)} MB`"></strong>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+            <span class="text-slate-300 flex items-center gap-2">
+              <i data-lucide="smile" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span>Biblioteca de Emojis Custom</span>
+            </span>
+            <strong class="text-white" x-text="`${($store.settings.storageBreakdown.emojisBytes / (1024 * 1024)).toFixed(1)} MB`"></strong>
+          </div>
+
+          <div class="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+            <span class="text-slate-300 flex items-center gap-2" title="Espacio pre-asignado por el motor del navegador (LevelDB/SQLite WAL logs, diarios de transacciones y caché web)">
+              <svg class="w-3.5 h-3.5 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>
+              <span>Caché del Navegador y Motor IndexedDB</span>
+            </span>
+            <strong class="text-slate-300" x-text="`${($store.settings.storageBreakdown.systemOverheadBytes / (1024 * 1024)).toFixed(1)} MB`"></strong>
+          </div>
+        </div>
+
+        <p class="text-[9.5px] font-mono text-slate-400 italic px-1">
+          * El motor de base de datos del navegador (LevelDB / SQLite) pre-asigna bloques en disco (logs WAL e índices) para garantizar lecturas y escrituras instantáneas.
+        </p>
+
+        <!-- Botón de Mantenimiento Táctico / Purga Segura -->
+        <div class="pt-2">
+          <button type="button" @click="$store.settings.runStorageCleanup()"
+            :disabled="$store.settings.isCleaningStorage"
+            class="w-full py-2.5 px-4 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/30 text-white font-mono font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm disabled:opacity-50">
+            <i data-lucide="recycle" class="w-4 h-4 text-accent-gold" :class="$store.settings.isCleaningStorage ? 'animate-spin' : ''"></i>
+            <span x-text="$store.settings.isCleaningStorage ? 'Purgando temporales y optimizando...' : 'Optimizar y Purgar Caché Residual'"></span>
+          </button>
+          <p class="text-[9.5px] font-mono text-slate-400 text-center mt-1.5">
+            Limpia historiales de deshacer en desuso, claves temporales y compacta IndexedDB sin borrar personajes.
+          </p>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Módulo 5: Escáner de Archivos Pesados ("Vampiros de Memoria") -->
+    <div class="p-5 sm:p-6 rounded-2xl border space-y-4 shadow-xl transition-all"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.25);'">
+      <div class="flex items-center justify-between border-b pb-3 cursor-pointer select-none group"
+        :style="'border-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2);'"
+        @click="$store.settings.heavyScannerExpanded = !$store.settings.heavyScannerExpanded">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border border-amber-500/40 bg-amber-500/15 text-amber-300">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="text-sm font-bold text-parchment-peach tracking-wide">
+                Inspector de Archivos Pesados
+              </h3>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded border font-bold"
+                :class="$store.settings.heavyAssets.length > 0 ? 'bg-amber-500/15 border-amber-500/30 text-amber-300' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'"
+                x-text="$store.settings.heavyAssets.length > 0 ? `${$store.settings.heavyAssets.length} Detectados` : 'Todo Ligero'">
+              </span>
+            </div>
+            <p class="text-[10px] text-slate-400 font-mono">Identifica GIFs o imágenes de alto impacto en RAM</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2.5 shrink-0">
+          <button type="button"
+            class="px-2.5 py-1 rounded-lg border border-white/20 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
+            <span x-text="$store.settings.heavyScannerExpanded ? 'Plegar' : 'Escanear'"></span>
+            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"
+              :class="$store.settings.heavyScannerExpanded ? 'rotate-180 text-amber-400' : 'text-slate-400'"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenedor del Inspector de Archivos Pesados -->
+      <div x-show="$store.settings.heavyScannerExpanded" x-transition class="space-y-3 pt-1">
+        <template x-if="$store.settings.heavyAssets.length === 0">
+          <div class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/30 text-center space-y-1">
+            <i data-lucide="check-circle" class="w-6 h-6 text-emerald-400 mx-auto"></i>
+            <p class="text-xs font-mono font-bold text-emerald-300">¡Excelente salud de memoria!</p>
+            <p class="text-[10px] text-slate-400 font-mono">No tienes GIFs gigantes ni archivos que superen 1 MB en tu base de datos.</p>
+          </div>
+        </template>
+
+        <template x-if="$store.settings.heavyAssets.length > 0">
+          <div class="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
+            <template x-for="asset in $store.settings.heavyAssets" :key="asset.id">
+              <div class="p-2.5 rounded-xl border bg-black/60 flex items-center justify-between gap-3 text-xs font-mono"
+                :class="asset.severity === 'danger' ? 'border-rose-500/40 bg-rose-950/15' : (asset.severity === 'warning' ? 'border-amber-500/40 bg-amber-950/15' : 'border-white/10')">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border"
+                    :class="asset.severity === 'danger' ? 'border-rose-500/50 bg-rose-500/20 text-rose-300' : 'border-amber-500/50 bg-amber-500/20 text-amber-300'">
+                    <i :data-lucide="asset.type === 'avatar_gif' ? 'film' : (asset.type === 'background' ? 'image' : 'file')" class="w-3.5 h-3.5"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="font-bold text-white truncate text-[11px]" x-text="asset.name"></p>
+                    <p class="text-[9.5px] text-slate-400 truncate" x-text="asset.context"></p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0">
+                  <span class="px-2 py-0.5 rounded font-black text-[10px]"
+                    :class="asset.severity === 'danger' ? 'bg-rose-500/30 text-rose-300 border border-rose-500/50' : 'bg-amber-500/30 text-amber-300 border border-amber-500/50'"
+                    x-text="asset.sizeFormatted"></span>
+                  <button type="button" x-show="asset.actionType !== 'none'"
+                    @click="$store.settings.handleHeavyAssetAction(asset)"
+                    class="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                    :title="asset.actionType === 'view_char' ? 'Abrir esta ficha para inspeccionar' : (asset.actionType === 'edit_guest' ? 'Editar este invitado' : 'Restablecer fondo')">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Módulo 3: Formato y Exportación para Discord -->
+    <div class="p-5 sm:p-6 rounded-2xl border space-y-4 shadow-xl transition-all"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.25);'">
+      <div class="flex items-center justify-between border-b pb-3"
+        :style="'border-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.18);'">
+        <h3 class="text-sm font-bold text-indigo-300 flex items-center gap-2">
+          <i data-lucide="message-square" class="w-4.5 h-4.5 text-indigo-400"></i>
+          Exportación de Ficha para Discord
+        </h3>
+        <span
+          class="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30 text-indigo-300">
+          Markdown WYSIWYG
+        </span>
+      </div>
+
+      <p class="text-xs text-parchment-cream/70 font-mono leading-relaxed">
+        Convierte y formatea los datos de tu ficha activa en bloques de código markdown listos para copiar y pegar en canales o hilos de Discord.
+      </p>
+
+      <!-- Acción Principal: Generar Código para Discord -->
+      <div class="pt-1">
+        <button type="button"
+          class="header-btn-ghost w-full justify-center py-3 px-4 gap-2.5 border-2 border-indigo-400/50 hover:border-indigo-400 hover:bg-indigo-500/20 bg-indigo-500/10 rounded-xl cursor-pointer transition-all shadow-[0_0_15px_rgba(99,102,241,0.15)] hover:shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+          @click="$store.settings.closeModal(); $store.characters.buildDiscordExport()">
+          <i data-lucide="message-square-text" class="w-4.5 h-4.5 text-indigo-400"></i>
+          <span class="text-xs font-bold text-white font-mono uppercase tracking-wider">Generar Código para Discord</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,573 @@
+<!-- ──── BANCO DE OPERATIVOS (Unassigned Operatives Pool) ──── -->
+<div class="tierlist-cyber-panel relative z-20 w-full p-4 sm:p-6 rounded-2xl flex flex-col gap-4 shadow-2xl transition-all"
+  @dragover.prevent="$store.tierlist.handleDragOverPool($event)"
+  @dragenter.prevent="$store.tierlist.handleDragEnterPool($event)"
+  @dragleave.prevent="$store.tierlist.handleDragLeavePool($event)"
+  @drop.prevent="$store.tierlist.handleDropOnPool($event)">
+
+  <!-- Overlay Visual de Dropzone para Importación en Lote de Archivos -->
+  <div x-show="$store.tierlist.isExternalFileDragOverPool"
+    x-transition:enter="transition ease-out duration-150"
+    x-transition:enter-start="opacity-0 scale-98"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-100"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-98"
+    class="absolute inset-0 z-50 rounded-2xl flex flex-col items-center justify-center p-6 text-center backdrop-blur-md pointer-events-none border-2 border-dashed"
+    :style="`background-color: rgba(7, 9, 13, 0.94); border-color: ${$store.settings.accentColor || '#00f0ff'}; box-shadow: inset 0 0 45px rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.25), 0 0 35px rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.35);`">
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-3 shadow-lg animate-bounce"
+      :style="`background: rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.2); border: 1px solid ${$store.settings.accentColor || '#00f0ff'}; color: ${$store.settings.accentColor || '#00f0ff'};`">
+      <i data-lucide="image-plus" class="w-8 h-8"></i>
+    </div>
+    <h3 class="font-title text-xl sm:text-2xl font-bold uppercase tracking-wider text-white"
+      :style="`color: ${$store.settings.accentColor || '#00f0ff'}; text-shadow: 0 0 12px rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.5);`">
+      Suelta aquí tus imágenes o GIFs
+    </h3>
+    <p class="font-mono text-xs text-slate-300 mt-1 max-w-md">
+      Se importarán automáticamente como operativos invitados individuales con sus nombres de archivo.
+    </p>
+    <span class="mt-3 px-3 py-1 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase bg-white/10 border border-white/20 text-white">
+      // Drag y Drop MULTI-ARCHIVO ACTIVO
+    </span>
+  </div>
+
+  <!-- Top del Banco: Identidad y Barra de Herramientas -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/10 pb-4">
+    <!-- Identidad del Banco -->
+    <div class="flex items-center gap-3">
+      <div
+        class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+        :style="`background-color: rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.15); border: 1px solid ${$store.settings.accentColor || '#00f0ff'}66; color: ${$store.settings.accentColor || '#00f0ff'};`">
+        <i data-lucide="users" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2.5">
+          <h3 class="font-title text-lg text-white uppercase font-bold tracking-wider">
+            Banco de Operativos
+          </h3>
+          <span
+            class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full shadow-sm"
+            :style="`background-color: rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.2); color: ${$store.settings.accentColor || '#00f0ff'}; border: 1px solid ${$store.settings.accentColor || '#00f0ff'}66;`"
+            x-text="`${$store.tierlist.totalUnassignedCount} EN RESERVA`"></span>
+        </div>
+        <p class="text-[11px] font-mono text-slate-400">Arrastra los personajes a cualquier fila o haz clic para asignación rápida.</p>
+      </div>
+    </div>
+
+    <!-- Barra de Herramientas y Búsqueda -->
+    <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+      <!-- Buscador de Operativos -->
+      <div class="relative w-36 sm:w-44 shrink-0">
+        <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" x-model="$store.tierlist.searchQuery" placeholder="Buscar..."
+          class="w-full pl-8 pr-7 py-2 rounded-xl bg-black/60 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 transition-colors" />
+        <button x-show="$store.tierlist.searchQuery" @click="$store.tierlist.searchQuery = ''"
+          class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white cursor-pointer">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- Selector de Carpeta del Banco (si existen carpetas creadas) -->
+      <template x-if="$store.characters.folders.length > 0">
+        <div class="relative shrink-0" x-data="{ openFolderFilter: false }">
+          <button type="button" @click="openFolderFilter = !openFolderFilter"
+            class="px-2.5 sm:px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-slate-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            :style="$store.tierlist.poolFolderFilter !== 'all' ? ('border-color: ' + ($store.settings.accentColor || '#00f0ff') + '; color: ' + ($store.settings.accentColor || '#00f0ff') + ';') : ''"
+            title="Filtrar banco por carpeta">
+            <i data-lucide="folder" class="w-3.5 h-3.5" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')"></i>
+            <span class="truncate max-w-[85px]"
+              x-text="$store.tierlist.poolFolderFilter === 'all' ? 'Carpetas' : ($store.tierlist.poolFolderFilter === 'unassigned' ? 'Sin Carpeta' : ($store.characters.folders.find(f => f.id === $store.tierlist.poolFolderFilter)?.name || 'Carpeta'))"></span>
+            <i data-lucide="chevron-down" class="w-3 h-3 opacity-60"></i>
+          </button>
+
+          <div x-show="openFolderFilter" @click.outside="openFolderFilter = false"
+            x-transition:enter="transition ease-out duration-100"
+            x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="tierlist-dropdown-surface absolute right-0 top-full mt-1.5 w-52 p-1.5 rounded-xl shadow-2xl z-50 space-y-1 text-xs font-mono max-h-60 overflow-y-auto custom-scrollbar"
+            style="background-color: #0b0f19 !important;"
+            x-cloak>
+            <button type="button" @click="$store.tierlist.poolFolderFilter = 'all'; openFolderFilter = false"
+              class="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between cursor-pointer"
+              :class="$store.tierlist.poolFolderFilter === 'all' ? 'bg-cyan-500/20 text-cyan-300 font-bold' : 'text-slate-300 hover:bg-white/5'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                <span>Todas las carpetas</span>
+              </span>
+              <i x-show="$store.tierlist.poolFolderFilter === 'all'" data-lucide="check" class="w-3 h-3"></i>
+            </button>
+            <button type="button" @click="$store.tierlist.poolFolderFilter = 'unassigned'; openFolderFilter = false"
+              class="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between cursor-pointer"
+              :class="$store.tierlist.poolFolderFilter === 'unassigned' ? 'bg-cyan-500/20 text-cyan-300 font-bold' : 'text-slate-300 hover:bg-white/5'">
+              <span class="flex items-center gap-2">
+                <i data-lucide="folder-minus" class="w-3.5 h-3.5"></i>
+                <span>Sin Carpeta</span>
+              </span>
+              <i x-show="$store.tierlist.poolFolderFilter === 'unassigned'" data-lucide="check" class="w-3 h-3"></i>
+            </button>
+            <div class="h-px bg-white/10 my-1"></div>
+            <template x-for="f in $store.characters.folders" :key="f.id">
+              <button type="button" @click="$store.tierlist.poolFolderFilter = f.id; openFolderFilter = false"
+                class="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between cursor-pointer"
+                :class="$store.tierlist.poolFolderFilter === f.id ? 'bg-cyan-500/20 text-cyan-300 font-bold' : 'text-slate-300 hover:bg-white/5'">
+                <span class="flex items-center gap-2 truncate">
+                  <span class="w-2.5 h-2.5 rounded-full shrink-0" :style="`background-color: ${f.color || $store.settings.accentColor || '#00F0FF'};`"></span>
+                  <span class="truncate" x-text="f.name"></span>
+                </span>
+                <i x-show="$store.tierlist.poolFolderFilter === f.id" data-lucide="check" class="w-3 h-3 shrink-0"></i>
+              </button>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- Selector de Ordenamiento -->
+      <div class="relative shrink-0" x-data="{ openSort: false }">
+        <button type="button" @click="openSort = !openSort"
+          class="px-2.5 sm:px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-slate-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+          title="Ordenar banco de personajes">
+          <i data-lucide="arrow-up-down" class="w-3.5 h-3.5" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')"></i>
+          <span x-text="$store.tierlist.poolSortOrder === 'name-asc' ? 'A-Z' : ($store.tierlist.poolSortOrder === 'name-desc' ? 'Z-A' : ($store.tierlist.poolSortOrder === 'type' ? 'Tipo' : 'Orden'))"></span>
+        </button>
+
+        <div x-show="openSort" @click.outside="openSort = false"
+          x-transition:enter="transition ease-out duration-100"
+          x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+          x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+          class="tierlist-dropdown-surface absolute right-0 top-full mt-1.5 w-44 p-1.5 rounded-xl shadow-2xl z-50 space-y-1 text-xs font-mono" style="background-color: #0b0f19 !important;"
+          x-cloak>
+          <button type="button" @click="$store.tierlist.setPoolSortOrder('default'); openSort = false"
+            class="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between cursor-pointer"
+            :class="$store.tierlist.poolSortOrder === 'default' ? 'font-bold' : 'text-slate-300 hover:bg-white/5'"
+            :style="$store.tierlist.poolSortOrder === 'default' ? ('background-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2); color: ' + ($store.settings.accentColor || '#00f0ff') + ';') : ''">
+            <span>Por defecto</span>
+            <i x-show="$store.tierlist.poolSortOrder === 'default'" data-lucide="check" class="w-3 h-3"></i>
+          </button>
+          <button type="button" @click="$store.tierlist.setPoolSortOrder('name-asc'); openSort = false"
+            class="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between cursor-pointer"
+            :class="$store.tierlist.poolSortOrder === 'name-asc' ? 'font-bold' : 'text-slate-300 hover:bg-white/5'"
+            :style="$store.tierlist.poolSortOrder === 'name-asc' ? ('background-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2); color: ' + ($store.settings.accentColor || '#00f0ff') + ';') : ''">
+            <span>Nombre (A ➔ Z)</span>
+            <i x-show="$store.tierlist.poolSortOrder === 'name-asc'" data-lucide="check" class="w-3 h-3"></i>
+          </button>
+          <button type="button" @click="$store.tierlist.setPoolSortOrder('name-desc'); openSort = false"
+            class="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between cursor-pointer"
+            :class="$store.tierlist.poolSortOrder === 'name-desc' ? 'font-bold' : 'text-slate-300 hover:bg-white/5'"
+            :style="$store.tierlist.poolSortOrder === 'name-desc' ? ('background-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2); color: ' + ($store.settings.accentColor || '#00f0ff') + ';') : ''">
+            <span>Nombre (Z ➔ A)</span>
+            <i x-show="$store.tierlist.poolSortOrder === 'name-desc'" data-lucide="check" class="w-3 h-3"></i>
+          </button>
+          <button type="button" @click="$store.tierlist.setPoolSortOrder('type'); openSort = false"
+            class="w-full text-left px-2.5 py-1.5 rounded-lg flex items-center justify-between cursor-pointer"
+            :class="$store.tierlist.poolSortOrder === 'type' ? 'font-bold' : 'text-slate-300 hover:bg-white/5'"
+            :style="$store.tierlist.poolSortOrder === 'type' ? ('background-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2); color: ' + ($store.settings.accentColor || '#00f0ff') + ';') : ''">
+            <span>Por tipo de origen</span>
+            <i x-show="$store.tierlist.poolSortOrder === 'type'" data-lucide="check" class="w-3 h-3"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Separador visual sutil -->
+      <div class="h-5 w-px bg-white/10 shrink-0 mx-0.5"></div>
+
+      <!-- Botón: Seleccionar Todos en Banco -->
+      <button type="button" @click="$store.tierlist.selectAllUnassigned()"
+        :disabled="$store.tierlist.unassignedCharacters.length === 0"
+        class="px-2.5 sm:px-3 py-2 rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm hover:scale-[1.02] cursor-pointer disabled:opacity-40 disabled:pointer-events-none shrink-0 hover:text-white"
+        :style="`background-color: rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.15); border: 1px solid ${$store.settings.accentColor || '#00f0ff'}66; color: ${$store.settings.accentColor || '#00f0ff'};`"
+        title="Seleccionar todos los operativos del banco">
+        <i data-lucide="check-square" class="w-3.5 h-3.5" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')"></i>
+        <span>Todo</span>
+      </button>
+
+      <!-- Botón compacto: Posición del Banco (Arriba / Abajo) -->
+      <button type="button" @click="$store.tierlist.togglePoolPosition()"
+        class="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-slate-300 hover:text-white transition-all cursor-pointer shadow-sm hover:scale-105 shrink-0"
+        :title="$store.tierlist.poolPosition === 'top' ? 'Mover banco hacia abajo (debajo del tablero)' : 'Mover banco hacia arriba (encima del tablero)'">
+        <i data-lucide="arrow-up-down" class="w-4 h-4" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')"></i>
+      </button>
+
+      <!-- Separador visual sutil -->
+      <div class="h-5 w-px bg-white/10 shrink-0 mx-0.5"></div>
+
+      <!-- Menú Desplegable Unificado: Añadir / Importar Operativos -->
+      <div class="relative shrink-0" x-data="{ openAddMenu: false }">
+        <button type="button" @click="openAddMenu = !openAddMenu; $nextTick(() => $store.tierlist.refreshIcons())"
+          class="px-3 py-2 rounded-xl bg-gradient-to-r from-violet-600/30 to-amber-500/30 hover:from-violet-600/45 hover:to-amber-500/45 border border-white/20 text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm hover:scale-[1.02] cursor-pointer"
+          title="Añadir operativos o importar plantillas al banco">
+          <i data-lucide="plus" class="w-3.5 h-3.5" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')"></i>
+          <span>Añadir</span>
+          <i data-lucide="chevron-down" class="w-3 h-3 opacity-70"></i>
+        </button>
+
+        <div x-show="openAddMenu" @click.outside="openAddMenu = false"
+          x-transition:enter="transition ease-out duration-100"
+          x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+          x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+          class="tierlist-dropdown-surface absolute right-0 top-full mt-1.5 w-60 p-2 rounded-xl shadow-2xl z-50 space-y-1.5 text-xs font-mono"
+          style="background-color: #0b0f19 !important;"
+          x-cloak>
+          
+          <div class="px-2 py-1 text-[10px] uppercase font-bold tracking-wider text-slate-400 border-b border-white/10">
+            Añadir a la Reserva
+          </div>
+
+          <!-- Opción: Nuevo Invitado Manual -->
+          <button type="button" @click="$store.tierlist.openAddGuestModal(); openAddMenu = false"
+            class="w-full text-left px-2.5 py-2 rounded-lg bg-violet-600/15 hover:bg-violet-600/30 border border-violet-500/30 text-violet-200 hover:text-white flex items-center gap-2.5 transition-all cursor-pointer">
+            <div class="w-6 h-6 rounded-md bg-violet-500/20 flex items-center justify-center shrink-0">
+              <i data-lucide="user-plus" class="w-3.5 h-3.5 text-violet-300"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="font-bold leading-tight">Nuevo Invitado</p>
+              <p class="text-[9.5px] text-slate-400 font-normal truncate">Personaje individual sin ficha</p>
+            </div>
+          </button>
+
+          <!-- Opción: Importar Imágenes / GIFs en Lote -->
+          <button type="button" @click="$refs.batchGuestFileInput.click(); openAddMenu = false"
+            class="w-full text-left px-2.5 py-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/30 border border-cyan-500/30 text-cyan-200 hover:text-white flex items-center gap-2.5 transition-all cursor-pointer">
+            <div class="w-6 h-6 rounded-md bg-cyan-500/20 flex items-center justify-center shrink-0">
+              <i data-lucide="images" class="w-3.5 h-3.5 text-cyan-300"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="font-bold leading-tight">Importar en Lote</p>
+              <p class="text-[9.5px] text-slate-400 font-normal truncate">Múltiples imágenes o GIFs</p>
+            </div>
+          </button>
+          <input type="file" x-ref="batchGuestFileInput" multiple accept="image/*,.gif" class="hidden"
+            @change="$store.tierlist.handleBatchFileInputChange($event)" />
+
+          <!-- Opción: Importar desde TierMaker / TierBuddy -->
+          <button type="button" @click="$store.tierlist.openTierMakerModal(); openAddMenu = false"
+            class="w-full text-left px-2.5 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/30 border border-amber-500/30 text-amber-200 hover:text-white flex items-center gap-2.5 transition-all cursor-pointer">
+            <div class="w-6 h-6 rounded-md bg-amber-500/20 flex items-center justify-center shrink-0">
+              <i data-lucide="globe" class="w-3.5 h-3.5 text-amber-300"></i>
+            </div>
+            <div class="min-w-0">
+              <p class="font-bold leading-tight">TierMaker / TierBuddy</p>
+              <p class="text-[9.5px] text-slate-400 font-normal truncate">Importar plantilla desde URL</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pestañas de Filtro del Banco -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="inline-flex p-1 rounded-xl bg-black/60 border border-white/10 text-xs font-mono flex-wrap gap-1">
+      <!-- Tab: Todos -->
+      <button type="button" @click="$store.tierlist.setPoolTab('all')"
+        class="px-3.5 py-1.5 rounded-lg font-bold flex items-center gap-2 transition-all cursor-pointer"
+        :class="$store.tierlist.poolTab === 'all' ? 'shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+        :style="$store.tierlist.poolTab === 'all' ? ('background-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.25); color: ' + ($store.settings.accentColor || '#00f0ff') + '; border: 1px solid ' + ($store.settings.accentColor || '#00f0ff') + '80;') : ''">
+        <span>Todos</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-white/10"
+          x-text="$store.tierlist.totalUnassignedCount"></span>
+      </button>
+      <!-- Tab: De Plantilla (Solo si la lista actual tiene personajes importados) -->
+      <button type="button" x-show="$store.tierlist.currentTemplateCharacters.length > 0"
+        @click="$store.tierlist.setPoolTab('template')"
+        class="px-3.5 py-1.5 rounded-lg font-bold flex items-center gap-2 transition-all cursor-pointer"
+        :class="$store.tierlist.poolTab === 'template' ? 'bg-amber-500/30 text-amber-300 border border-amber-400/60 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'">
+        <i data-lucide="globe" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span>De Plantilla</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/40 text-amber-200"
+          x-text="$store.tierlist.templateUnassignedCount"></span>
+      </button>
+      <!-- Tab: Con Ficha -->
+      <button type="button" @click="$store.tierlist.setPoolTab('sheets')"
+        class="px-3.5 py-1.5 rounded-lg font-bold flex items-center gap-2 transition-all cursor-pointer"
+        :class="$store.tierlist.poolTab === 'sheets' ? 'shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'"
+        :style="$store.tierlist.poolTab === 'sheets' ? ('background-color: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.25); color: ' + ($store.settings.accentColor || '#00f0ff') + '; border: 1px solid ' + ($store.settings.accentColor || '#00f0ff') + '80;') : ''">
+        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+        <span>Con Ficha</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-white/10"
+          x-text="$store.tierlist.registeredUnassignedCount"></span>
+      </button>
+      <!-- Tab: Mis Invitados (Creados manualmente) -->
+      <button type="button" @click="$store.tierlist.setPoolTab('guests')"
+        class="px-3.5 py-1.5 rounded-lg font-bold flex items-center gap-2 transition-all cursor-pointer"
+        :class="$store.tierlist.poolTab === 'guests' ? 'bg-violet-500/30 text-violet-300 border border-violet-400/60 shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'">
+        <i data-lucide="user-check" class="w-3.5 h-3.5 text-violet-400"></i>
+        <span>Mis Invitados</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-violet-500/40 text-violet-200"
+          x-text="$store.tierlist.manualGuestUnassignedCount"></span>
+      </button>
+    </div>
+
+    <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
+      <i data-lucide="info" class="w-3.5 h-3.5 shrink-0" :style="`color: ${$store.tierlist.getMultiselectAccentColor()};`"></i>
+      <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 font-bold text-[10px]" :style="`color: ${$store.tierlist.getMultiselectAccentColor()};`">W A S D</kbd> desplazarse en banco · <kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 font-bold text-[10px]" :style="`color: ${$store.tierlist.getMultiselectAccentColor()};`">1-9</kbd> clasificar a fila · <kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 font-bold text-[10px]">0 / Backspace</kbd> devolver · <kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/20 font-bold text-[10px]">Shift / Ctrl</kbd> selección múltiple.</span>
+    </div>
+  </div>
+
+  <!-- Banner HUD: Modo Destino Rápido Activo (Click continuo) -->
+  <div x-show="$store.tierlist.activeTargetTierId" x-cloak
+    class="px-3.5 py-2.5 rounded-xl flex items-center justify-between gap-3 text-xs font-mono shadow-lg animate-fade-in transition-all"
+    :style="`background-color: rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.15); border: 1px solid ${$store.settings.accentColor || '#00f0ff'}66;`">
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+        :style="`background-color: rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.25); border: 1px solid ${$store.settings.accentColor || '#00f0ff'}80; color: ${$store.settings.accentColor || '#00f0ff'};`">
+        <i data-lucide="arrow-down-to-line" class="w-3.5 h-3.5 animate-bounce"></i>
+      </div>
+      <span class="text-slate-300">Modo Destino Rápido activo: Los clics en los personajes del banco los envían directamente a</span>
+      <span class="px-2.5 py-0.5 rounded-md font-title font-black uppercase text-white shadow-sm border border-white/30"
+        :style="`background: ${$store.tierlist.getTierBackground($store.tierlist.tiers.find(t => t.id === $store.tierlist.activeTargetTierId))};`"
+        x-text="`Rango ${$store.tierlist.tiers.find(t => t.id === $store.tierlist.activeTargetTierId)?.label || ''}`"></span>
+    </div>
+    <button type="button" @click="$store.tierlist.clearActiveTargetTier()"
+      class="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-slate-300 hover:text-white font-bold cursor-pointer transition-colors flex items-center gap-1 shrink-0"
+      title="Desactivar modo destino (Esc)">
+      <i data-lucide="x" class="w-3 h-3"></i>
+      <span>Desactivar (Esc)</span>
+    </button>
+  </div>
+
+  <!-- Cuadrícula de Fichas Disponibles -->
+  <div
+    class="tier-dropzone-grid flex items-center flex-wrap min-h-[95px] p-3.5 rounded-xl bg-black/40 border border-white/5 transition-all"
+    :class="$store.tierlist.poolAlignment === 'center' ? 'justify-center' : 'justify-start'"
+    :style="`gap: ${$store.tierlist.itemGap ?? 10}px;`"
+    @dragover.prevent="$store.tierlist.handlePoolGridDragOver($event)"
+    @drop.prevent="$store.tierlist.handleDropOnPool($event)"
+    @click="$store.tierlist.handlePoolClick($event)">
+
+    <!-- Estado Vacío Contextual del Banco -->
+    <div x-show="$store.tierlist.unassignedCharacters.length === 0"
+      class="w-full py-10 text-center text-slate-400 text-xs font-mono space-y-2">
+      <template x-if="$store.tierlist.poolTab === 'template'">
+        <div class="flex flex-col items-center gap-2">
+          <i data-lucide="globe" class="w-8 h-8 text-amber-400/60"></i>
+          <p>No hay operativos de la plantilla disponibles en el banco (o ya fueron clasificados en el tablero).</p>
+        </div>
+      </template>
+      <template x-if="$store.tierlist.poolTab === 'guests'">
+        <div class="flex flex-col items-center gap-2">
+          <i data-lucide="user-plus" class="w-8 h-8 text-violet-400/60"></i>
+          <p>No tienes personajes invitados manuales sin ficha añadidos.</p>
+          <button type="button" @click="$store.tierlist.openAddGuestModal()"
+            class="mt-1 px-4 py-2 rounded-xl bg-violet-600/30 hover:bg-violet-600/50 text-violet-200 border border-violet-500/40 text-xs font-bold font-mono transition-all cursor-pointer">
+            + Añadir sin Ficha
+          </button>
+        </div>
+      </template>
+      <template x-if="$store.tierlist.poolTab === 'sheets'">
+        <p>No hay operativos con ficha disponibles en el banco (o ya fueron clasificados en el tablero).</p>
+      </template>
+      <template x-if="$store.tierlist.poolTab === 'all'">
+        <div>
+          <p
+            x-show="!$store.tierlist.searchQuery && $store.characters.list.length === 0 && $store.tierlist.guestCharacters.length === 0 && $store.tierlist.currentTemplateCharacters.length === 0">
+            No hay personajes disponibles. ¡Crea fichas en el panel, importa una plantilla o añade invitados!
+          </p>
+          <p
+            x-show="!$store.tierlist.searchQuery && ($store.characters.list.length > 0 || $store.tierlist.guestCharacters.length > 0 || $store.tierlist.currentTemplateCharacters.length > 0)">
+            ¡Excelente trabajo! Todos los operativos disponibles están clasificados en el tablero.
+          </p>
+          <p x-show="$store.tierlist.searchQuery">Ningún operativo coincide con el filtro de búsqueda.</p>
+        </div>
+      </template>
+    </div>
+
+    <template x-for="(char, charIdx) in $store.tierlist.visibleUnassignedCharacters" :key="char.id">
+      <div class="tier-pool-item-wrapper relative inline-flex items-center shrink-0 group"
+        :id="'tier-pool-item-' + char.id"
+        :data-pool-char-id="char.id"
+        :data-pool-idx="charIdx"
+        x-data="{ showQuickMenu: false, openUpwards: true }"
+        @dragover.prevent.stop="$store.tierlist.handlePoolItemDragOver($event, char.id, charIdx)"
+        @dragleave.stop="$store.tierlist.handlePoolItemDragLeave($event)"
+        @drop.prevent.stop="$store.tierlist.handlePoolItemDrop($event, char.id, charIdx)">
+
+        <!-- Indicador de Inserción Láser Cyber (Lado Izquierdo) -->
+        <div x-show="$store.tierlist.isDragging && $store.tierlist.dragOverTarget?.type === 'pool' && $store.tierlist.dragOverTarget?.charId === char.id && $store.tierlist.dragOverTarget?.side === 'left'"
+          class="tier-drop-indicator-line indicator-left"
+          :style="`--indicator-accent: ${$store.settings.accentColor || '#00f0ff'}; --indicator-glow: ${$store.settings.disableGlowEffects ? 'transparent' : ($store.settings.glowColor || $store.settings.accentColor || '#00f0ff')};`"
+          x-cloak></div>
+
+        <!-- Indicador de Inserción Láser Cyber (Lado Derecho) -->
+        <div x-show="$store.tierlist.isDragging && $store.tierlist.dragOverTarget?.type === 'pool' && $store.tierlist.dragOverTarget?.charId === char.id && $store.tierlist.dragOverTarget?.side === 'right'"
+          class="tier-drop-indicator-line indicator-right"
+          :style="`--indicator-accent: ${$store.settings.accentColor || '#00f0ff'}; --indicator-glow: ${$store.settings.disableGlowEffects ? 'transparent' : ($store.settings.glowColor || $store.settings.accentColor || '#00f0ff')};`"
+          x-cloak></div>
+
+        <div class="tier-operative-token relative select-none flex flex-col items-center cursor-pointer transition-all" draggable="true"
+          @mouseenter="$store.tierlist.hoveredCharId = char.id"
+          @mouseleave="if ($store.tierlist.hoveredCharId === char.id) $store.tierlist.hoveredCharId = null"
+          @dragstart="$store.tierlist.startDrag($event, char.id, { type: 'pool' })"
+          @dragend="$store.tierlist.endDrag()"
+          @click.stop="$store.tierlist.handleTokenClick($event, char.id, () => $store.tierlist.toggleSelectCharacter(char.id), 'pool')"
+          @contextmenu.prevent="showQuickMenu = !showQuickMenu; if (showQuickMenu) { const rect = $el.getBoundingClientRect(); openUpwards = rect.top > 270; }"
+          :class="[
+            $store.tierlist.isItemDimmedOnDrag(char.id) ? 'opacity-35 scale-95' : '',
+            $store.tierlist.isCharacterSelected(char.id) ? 'scale-105 z-20' : ''
+          ]"
+          :title="`${char.name || 'Sin Nombre'} (Arrastrar: reposicionar en banco o clasificar · Clic: seleccionar · Ctrl+Clic: múltiple · Shift+Clic: rango · Clic derecho: menú)`">
+
+          <!-- Avatar Wrapper -->
+          <div class="relative shrink-0 flex items-center justify-center transition-all"
+            :style="`width: ${$store.tierlist.tokenSize || 72}px; height: ${$store.tierlist.tokenSize || 72}px;`">
+
+            <!-- Checkmark badge de Selección Múltiple -->
+            <template x-if="$store.tierlist.isCharacterSelected(char.id)">
+              <div class="absolute -top-1.5 -right-1.5 z-40 w-5 h-5 rounded-full flex items-center justify-center font-black border-2 border-black animate-scale-in"
+                :style="$store.tierlist.getMultiselectBadgeStyle()">
+                <i data-lucide="check" class="w-3.5 h-3.5 stroke-[3]"></i>
+              </div>
+            </template>
+
+            <!-- Botón flotante para menú rápido (visible en hover para fácil acceso en escritorio/móvil) -->
+            <button type="button"
+              x-show="!$store.tierlist.isCharacterSelected(char.id)"
+              @click.stop="showQuickMenu = !showQuickMenu; if (showQuickMenu) { const rect = $el.getBoundingClientRect(); openUpwards = rect.top > 270; }"
+              class="absolute -top-1.5 -right-1.5 z-30 w-5 h-5 rounded-full bg-slate-900/90 border border-white/30 text-slate-300 hover:text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md cursor-pointer"
+              title="Opciones y asignación rápida">
+              <i data-lucide="more-horizontal" class="w-3 h-3"></i>
+            </button>
+
+            <!-- Caja Interna del Avatar -->
+            <div
+              class="tier-token-avatar-box w-full h-full overflow-hidden flex items-center justify-center relative transition-all"
+              :class="$store.tierlist.getTokenAvatarBoxClass(char)"
+              :style="[ $store.tierlist.getTokenAvatarBoxStyle(char), $store.tierlist.getTokenSelectionBoxStyle(char.id) ].filter(Boolean).join('; ')">
+
+              <template
+                x-if="char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl)">
+                <img
+                  :src="char.basics?.useIconForPfp ? (char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : (char.basics?.avatarDataUrl || char.basics?.iconDataUrl)"
+                  class="w-full h-full object-cover pointer-events-none rounded-[inherit]"
+                  draggable="false"
+                  style="pointer-events: none !important; -webkit-user-drag: none; user-select: none;"
+                  :style="char.basics?.useIconForPfp ? (char.basics?.iconTransform || char.basics?.avatarTransform || '') : (char.basics?.avatarTransform || char.basics?.iconTransform || '')"
+                  crossorigin="anonymous" loading="lazy" decoding="async" alt="" />
+              </template>
+
+              <template
+                x-if="!(char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl))">
+                <span class="font-title font-black"
+                  :style="`font-size: ${Math.round(($store.tierlist.tokenSize || 72) * 0.32)}px;`"
+                  :class="char.isTemplate ? 'text-amber-300' : (char.isGuest ? 'text-violet-300' : 'text-white/90')"
+                  x-text="(char.name || '?').charAt(0).toUpperCase()"></span>
+              </template>
+
+              <!-- Etiqueta PLANTILLA para personajes de TierMaker / plantilla web -->
+              <template x-if="$store.tierlist.shouldShowTemplateBadge(char)">
+                <span
+                  class="absolute top-0.5 left-0.5 px-1 py-0.2 rounded text-[7px] font-mono font-black bg-amber-500 text-black z-20 shadow-md border border-amber-300/40 pointer-events-none">PLANTILLA</span>
+              </template>
+
+              <!-- Etiqueta INVITADO para personajes manuales creados por el usuario -->
+              <template x-if="$store.tierlist.shouldShowGuestBadge(char)">
+                <span
+                  class="absolute top-0.5 left-0.5 px-1 py-0.2 rounded text-[7px] font-mono font-black bg-violet-600 text-white z-20 shadow-md border border-violet-300/40 pointer-events-none">INVITADO</span>
+              </template>
+            </div>
+
+            <!-- Steam Frame Overlay -->
+            <template x-if="char.basics?.avatarFrame?.url">
+              <img :src="char.basics.avatarFrame.url" class="steam-avatar-frame-overlay pointer-events-none"
+                crossorigin="anonymous" alt="" />
+            </template>
+
+            <!-- Banner de Nombre SUPERPUESTO (solo si nameplateStyle === 'overlay') -->
+            <template x-if="($store.tierlist.nameplateStyle || 'below') === 'overlay'">
+              <div
+                class="tier-token-nameplate absolute bottom-0 inset-x-0 px-1 pt-2 pb-0.5 pointer-events-none z-30"
+                :class="char.basics?.avatarFrame?.url || char.basics?.avatarShape === 'square' ? 'rounded-b-none' : 'rounded-b-xl'">
+                <p class="font-mono text-center text-white truncate font-black leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,1)]"
+                  :style="`font-size: ${Math.max(8, Math.min(11, Math.round(($store.tierlist.tokenSize || 72) * 0.13)))}px;`"
+                  x-text="char.name || 'Operativo'"></p>
+              </div>
+            </template>
+          </div>
+
+          <!-- Banner de Nombre DEBAJO (DEFAULT: marcos y banners de Steam 100% visibles y libres!) -->
+          <template x-if="($store.tierlist.nameplateStyle || 'below') === 'below'">
+            <div class="tier-token-nameplate-below mt-1 w-full px-1 py-0.5 rounded-md text-center pointer-events-none transition-all"
+              :style="`max-width: ${($store.tierlist.tokenSize || 72) + 6}px; width: ${($store.tierlist.tokenSize || 72) + 6}px;`">
+              <p class="font-mono text-white font-black truncate leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,1)]"
+                :style="`font-size: ${Math.max(8, Math.min(11, Math.round(($store.tierlist.tokenSize || 72) * 0.13)))}px;`"
+                x-text="char.name || 'Operativo'"></p>
+            </div>
+          </template>
+        </div>
+
+        <!-- Menú Flotante de Asignación Rápida con 1 Clic (Render diferido bajo demanda) -->
+        <template x-if="showQuickMenu">
+          <div @click.outside="showQuickMenu = false"
+            x-transition:enter="transition ease-out duration-150"
+            x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            class="tierlist-dropdown-surface absolute left-1/2 -translate-x-1/2 p-2.5 rounded-2xl shadow-2xl z-50 text-xs flex flex-col gap-2 select-none transition-all" style="background-color: #0b0f19 !important;"
+            :class="[
+              openUpwards ? 'bottom-full mb-3' : 'top-full mt-3',
+              $store.tierlist.hasLongTierLabels ? 'w-56 sm:w-60' : 'w-48'
+            ]">
+
+            <div
+              class="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-bold px-1 text-center border-b border-white/10 pb-1">
+              Clasificar en:
+            </div>
+
+            <div class="grid gap-1.5 max-h-56 overflow-y-auto custom-scrollbar p-0.5"
+              :class="$store.tierlist.hasLongTierLabels ? 'grid-cols-2' : 'grid-cols-3'">
+              <template x-for="t in $store.tierlist.tiers" :key="t.id">
+                <button type="button" @click="$store.tierlist.assignCharacter(char.id, t.id); showQuickMenu = false"
+                  class="h-9 px-1.5 py-1 rounded-lg flex items-center justify-center text-center transition-transform hover:scale-105 active:scale-95 cursor-pointer shadow-sm border border-white/20 text-white overflow-hidden relative group/tbtn"
+                  :style="`background: ${$store.tierlist.getTierBackground(t)};`"
+                  :title="t.label">
+                  <span class="w-full pointer-events-none font-title font-black uppercase block"
+                    :style="$store.tierlist.getQuickMenuLabelStyle(t)"
+                    x-text="t.label"></span>
+                </button>
+              </template>
+            </div>
+
+            <!-- Opción extra: Editar o Eliminar personaje temporal si es Guest -->
+            <template x-if="char.isGuest">
+              <div class="mt-1 space-y-1">
+                <button type="button" @click="$store.tierlist.editGuestCharacter(char.id); showQuickMenu = false"
+                  class="w-full py-1.5 px-2 rounded-lg bg-violet-600/25 hover:bg-violet-600/50 border border-violet-500/40 text-violet-200 font-mono text-[10px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  title="Editar nombre, reencuadrar o cambiar imagen de este invitado">
+                  <i data-lucide="crop" class="w-3 h-3 text-violet-300"></i>
+                  <span>Editar / Encuadrar</span>
+                </button>
+                <button type="button" @click="$store.tierlist.confirmRemoveGuestCharacter(char.id); showQuickMenu = false"
+                  class="w-full py-1.5 px-2 rounded-lg bg-rose-500/20 hover:bg-rose-500/40 border border-rose-500/40 text-rose-300 font-mono text-[10px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                  :title="char.isTemplate ? 'Eliminar este personaje de la plantilla' : 'Eliminar este personaje invitado'">
+                  <i data-lucide="trash-2" class="w-3 h-3 text-rose-400"></i>
+                  <span x-text="char.isTemplate ? 'Eliminar de la Plantilla' : 'Eliminar Invitado'"></span>
+                </button>
+              </div>
+            </template>
+          </div>
+        </template>
+
+      </div>
+    </template>
+
+    <!-- Barra de Paginación / Cargar Más si el Banco supera el lote activo -->
+    <div x-show="!$store.tierlist.searchQuery && $store.tierlist.unassignedCharacters.length > $store.tierlist.visibleUnassignedCharacters.length"
+      class="w-full flex flex-col sm:flex-row items-center justify-between gap-3 pt-3.5 pb-1 border-t border-white/10 select-none">
+      <span class="text-[11px] font-mono text-slate-400">
+        Mostrando <strong class="font-bold" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')" x-text="$store.tierlist.visibleUnassignedCharacters.length"></strong> de <strong class="text-white font-bold" x-text="$store.tierlist.unassignedCharacters.length"></strong> operativos en reserva
+      </span>
+      <div class="flex items-center gap-2">
+        <button type="button" @click="$store.tierlist.loadMorePool(80)"
+          class="px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95 hover:text-white"
+          :style="`background-color: rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.15); border: 1px solid ${$store.settings.accentColor || '#00f0ff'}66; color: ${$store.settings.accentColor || '#00f0ff'};`">
+          <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+          <span>Cargar más (+80)</span>
+        </button>
+        <button type="button" @click="$store.tierlist.loadAllPool()"
+          class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-slate-300 hover:text-white font-mono text-xs font-bold transition-all cursor-pointer hover:border-white/30">
+          <span>Mostrar todos (<span x-text="$store.tierlist.unassignedCharacters.length"></span>)</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>

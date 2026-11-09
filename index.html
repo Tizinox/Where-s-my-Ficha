@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="es" data-corner-style="chamfer">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>¿Where is my Ficha?</title>
+  <meta name="description" content="Una aplicación web local para crear y gestionar fichas de rol." />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+
+  <!--
+    [x-cloak] DEBE estar inline en el <head> para que exista ANTES de que
+    cualquier JS cargue. Si está en un archivo CSS importado por Vite,
+    se inyecta demasiado tarde y Alpine ya eliminó el atributo.
+  -->
+  <script>
+    (function () {
+      try {
+        var s = JSON.parse(localStorage.getItem('superficha_global_settings') || '{}');
+        if (s.showSplashScreen === false || s.fastBoot === true) {
+          document.documentElement.classList.add('boot-mode-generic');
+        } else {
+          document.documentElement.classList.add('boot-mode-bios');
+        }
+      } catch (e) { }
+    })();
+  </script>
+  <style>
+    /* Prevención total de FOUC (Flash of Unstyled Content) */
+    html,
+    body {
+      background-color: #000000 !important;
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+
+    [x-cloak],
+    #app[x-cloak] {
+      display: none !important;
+    }
+
+    /* ── Control de Pantallas de Arranque (Anti-FOUC) ── */
+    html.boot-mode-generic #bios-boot-screen {
+      display: none !important;
+    }
+    html:not(.boot-mode-generic) #generic-loading-screen {
+      display: none !important;
+    }
+
+    #bios-boot-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 99999999;
+      background: #000000;
+      color: #c0c0c0;
+      font-family: 'Consolas', 'Courier New', 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      line-height: 1.5;
+      padding: 32px 42px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      overflow: hidden;
+      opacity: 1;
+      transition: opacity 0.4s ease-out;
+    }
+
+    @media (max-width: 640px) {
+      #bios-boot-screen {
+        padding: 16px 20px;
+        font-size: 11px;
+      }
+    }
+
+    @keyframes bios-cursor-blink {
+      0%, 49% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+
+    .bios-cursor-blink {
+      display: inline-block;
+      width: 8px;
+      height: 15px;
+      background: #c0c0c0;
+      vertical-align: text-bottom;
+      margin-left: 3px;
+      animation: bios-cursor-blink 0.65s infinite;
+    }
+
+    /* ── Pantalla de Carga Genérica 3D (Cubo Isométrico) ── */
+    #generic-loading-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 99999999;
+      background: #000000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      overflow: hidden;
+      opacity: 1;
+      transition: opacity 0.4s ease-out;
+    }
+
+    .generic-loading-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .generic-loading-text {
+      text-align: center;
+      margin-top: 85px;
+      position: relative;
+      z-index: 50;
+      user-select: none;
+    }
+
+    @media (max-width: 480px) {
+      .generic-loading-text {
+        margin-top: 35px;
+      }
+    }
+
+    .generic-loading-title {
+      font-family: 'Chakra Petch', 'Barlow Condensed', monospace, sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: #ffffff;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(47, 113, 255, 0.5);
+    }
+
+    .generic-loading-sub {
+      font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.45);
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* From Uiverse.io by Admin12121 */ 
+    .loader {
+      --duration: 3s;
+      --primary: rgba(39, 94, 254, 1);
+      --primary-light: #2f71ff;
+      --primary-rgba: rgba(39, 94, 254, 0);
+      width: 200px;
+      height: 320px;
+      position: relative;
+      transform-style: preserve-3d;
+    }
+
+    @media (max-width: 480px) {
+      .loader {
+        zoom: 0.44;
+      }
+    }
+
+    .loader:before, .loader:after {
+      --r: 20.5deg;
+      content: "";
+      width: 320px;
+      height: 140px;
+      position: absolute;
+      right: 32%;
+      bottom: -11px;
+      background: #000000;
+      transform: translateZ(200px) rotate(var(--r));
+      -webkit-animation: mask var(--duration) linear forwards infinite;
+      animation: mask var(--duration) linear forwards infinite;
+    }
+
+    .loader:after {
+      --r: -20.5deg;
+      right: auto;
+      left: 32%;
+    }
+
+    .loader .ground {
+      position: absolute;
+      left: -50px;
+      bottom: -120px;
+      transform-style: preserve-3d;
+      transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1);
+    }
+
+    .loader .ground div {
+      transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(0);
+      width: 200px;
+      height: 200px;
+      background: var(--primary);
+      background: linear-gradient(45deg, var(--primary) 0%, var(--primary) 50%, var(--primary-light) 50%, var(--primary-light) 100%);
+      transform-style: preserve-3d;
+      -webkit-animation: ground var(--duration) linear forwards infinite;
+      animation: ground var(--duration) linear forwards infinite;
+    }
+
+    .loader .ground div:before, .loader .ground div:after {
+      --rx: 90deg;
+      --ry: 0deg;
+      --x: 44px;
+      --y: 162px;
+      --z: -50px;
+      content: "";
+      width: 156px;
+      height: 300px;
+      opacity: 0;
+      background: linear-gradient(var(--primary), var(--primary-rgba));
+      position: absolute;
+      transform: rotateX(var(--rx)) rotateY(var(--ry)) translate(var(--x), var(--y)) translateZ(var(--z));
+      -webkit-animation: ground-shine var(--duration) linear forwards infinite;
+      animation: ground-shine var(--duration) linear forwards infinite;
+    }
+
+    .loader .ground div:after {
+      --rx: 90deg;
+      --ry: 90deg;
+      --x: 0;
+      --y: 177px;
+      --z: 150px;
+    }
+
+    .loader .box {
+      --x: 0;
+      --y: 0;
+      position: absolute;
+      -webkit-animation: var(--duration) linear forwards infinite;
+      animation: var(--duration) linear forwards infinite;
+      transform: translate(var(--x), var(--y));
+    }
+
+    .loader .box div {
+      background-color: var(--primary);
+      width: 48px;
+      height: 48px;
+      position: relative;
+      transform-style: preserve-3d;
+      -webkit-animation: var(--duration) ease forwards infinite;
+      animation: var(--duration) ease forwards infinite;
+      transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0);
+    }
+
+    .loader .box div:before, .loader .box div:after {
+      --rx: 90deg;
+      --ry: 0deg;
+      --z: 24px;
+      --y: -24px;
+      --x: 0;
+      content: "";
+      position: absolute;
+      background-color: inherit;
+      width: inherit;
+      height: inherit;
+      transform: rotateX(var(--rx)) rotateY(var(--ry)) translate(var(--x), var(--y)) translateZ(var(--z));
+      filter: brightness(var(--b, 1.2));
+    }
+
+    .loader .box div:after {
+      --rx: 0deg;
+      --ry: 90deg;
+      --x: 24px;
+      --y: 0;
+      --b: 1.4;
+    }
+
+    .loader .box.box0 {
+      --x: -220px;
+      --y: -120px;
+      left: 58px;
+      top: 108px;
+    }
+
+    .loader .box.box1 {
+      --x: -260px;
+      --y: 120px;
+      left: 25px;
+      top: 120px;
+    }
+
+    .loader .box.box2 {
+      --x: 120px;
+      --y: -190px;
+      left: 58px;
+      top: 64px;
+    }
+
+    .loader .box.box3 {
+      --x: 280px;
+      --y: -40px;
+      left: 91px;
+      top: 120px;
+    }
+
+    .loader .box.box4 {
+      --x: 60px;
+      --y: 200px;
+      left: 58px;
+      top: 132px;
+    }
+
+    .loader .box.box5 {
+      --x: -220px;
+      --y: -120px;
+      left: 25px;
+      top: 76px;
+    }
+
+    .loader .box.box6 {
+      --x: -260px;
+      --y: 120px;
+      left: 91px;
+      top: 76px;
+    }
+
+    .loader .box.box7 {
+      --x: -240px;
+      --y: 200px;
+      left: 58px;
+      top: 87px;
+    }
+
+    .loader .box0 {
+      -webkit-animation-name: box-move0;
+      animation-name: box-move0;
+    }
+
+    .loader .box0 div {
+      -webkit-animation-name: box-scale0;
+      animation-name: box-scale0;
+    }
+
+    .loader .box1 {
+      -webkit-animation-name: box-move1;
+      animation-name: box-move1;
+    }
+
+    .loader .box1 div {
+      -webkit-animation-name: box-scale1;
+      animation-name: box-scale1;
+    }
+
+    .loader .box2 {
+      -webkit-animation-name: box-move2;
+      animation-name: box-move2;
+    }
+
+    .loader .box2 div {
+      -webkit-animation-name: box-scale2;
+      animation-name: box-scale2;
+    }
+
+    .loader .box3 {
+      -webkit-animation-name: box-move3;
+      animation-name: box-move3;
+    }
+
+    .loader .box3 div {
+      -webkit-animation-name: box-scale3;
+      animation-name: box-scale3;
+    }
+
+    .loader .box4 {
+      -webkit-animation-name: box-move4;
+      animation-name: box-move4;
+    }
+
+    .loader .box4 div {
+      -webkit-animation-name: box-scale4;
+      animation-name: box-scale4;
+    }
+
+    .loader .box5 {
+      -webkit-animation-name: box-move5;
+      animation-name: box-move5;
+    }
+
+    .loader .box5 div {
+      -webkit-animation-name: box-scale5;
+      animation-name: box-scale5;
+    }
+
+    .loader .box6 {
+      -webkit-animation-name: box-move6;
+      animation-name: box-move6;
+    }
+
+    .loader .box6 div {
+      -webkit-animation-name: box-scale6;
+      animation-name: box-scale6;
+    }
+
+    .loader .box7 {
+      -webkit-animation-name: box-move7;
+      animation-name: box-move7;
+    }
+
+    .loader .box7 div {
+      -webkit-animation-name: box-scale7;
+      animation-name: box-scale7;
+    }
+
+    @-webkit-keyframes box-move0 {
+      12% { transform: translate(var(--x), var(--y)); }
+      25%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @keyframes box-move0 {
+      12% { transform: translate(var(--x), var(--y)); }
+      25%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @-webkit-keyframes box-scale0 {
+      6% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      14%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @keyframes box-scale0 {
+      6% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      14%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @-webkit-keyframes box-move1 {
+      16% { transform: translate(var(--x), var(--y)); }
+      29%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @keyframes box-move1 {
+      16% { transform: translate(var(--x), var(--y)); }
+      29%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @-webkit-keyframes box-scale1 {
+      10% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      18%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @keyframes box-scale1 {
+      10% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      18%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @-webkit-keyframes box-move2 {
+      20% { transform: translate(var(--x), var(--y)); }
+      33%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @keyframes box-move2 {
+      20% { transform: translate(var(--x), var(--y)); }
+      33%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @-webkit-keyframes box-scale2 {
+      14% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      22%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @keyframes box-scale2 {
+      14% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      22%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @-webkit-keyframes box-move3 {
+      24% { transform: translate(var(--x), var(--y)); }
+      37%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @keyframes box-move3 {
+      24% { transform: translate(var(--x), var(--y)); }
+      37%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @-webkit-keyframes box-scale3 {
+      18% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      26%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @keyframes box-scale3 {
+      18% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      26%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @-webkit-keyframes box-move4 {
+      28% { transform: translate(var(--x), var(--y)); }
+      41%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @keyframes box-move4 {
+      28% { transform: translate(var(--x), var(--y)); }
+      41%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @-webkit-keyframes box-scale4 {
+      22% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      30%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @keyframes box-scale4 {
+      22% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      30%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @-webkit-keyframes box-move5 {
+      32% { transform: translate(var(--x), var(--y)); }
+      45%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @keyframes box-move5 {
+      32% { transform: translate(var(--x), var(--y)); }
+      45%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @-webkit-keyframes box-scale5 {
+      26% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      34%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @keyframes box-scale5 {
+      26% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      34%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @-webkit-keyframes box-move6 {
+      36% { transform: translate(var(--x), var(--y)); }
+      49%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @keyframes box-move6 {
+      36% { transform: translate(var(--x), var(--y)); }
+      49%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @-webkit-keyframes box-scale6 {
+      30% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      38%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @keyframes box-scale6 {
+      30% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      38%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @-webkit-keyframes box-move7 {
+      40% { transform: translate(var(--x), var(--y)); }
+      53%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @keyframes box-move7 {
+      40% { transform: translate(var(--x), var(--y)); }
+      53%, 52% { transform: translate(0, 0); }
+      80% { transform: translate(0, -32px); }
+      90%, 100% { transform: translate(0, 188px); }
+    }
+
+    @-webkit-keyframes box-scale7 {
+      34% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      42%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @keyframes box-scale7 {
+      34% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(0); }
+      42%, 100% { transform: rotateY(-47deg) rotateX(-15deg) rotateZ(15deg) scale(1); }
+    }
+
+    @-webkit-keyframes ground {
+      0%, 65% { transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(0); }
+      75%, 90% { transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(1); }
+      100% { transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(0); }
+    }
+
+    @keyframes ground {
+      0%, 65% { transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(0); }
+      75%, 90% { transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(1); }
+      100% { transform: rotateX(90deg) rotateY(0deg) translate(-48px, -120px) translateZ(100px) scale(0); }
+    }
+
+    @-webkit-keyframes ground-shine {
+      0%, 70% { opacity: 0; }
+      75%, 87% { opacity: 0.2; }
+      100% { opacity: 0; }
+    }
+
+    @keyframes ground-shine {
+      0%, 70% { opacity: 0; }
+      75%, 87% { opacity: 0.2; }
+      100% { opacity: 0; }
+    }
+
+    @-webkit-keyframes mask {
+      0%, 65% { opacity: 0; }
+      66%, 100% { opacity: 1; }
+    }
+
+    @keyframes mask {
+      0%, 65% { opacity: 0; }
+      66%, 100% { opacity: 1; }
+    }
+
+  </style>
+  <script>
+    // Enrutamiento seguro de errores globales y promesas (gestionadas por devConsole sin overlay intrusivo)
+    window.addEventListener('error', function (e) {
+      console.error('[Global Error]', e.message, e.filename + ':' + e.lineno);
+    });
+    window.addEventListener('unhandledrejection', function (e) {
+      var reasonDetail = e.reason && e.reason.stack ? e.reason.stack : (e.reason && e.reason.message ? (e.reason.name ? e.reason.name + ': ' + e.reason.message : e.reason.message) : (typeof e.reason === 'object' ? JSON.stringify(e.reason) : String(e.reason)));
+      console.warn('[Unhandled Rejection]', reasonDetail);
+    });
+  </script>
+
+  <!-- Google Fonts Base: Barlow Condensed + Chakra Petch + Inter Tight + JetBrains Mono (Non-render-blocking) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Chakra+Petch:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Chakra+Petch:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Chakra+Petch:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet" />
+  </noscript>
+
+  <!-- Vite module entry -->
+  <script type="module" src="/src/main.js"></script>
+</head>
+
+<body>
+
+  <!-- ==============================================================
+     PANTALLA DE ARRANQUE RETRO BIOS / CMD (Anti-FOUC Bootloader)
+     Inspirado en Award Modular BIOS v4.51PG (Energy Star Ally / Retro PC)
+     ============================================================== -->
+  <div id="bios-boot-screen" role="status" aria-live="polite">
+    <!-- Zona Superior: Datos de Cabecera + Logo Energy Star -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;">
+      <!-- Texto de Cabecera BIOS -->
+      <div style="flex:1;">
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color:#5c7aff;font-size:16px;">◆</span>
+            <span style="color:#ffffff;font-weight:bold;letter-spacing:0.5px;">Award Modular BIOS v4.51PG, An Energy Star Ally</span>
+          </div>
+          <div style="color:#a0a0a0;">Copyright (C) 1984-2026, Where's My Super-Ficha Architecture Inc.</div>
+        </div>
+
+        <div style="color:#888888;margin-bottom:12px;">
+          (55XWUQ0E) Intel i430VX PCIset(TM) — Cyber-HUD Kernel v2.4
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <div>NEURAL-CORE CPU at 4.20GHz</div>
+          <div style="color:#ffffff;">
+            Memory Test : &nbsp;<span id="bios-mem-count" style="font-weight:bold;">0</span>K OK
+          </div>
+        </div>
+
+        <!-- Registro de Inicialización en Tiempo Real -->
+        <div id="bios-log-lines" style="display:flex;flex-direction:column;gap:3px;font-size:12.5px;"></div>
+      </div>
+
+      <!-- Monigote Verde Retro (Director de Ficha / Operativo) -->
+      <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-top:-6px;">
+        <img src="/assets/bios-mascot.png" alt="Operativo Mascot" style="width:108px;height:108px;object-fit:contain;filter:drop-shadow(0 0 10px rgba(34,197,94,0.4));" />
+      </div>
+    </div>
+
+    <!-- Zona Inferior: Teclas de Comando y Código de Placa Base -->
+    <div style="border-top:1px dashed rgba(255,255,255,0.15);padding-top:12px;margin-top:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div>
+          <span id="bios-skip-btn" style="color:#888888;cursor:pointer;">[Click o SPACE para omitir]</span>
+        </div>
+        <div style="color:#888888;font-size:11px;">
+          07/10/26-i430VX,UMC8669-2A59GH2BC-00 <span class="bios-cursor-blink"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- ==============================================================
+     PANTALLA DE CARGA GENÉRICA 3D (Cubo Isométrico Uiverse.io)
+     ============================================================== -->
+  <div id="generic-loading-screen" role="status" aria-live="polite">
+    <div class="generic-loading-wrapper">
+      <div class="loader">
+        <div class="box box0"><div></div></div>
+        <div class="box box1"><div></div></div>
+        <div class="box box2"><div></div></div>
+        <div class="box box3"><div></div></div>
+        <div class="box box4"><div></div></div>
+        <div class="box box5"><div></div></div>
+        <div class="box box6"><div></div></div>
+        <div class="box box7"><div></div></div>
+        <div class="ground"><div></div></div>
+      </div>
+      <div class="generic-loading-text">
+        <div class="generic-loading-title">INICIALIZANDO SISTEMA</div>
+        <div class="generic-loading-sub">Cargando base de datos y recursos... <span style="opacity:0.6;">[Click o SPACE para omitir]</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pantalla Principal -->
+
+  <!-- ==============================================================
+     App Root — Alpine.js initializes the grid layout
+     ============================================================== -->
+  <div id="app" x-data x-init="$store.characters.init()" :style="$store.settings.scopedThemeStyle"
+    :data-density="$store.settings.density" data-active-view="dashboard" :data-active-view="$store.app.activeView"
+    :class="{
+      'hide-steam-frames': $store.settings.hideAnimatedFrames,
+      'hide-kbd-badges': $store.settings.hideKeyboardBadges,
+      'no-glow-effects': $store.settings.disableGlowEffects
+    }">
+
+    <!-- Capa de Fondo Dinámico -->
+    <include src="./src/partials/dynamic-bg.html"></include>
+
+    <!-- Barra de Encabezado Superior -->
+    <include src="./src/partials/header.html"></include>
+
+    <!-- Pantalla Principal: Panel de Personajes (Fullscreen Dashboard) -->
+    <include src="./src/partials/views/dashboard.html"></include>
+
+    <!-- Pantalla Principal: Ajustes / Configuración (Fullscreen Settings) -->
+    <include src="./src/partials/views/settings.html"></include>
+
+    <!-- Pantalla Principal: Creador de Tier List (Fullscreen Tier List Maker) [EXPERIMENTAL] -->
+    <include src="./src/partials/views/tierlist.html"></include>
+
+    <!-- Barra Lateral de Pestañas (Sidebar) -->
+    <include src="./src/partials/sidebar.html"></include>
+
+    <!-- =======================================================
+       MAIN CONTENT — Contenedor y Pestañas de la Ficha
+       ======================================================= -->
+    <main id="app-content" role="main" aria-label="Contenido de la ficha" x-show="$store.app.activeView === 'editor'"
+      x-cloak>
+
+      <!-- Skeleton Screen de Ficha de Personaje -->
+      <include src="./src/partials/views/sheet-skeleton.html"></include>
+
+      <!-- Sin personaje activo -->
+      <div x-show="!$store.characters.loading && !$store.characters.active" x-cloak class="empty-state">
+        <i data-lucide="scan-face" class="w-16 h-16"></i>
+        <h2 class="font-title" style="font-size:1.8rem;color:var(--text-primary);">NINGÚN OPERATIVO ACTIVO</h2>
+        <p
+          style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-muted);max-width:260px;text-align:center;letter-spacing:0.06em;">
+          INICIALIZA UN NUEVO PERFIL PARA COMENZAR</p>
+        <button class="header-btn-accent mt-4" @click="$store.characters.createNew()">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+          NUEVO OPERATIVO
+        </button>
+      </div>
+
+      <!-- Tab content dinámico -->
+      <template x-if="$store.characters.active">
+        <div id="tab-content" class="min-h-[600px] min-h-[60vh]" x-show="!$store.characters.loading && !$store.app.isSheetLoading" x-cloak>
+          <!-- Encabezado de sección -->
+          <div class="section-header-bar">
+            <template x-for="tab in $store.app.activeTabObjects" :key="tab.id">
+              <span x-show="$store.app.currentTab === tab.id">
+                <h2 class="section-title">
+                  <span :data-animate-icon="tab.icon" data-size="24" class="w-6 h-6 flex items-center justify-center shrink-0"></span>
+                  <span x-text="tab.label"></span>
+                </h2>
+              </span>
+            </template>
+            <!-- Badge del modo -->
+            <span class="mode-badge shadow-lg shadow-black/80 backdrop-blur-md"
+              :class="$store.app.editMode ? 'mode-badge-edit' : 'mode-badge-preview'"
+              x-text="$store.app.editMode ? '// EDITANDO' : '// VISTA PREVIA'"></span>
+          </div>
+
+          <!-- Pestañas Modulares del Personaje -->
+          <include src="./src/partials/tabs/tab-basics.html"></include>
+
+          <!-- Pestañas Secundarias con Renderizado Diferido Bajo Demanda (Lazy Mount) -->
+          <template x-if="$store.app.isTabVisited('body')">
+            <div class="contents"><include src="./src/partials/tabs/tab-body.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('mind')">
+            <div class="contents"><include src="./src/partials/tabs/tab-mind.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('social')">
+            <div class="contents"><include src="./src/partials/tabs/tab-social.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('beliefs')">
+            <div class="contents"><include src="./src/partials/tabs/tab-beliefs.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('priorities')">
+            <div class="contents"><include src="./src/partials/tabs/tab-priorities.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('skills')">
+            <div class="contents"><include src="./src/partials/tabs/tab-skills.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('weapons')">
+            <div class="contents"><include src="./src/partials/tabs/tab-weapons.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('power')">
+            <div class="contents"><include src="./src/partials/tabs/tab-power.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('extras')">
+            <div class="contents"><include src="./src/partials/tabs/tab-extras.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('steam')">
+            <div class="contents"><include src="./src/partials/tabs/tab-steam.html"></include></div>
+          </template>
+
+          <!-- Pestaña para Secciones Personalizadas Dinámicas -->
+          <include src="./src/partials/tabs/tab-custom.html"></include>
+
+        </div>
+      </template>
+
+    </main>
+
+  </div><!-- /#app -->
+
+  <!-- ==============================================================
+     MODALES Y DIÁLOGOS DE SISTEMA
+     ============================================================== -->
+  <include src="./src/partials/modals/modal-dashboard.html"></include>
+  <include src="./src/partials/modals/modal-discord.html"></include>
+  <include src="./src/partials/modals/modal-cropper.html"></include>
+  <include src="./src/partials/modals/modal-media-notices.html"></include>
+  <include src="./src/partials/modals/modal-theme-designer.html"></include>
+  <include src="./src/partials/modals/modal-dev-console.html"></include>
+  <include src="./src/partials/modals/modal-hotkeys.html"></include>
+  <include src="./src/partials/modals/modal-factory-reset.html"></include>
+  <include src="./src/partials/modals/modal-folders.html"></include>
+  <include src="./src/partials/modals/modal-steam-cosmetics.html"></include>
+  <include src="./src/partials/modals/modal-emoji-picker.html"></include>
+  <include src="./src/partials/modals/modal-steam-emojis.html"></include>
+  <include src="./src/partials/modals/modal-json-preview.html"></include>
+  <include src="./src/partials/modals/modal-create-custom-tab.html"></include>
+  <include src="./src/partials/modals/modal-custom-block.html"></include>
+
+  <!-- Contenedor del Sistema de Notificaciones Toast -->
+  <include src="./src/partials/toasts.html"></include>
+
+</body>
+</html>

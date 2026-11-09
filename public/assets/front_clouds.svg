@@ -1,0 +1,72 @@
+<svg class="cloud-svg-layer" viewBox="0 0 3840 850" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cloudGradFront" x1="15%" y1="0%" x2="35%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95"/>
+      <stop offset="30%" stop-color="#E8F2FD" stop-opacity="0.9"/>
+      <stop offset="70%" stop-color="#A5C6E8" stop-opacity="0.82"/>
+      <stop offset="100%" stop-color="#557DAB" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+  
+    <g transform="translate(80, 70) scale(1.5)">
+      <path d="M 50,110 A 32,32 0 0,1 35,70 A 42,42 0 0,1 85,35 A 58,58 0 0,1 170,22 A 52,52 0 0,1 245,45 A 38,38 0 0,1 285,80 A 30,30 0 0,1 270,110 Z" fill="url(#cloudGradFront)" />
+      <path d="M 35,90 Q 150,125 270,95 A 30,30 0 0,1 270,110 L 50,110 A 32,32 0 0,1 35,90 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 40,65 A 42,42 0 0,1 85,35 A 58,58 0 0,1 170,22 A 52,52 0 0,1 245,45 A 38,38 0 0,1 280,75" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(620, 110) scale(1.25)">
+      <path d="M 40,90 A 25,25 0 0,1 25,60 A 35,35 0 0,1 70,30 A 45,45 0 0,1 140,20 A 48,48 0 0,1 210,30 A 38,38 0 0,1 265,55 A 28,28 0 0,1 290,80 A 22,22 0 0,1 275,95 Z" fill="url(#cloudGradFront)" />
+      <path d="M 25,75 Q 150,105 275,85 A 22,22 0 0,1 275,95 L 40,90 A 25,25 0 0,1 25,75 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 30,55 A 35,35 0 0,1 70,30 A 45,45 0 0,1 140,20 A 48,48 0 0,1 210,30 A 38,38 0 0,1 265,55" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(1120, 60) scale(1.4)">
+      <path d="M 45,130 A 30,30 0 0,1 30,90 A 38,38 0 0,1 75,55 A 60,60 0 0,1 150,25 A 55,55 0 0,1 225,48 A 45,45 0 0,1 270,90 A 30,30 0 0,1 255,130 Z" fill="url(#cloudGradFront)" />
+      <path d="M 30,105 Q 145,145 255,110 A 30,30 0 0,1 255,130 L 45,130 A 30,30 0 0,1 30,105 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 35,85 A 38,38 0 0,1 75,55 A 60,60 0 0,1 150,25 A 55,55 0 0,1 225,48 A 45,45 0 0,1 265,85" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(340, 480) scale(1.6)">
+      <path d="M 35,80 A 22,22 0 0,1 20,52 A 32,32 0 0,1 60,25 A 40,40 0 0,1 115,18 A 36,36 0 0,1 165,35 A 28,28 0 0,1 195,60 A 20,20 0 0,1 185,82 Z" fill="url(#cloudGradFront)" />
+      <path d="M 20,65 Q 100,92 185,70 A 20,20 0 0,1 185,82 L 35,80 A 22,22 0 0,1 20,65 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 25,48 A 32,32 0 0,1 60,25 A 40,40 0 0,1 115,18 A 36,36 0 0,1 165,35" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(880, 530) scale(1.35)">
+      <path d="M 50,110 A 32,32 0 0,1 35,70 A 42,42 0 0,1 85,35 A 58,58 0 0,1 170,22 A 52,52 0 0,1 245,45 A 38,38 0 0,1 285,80 A 30,30 0 0,1 270,110 Z" fill="url(#cloudGradFront)" />
+      <path d="M 35,90 Q 150,125 270,95 A 30,30 0 0,1 270,110 L 50,110 A 32,32 0 0,1 35,90 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 40,65 A 42,42 0 0,1 85,35 A 58,58 0 0,1 170,22 A 52,52 0 0,1 245,45 A 38,38 0 0,1 280,75" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(1380, 460) scale(1.45)">
+      <path d="M 40,90 A 25,25 0 0,1 25,60 A 35,35 0 0,1 70,30 A 45,45 0 0,1 140,20 A 48,48 0 0,1 210,30 A 38,38 0 0,1 265,55 A 28,28 0 0,1 290,80 A 22,22 0 0,1 275,95 Z" fill="url(#cloudGradFront)" />
+      <path d="M 25,75 Q 150,105 275,85 A 22,22 0 0,1 275,95 L 40,90 A 25,25 0 0,1 25,75 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 30,55 A 35,35 0 0,1 70,30 A 45,45 0 0,1 140,20 A 48,48 0 0,1 210,30 A 38,38 0 0,1 265,55" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+  
+    <g transform="translate(2000, 70) scale(1.5)">
+      <path d="M 50,110 A 32,32 0 0,1 35,70 A 42,42 0 0,1 85,35 A 58,58 0 0,1 170,22 A 52,52 0 0,1 245,45 A 38,38 0 0,1 285,80 A 30,30 0 0,1 270,110 Z" fill="url(#cloudGradFront)" />
+      <path d="M 35,90 Q 150,125 270,95 A 30,30 0 0,1 270,110 L 50,110 A 32,32 0 0,1 35,90 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 40,65 A 42,42 0 0,1 85,35 A 58,58 0 0,1 170,22 A 52,52 0 0,1 245,45 A 38,38 0 0,1 280,75" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(2540, 110) scale(1.25)">
+      <path d="M 40,90 A 25,25 0 0,1 25,60 A 35,35 0 0,1 70,30 A 45,45 0 0,1 140,20 A 48,48 0 0,1 210,30 A 38,38 0 0,1 265,55 A 28,28 0 0,1 290,80 A 22,22 0 0,1 275,95 Z" fill="url(#cloudGradFront)" />
+      <path d="M 25,75 Q 150,105 275,85 A 22,22 0 0,1 275,95 L 40,90 A 25,25 0 0,1 25,75 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 30,55 A 35,35 0 0,1 70,30 A 45,45 0 0,1 140,20 A 48,48 0 0,1 210,30 A 38,38 0 0,1 265,55" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(3040, 60) scale(1.4)">
+      <path d="M 45,130 A 30,30 0 0,1 30,90 A 38,38 0 0,1 75,55 A 60,60 0 0,1 150,25 A 55,55 0 0,1 225,48 A 45,45 0 0,1 270,90 A 30,30 0 0,1 255,130 Z" fill="url(#cloudGradFront)" />
+      <path d="M 30,105 Q 145,145 255,110 A 30,30 0 0,1 255,130 L 45,130 A 30,30 0 0,1 30,105 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 35,85 A 38,38 0 0,1 75,55 A 60,60 0 0,1 150,25 A 55,55 0 0,1 225,48 A 45,45 0 0,1 265,85" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(2260, 480) scale(1.6)">
+      <path d="M 35,80 A 22,22 0 0,1 20,52 A 32,32 0 0,1 60,25 A 40,40 0 0,1 115,18 A 36,36 0 0,1 165,35 A 28,28 0 0,1 195,60 A 20,20 0 0,1 185,82 Z" fill="url(#cloudGradFront)" />
+      <path d="M 20,65 Q 100,92 185,70 A 20,20 0 0,1 185,82 L 35,80 A 22,22 0 0,1 20,65 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 25,48 A 32,32 0 0,1 60,25 A 40,40 0 0,1 115,18 A 36,36 0 0,1 165,35" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(2800, 530) scale(1.35)">
+      <path d="M 50,110 A 32,32 0 0,1 35,70 A 42,42 0 0,1 85,35 A 58,58 0 0,1 170,22 A 52,52 0 0,1 245,45 A 38,38 0 0,1 285,80 A 30,30 0 0,1 270,110 Z" fill="url(#cloudGradFront)" />
+      <path d="M 35,90 Q 150,125 270,95 A 30,30 0 0,1 270,110 L 50,110 A 32,32 0 0,1 35,90 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 40,65 A 42,42 0 0,1 85,35 A 58,58 0 0,1 170,22 A 52,52 0 0,1 245,45 A 38,38 0 0,1 280,75" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+    <g transform="translate(3300, 460) scale(1.45)">
+      <path d="M 40,90 A 25,25 0 0,1 25,60 A 35,35 0 0,1 70,30 A 45,45 0 0,1 140,20 A 48,48 0 0,1 210,30 A 38,38 0 0,1 265,55 A 28,28 0 0,1 290,80 A 22,22 0 0,1 275,95 Z" fill="url(#cloudGradFront)" />
+      <path d="M 25,75 Q 150,105 275,85 A 22,22 0 0,1 275,95 L 40,90 A 25,25 0 0,1 25,75 Z" fill="rgba(25, 45, 75, 0.48)" />
+      <path d="M 30,55 A 35,35 0 0,1 70,30 A 45,45 0 0,1 140,20 A 48,48 0 0,1 210,30 A 38,38 0 0,1 265,55" fill="none" stroke="rgba(255, 255, 255, 0.85)" stroke-width="2.2" stroke-linecap="round" />
+    </g>
+</svg>

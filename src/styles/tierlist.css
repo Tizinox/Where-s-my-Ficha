@@ -1,0 +1,801 @@
+/**
+ * styles/tierlist.css
+ * Sistema visual de Tier List HUD, tableros y tokens.
+ */
+
+/* ========================================================
+   TIER LIST — CYBER HUD HIGH-END REWORK SYSTEM
+   Estética: Valorant / Persona 5 / High-Contrast Anime HUD
+   ======================================================== */
+
+.tierlist-cyber-panel {
+  background: linear-gradient(135deg, rgba(14, 18, 27, 0.94) 0%, rgba(8, 10, 15, 0.96) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.tierlist-board-container {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(var(--accent-primary-rgb, 0, 240, 255), 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: visible;
+}
+
+.tierlist-row-lane {
+  position: relative;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.tierlist-row-lane:hover {
+  background-color: rgba(255, 255, 255, 0.015);
+}
+
+.tierlist-row-lane.tier-drag-target {
+  background-color: rgba(var(--accent-primary-rgb, 0, 240, 255), 0.06) !important;
+  box-shadow: inset 0 0 20px rgba(var(--accent-primary-rgb, 0, 240, 255), 0.15);
+}
+
+/* Monumento de Rango (Label Columna Izquierda) */
+.tier-monument {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, filter 0.2s ease;
+  user-select: none;
+  cursor: pointer;
+  overflow: hidden;
+  gap: 6px;
+  padding: 10px 6px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.tier-monument::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 40%, rgba(0, 0, 0, 0.25) 100%);
+  pointer-events: none;
+}
+
+.tier-monument:hover {
+  filter: brightness(1.12);
+}
+
+.tier-monument-letter {
+  font-family: var(--font-tierlist, var(--font-display, 'Barlow Condensed', sans-serif));
+  font-weight: var(--font-weight-tierlist, 900);
+  text-transform: uppercase;
+  color: #ffffff !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85), 0 0 14px rgba(0, 0, 0, 0.65);
+  transition: transform 0.2s ease;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  text-align: center;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  box-sizing: border-box;
+  padding: 0 4px;
+}
+
+.tier-monument:hover .tier-monument-letter {
+  transform: scale(1.03);
+}
+
+.tier-monument-pill {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+  padding: 1.5px 8px;
+  font-size: 10px;
+  font-family: var(--font-input, 'JetBrains Mono', monospace);
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #ffffff !important;
+  margin-top: 0;
+  display: inline-block;
+  position: relative;
+  z-index: 5;
+  white-space: nowrap;
+}
+
+/* Botón interactivo de Edición de Rango (Contraste dinámico y alta legibilidad) */
+.tier-monument-edit-btn {
+  background: var(--tier-edit-bg, rgba(0, 0, 0, 0.68));
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid var(--tier-edit-border, rgba(255, 255, 255, 0.35));
+  color: var(--tier-edit-color, #ffffff) !important;
+  box-shadow: var(--tier-edit-shadow, 0 2px 8px rgba(0, 0, 0, 0.6));
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.tier-monument-edit-btn i,
+.tier-monument-edit-btn svg {
+  stroke: var(--tier-edit-icon-stroke, var(--tier-edit-color, #ffffff)) !important;
+  transition: stroke 0.18s ease;
+}
+
+.tier-monument-edit-btn:hover {
+  background: var(--tier-edit-hover-bg, #ffffff) !important;
+  color: var(--tier-edit-hover-color, #0b0e17) !important;
+  border-color: var(--tier-edit-hover-border, #ffffff) !important;
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.35), 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+  text-shadow: none;
+}
+
+.tier-monument-edit-btn:hover i,
+.tier-monument-edit-btn:hover svg {
+  stroke: var(--tier-edit-hover-icon-stroke, var(--tier-edit-hover-color, #0b0e17)) !important;
+}
+
+/* Zona de Operativos (Dropzone central) */
+.tier-dropzone-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 20px 20px;
+  transition: all 0.2s ease;
+}
+
+/* Token Coleccionable de Operativo */
+.tier-operative-token {
+  position: relative;
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.22s ease, filter 0.22s ease;
+  user-select: none;
+  cursor: grab;
+}
+
+.tier-operative-token:active {
+  cursor: grabbing;
+}
+
+.tier-operative-token:hover {
+  transform: translateY(-4px) scale(1.05);
+  z-index: 25;
+}
+
+.tier-token-avatar-box {
+  background: #090c12;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.65);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tier-token-avatar-box img {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+  user-drag: none !important;
+}
+
+.tier-operative-token:hover .tier-token-avatar-box {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.8), 0 0 15px rgba(var(--accent-primary-rgb, 0, 240, 255), 0.3);
+}
+
+/* Banner de Nombre en el Token (Superpuesto) */
+.tier-token-nameplate {
+  background: linear-gradient(180deg, rgba(5, 7, 10, 0.1) 0%, rgba(5, 7, 10, 0.85) 40%, rgba(2, 3, 5, 0.98) 100%);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 1), 0 0 5px rgba(0, 0, 0, 0.9);
+  z-index: 35 !important;
+}
+
+.tier-token-nameplate p {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 1), 0 0 6px rgba(0, 0, 0, 0.95);
+}
+
+/* Banner de Nombre Debajo del Avatar (Garantiza que marcos y banners de Steam sean 100% visibles) */
+.tier-token-nameplate-below {
+  background: rgba(6, 9, 17, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.85);
+  transition: all 0.15s ease;
+  z-index: 20;
+}
+
+.tier-operative-token:hover .tier-token-nameplate-below {
+  border-color: rgba(var(--accent-primary-rgb, 0, 240, 255), 0.45);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.9), 0 0 10px rgba(var(--accent-primary-rgb, 0, 240, 255), 0.25);
+}
+
+/* Indicadores de Inserción y Reordenación Visual Drag & Drop (Láser Cyber) */
+body:not(.is-tier-dragging) .tier-drop-indicator-line,
+body:not(.is-tier-dragging) .tier-drop-indicator-h-line {
+  display: none !important;
+}
+
+.tier-drop-indicator-line {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  width: 3px;
+  border-radius: 9999px;
+  background: var(--indicator-accent, var(--accent-primary, var(--accent, #00f0ff)));
+  box-shadow: 0 0 8px var(--indicator-glow, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.8)), 0 0 16px var(--indicator-glow, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.4));
+  z-index: 60;
+  pointer-events: none;
+  animation: pulse-drop-line 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+.tier-drop-indicator-line::before,
+.tier-drop-indicator-line::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  background: #ffffff;
+  border: 1.5px solid var(--indicator-accent, var(--accent-primary, var(--accent, #00f0ff)));
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--indicator-glow, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.9));
+}
+
+.tier-drop-indicator-line::before {
+  top: -3px;
+}
+
+.tier-drop-indicator-line::after {
+  bottom: -3px;
+}
+
+.tier-drop-indicator-line.indicator-left {
+  left: -4px;
+}
+
+.tier-drop-indicator-line.indicator-right {
+  right: -4px;
+}
+
+/* Indicador Láser Horizontal (para líneas divisoras de campo) */
+.tier-drop-indicator-h-line {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  height: 3px;
+  border-radius: 9999px;
+  background: var(--indicator-accent, var(--accent-primary, var(--accent, #00f0ff)));
+  box-shadow: 0 0 8px var(--indicator-glow, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.8)), 0 0 16px var(--indicator-glow, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.4));
+  z-index: 60;
+  pointer-events: none;
+  animation: pulse-drop-h-line 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+.tier-drop-indicator-h-line::before,
+.tier-drop-indicator-h-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 7px;
+  background: #ffffff;
+  border: 1.5px solid var(--indicator-accent, var(--accent-primary, var(--accent, #00f0ff)));
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--indicator-glow, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.9));
+}
+
+.tier-drop-indicator-h-line::before {
+  left: -3px;
+}
+
+.tier-drop-indicator-h-line::after {
+  right: -3px;
+}
+
+.tier-drop-indicator-h-line.indicator-top {
+  top: -4px;
+}
+
+.tier-drop-indicator-h-line.indicator-bottom {
+  bottom: -4px;
+}
+
+@keyframes pulse-drop-h-line {
+  0% { opacity: 0.75; transform: scaleX(0.98); }
+  100% { opacity: 1; transform: scaleX(1); }
+}
+
+@keyframes pulse-drop-line {
+  0% { opacity: 0.75; transform: scaleY(0.95); }
+  100% { opacity: 1; transform: scaleY(1.05); }
+}
+
+/* Dock de Controles de Fila */
+.tier-controls-dock {
+  background: rgba(8, 10, 15, 0.75);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tier-control-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.tier-control-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: scale(1.08);
+}
+
+.tier-control-btn:disabled {
+  opacity: 0.15;
+  cursor: not-allowed;
+}
+
+.tier-control-btn.btn-trash:hover:not(:disabled) {
+  background: rgba(244, 63, 94, 0.18);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.4);
+}
+
+.tier-control-btn.btn-reset:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+/* Empty Drop Target Guide */
+.tier-empty-guide {
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.015);
+  transition: all 0.2s ease;
+}
+
+.tier-drag-active .tier-empty-guide {
+  border-color: rgba(var(--accent-primary-rgb, 0, 240, 255), 0.5);
+  background: rgba(var(--accent-primary-rgb, 0, 240, 255), 0.05);
+  box-shadow: inset 0 0 15px rgba(var(--accent-primary-rgb, 0, 240, 255), 0.15);
+}
+
+/* ══════════════════════════════════════════════════════════
+   INSIGNIAS DE CALIFICACIÓN EN OPERATIVOS
+   ══════════════════════════════════════════════════════════ */
+.tier-character-badges {
+  position: absolute;
+  top: -8px;
+  left: -6px;
+  z-index: 45 !important;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-wrap: wrap;
+  max-width: 90px;
+  pointer-events: auto;
+}
+
+.tier-modifier-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #060911 !important;
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-radius: 7px !important;
+  font-family: var(--font-mono, monospace), system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 11px;
+  line-height: 1;
+  padding: 2.5px 5.5px;
+  min-width: 20px;
+  text-align: center;
+  user-select: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.95);
+}
+
+.tier-modifier-badge:hover {
+  transform: scale(1.2);
+  z-index: 50 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   DELIMITADORES DE ENGLOBAMIENTO (CORCHETES Y PARÉNTESIS)
+   ══════════════════════════════════════════════════════════ */
+.tier-bracket-frame {
+  height: 64px;
+  width: 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+@media (min-width: 640px) {
+  .tier-bracket-frame {
+    height: 72px;
+    width: 28px;
+  }
+}
+
+.tier-bracket-wrapper:hover .tier-bracket-frame {
+  transform: scale(1.08);
+  filter: brightness(1.25);
+}
+
+/* Corchete Abierto [ */
+.tier-bracket-frame.tier-bracket-open {
+  border-left: 3.5px solid var(--bracket-color, #38bdf8);
+  border-top: 3.5px solid var(--bracket-color, #38bdf8);
+  border-bottom: 3.5px solid var(--bracket-color, #38bdf8);
+  border-right: none;
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
+  background: linear-gradient(to right, rgba(56, 189, 248, 0.22), rgba(56, 189, 248, 0.02));
+  box-shadow: -4px 0 16px rgba(56, 189, 248, 0.4), inset 2px 0 8px rgba(56, 189, 248, 0.25);
+  margin-right: 2px;
+}
+
+/* Corchete Cerrado ] */
+.tier-bracket-frame.tier-bracket-close {
+  border-right: 3.5px solid var(--bracket-color, #38bdf8);
+  border-top: 3.5px solid var(--bracket-color, #38bdf8);
+  border-bottom: 3.5px solid var(--bracket-color, #38bdf8);
+  border-left: none;
+  border-top-right-radius: 9px;
+  border-bottom-right-radius: 9px;
+  background: linear-gradient(to left, rgba(56, 189, 248, 0.22), rgba(56, 189, 248, 0.02));
+  box-shadow: 4px 0 16px rgba(56, 189, 248, 0.4), inset -2px 0 8px rgba(56, 189, 248, 0.25);
+  margin-left: 2px;
+}
+
+/* Paréntesis Abierto ( */
+.tier-bracket-frame.tier-paren-open {
+  border-left: 3.5px solid var(--bracket-color, #c084fc);
+  border-top: 2.5px solid rgba(192, 132, 252, 0.7);
+  border-bottom: 2.5px solid rgba(192, 132, 252, 0.7);
+  border-right: none;
+  border-top-left-radius: 22px;
+  border-bottom-left-radius: 22px;
+  background: linear-gradient(to right, rgba(192, 132, 252, 0.22), rgba(192, 132, 252, 0.02));
+  box-shadow: -4px 0 16px rgba(192, 132, 252, 0.4), inset 2px 0 8px rgba(192, 132, 252, 0.25);
+  margin-right: 2px;
+}
+
+/* Paréntesis Cerrado ) */
+.tier-bracket-frame.tier-paren-close {
+  border-right: 3.5px solid var(--bracket-color, #c084fc);
+  border-top: 2.5px solid rgba(192, 132, 252, 0.7);
+  border-bottom: 2.5px solid rgba(192, 132, 252, 0.7);
+  border-left: none;
+  border-top-right-radius: 22px;
+  border-bottom-right-radius: 22px;
+  background: linear-gradient(to left, rgba(192, 132, 252, 0.22), rgba(192, 132, 252, 0.02));
+  box-shadow: 4px 0 16px rgba(192, 132, 252, 0.4), inset -2px 0 8px rgba(192, 132, 252, 0.25);
+  margin-left: 2px;
+}
+
+.tier-bracket-symbol {
+  text-shadow: 0 0 10px currentColor;
+  user-select: none;
+}
+
+.tier-bracket-tag {
+  font-family: var(--font-mono, monospace);
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  opacity: 0.85;
+  user-select: none;
+  margin-top: 2px;
+}
+
+.tier-bracket-notch {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: var(--bracket-color, #38bdf8);
+  border-radius: 1px;
+}
+
+.tier-bracket-open .notch-top,
+.tier-paren-open .notch-top {
+  top: -1px;
+  right: 0;
+}
+
+.tier-bracket-open .notch-bottom,
+.tier-paren-open .notch-bottom {
+  bottom: -1px;
+  right: 0;
+}
+
+.tier-bracket-close .notch-top,
+.tier-paren-close .notch-top {
+  top: -1px;
+  left: 0;
+}
+
+.tier-bracket-close .notch-bottom,
+.tier-paren-close .notch-bottom {
+  bottom: -1px;
+  left: 0;
+}
+
+/* ═════════════════════════════════════════════════════════
+   TIERMAKER 3D CUBE SPINNER (From Uiverse.io by bociKond)
+   Cubo tridimensional isométrico con rotación continua
+   ═════════════════════════════════════════════════════════ */
+.tiermaker-cube-spinner,
+.cube-spinner {
+  --cube-size: 52px;
+  --cube-half: calc(var(--cube-size) / 2);
+  --clr: var(--tiermaker-cube-clr, rgb(247, 197, 159));
+  --clr-alpha: var(--tiermaker-cube-alpha, rgba(247, 197, 159, 0.12));
+  --clr-glow: var(--tiermaker-cube-glow, rgba(247, 197, 159, 0.35));
+  width: var(--cube-size);
+  height: var(--cube-size);
+  animation: tiermaker-cube-spinner-rotate 1.6s infinite ease;
+  transform-style: preserve-3d;
+  position: relative;
+  display: inline-block;
+}
+
+.tiermaker-cube-spinner > div,
+.cube-spinner > div {
+  background-color: var(--clr-alpha);
+  height: 100%;
+  position: absolute;
+  width: 100%;
+  border: 2.8px solid var(--clr);
+  box-shadow: 0 0 12px var(--clr-glow), inset 0 0 8px var(--clr-alpha);
+  border-radius: 2px;
+  box-sizing: border-box;
+}
+
+.tiermaker-cube-spinner div:nth-of-type(1),
+.cube-spinner div:nth-of-type(1) {
+  transform: translateZ(calc(-1 * var(--cube-half))) rotateY(180deg);
+}
+
+.tiermaker-cube-spinner div:nth-of-type(2),
+.cube-spinner div:nth-of-type(2) {
+  transform: rotateY(-270deg) translateX(50%);
+  transform-origin: top right;
+}
+
+.tiermaker-cube-spinner div:nth-of-type(3),
+.cube-spinner div:nth-of-type(3) {
+  transform: rotateY(270deg) translateX(-50%);
+  transform-origin: center left;
+}
+
+.tiermaker-cube-spinner div:nth-of-type(4),
+.cube-spinner div:nth-of-type(4) {
+  transform: rotateX(90deg) translateY(-50%);
+  transform-origin: top center;
+}
+
+.tiermaker-cube-spinner div:nth-of-type(5),
+.cube-spinner div:nth-of-type(5) {
+  transform: rotateX(-90deg) translateY(50%);
+  transform-origin: bottom center;
+}
+
+.tiermaker-cube-spinner div:nth-of-type(6),
+.cube-spinner div:nth-of-type(6) {
+  transform: translateZ(var(--cube-half));
+}
+
+@keyframes tiermaker-cube-spinner-rotate {
+  0% {
+    transform: rotate(45deg) rotateX(-25deg) rotateY(25deg);
+  }
+
+  50% {
+    transform: rotate(45deg) rotateX(-385deg) rotateY(25deg);
+  }
+
+  100% {
+    transform: rotate(45deg) rotateX(-385deg) rotateY(385deg);
+  }
+}
+
+
+
+
+
+/* ========================================================
+   TIER LIST — POPUPS, DROPDOWNS Y MENÚS FLOTANTES
+   Superficie 100% sólida y opaca con gradiente cyber,
+   borde de contraste y sombra profunda para evitar
+   cualquier tipo de transparencia o solapamiento visual.
+   ======================================================== */
+.tierlist-dropdown-surface {
+  background-color: #0b0f19 !important;
+  background: linear-gradient(160deg, #111726 0%, #070a12 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.98), 0 0 0 1px rgba(var(--accent-primary-rgb, 0, 240, 255), 0.25) !important;
+  backdrop-filter: blur(28px) !important;
+  -webkit-backdrop-filter: blur(28px) !important;
+  z-index: 100 !important;
+}
+
+/* ========================================================
+   SISTEMA DE IDENTIDAD VISUAL DINÁMICO EN TIER LIST
+   Permite que todos los acentos neón azul/cian respondan
+   dinámicamente a la 'Identidad Visual' (--accent-primary).
+   ======================================================== */
+
+#main-tierlist-view,
+.tierlist-fullscreen-view {
+  --tier-accent: var(--accent-primary, var(--accent, #00f0ff));
+  --tier-accent-rgb: var(--accent-primary-rgb, 0, 240, 255);
+}
+
+/* 1. Textos e Íconos Neón */
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .text-cyan-200,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .text-cyan-300,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .text-cyan-400,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .text-cyan-500 {
+  color: var(--tier-accent) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .text-cyan-400\/80 {
+  color: rgba(var(--tier-accent-rgb), 0.8) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .text-cyan-400\/60 {
+  color: rgba(var(--tier-accent-rgb), 0.6) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:text-cyan-300:hover {
+  color: var(--tier-accent) !important;
+}
+
+/* 2. Bordes Neón (Base) */
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .border-cyan-400 {
+  border-color: var(--tier-accent) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .border-cyan-400\/60 {
+  border-color: rgba(var(--tier-accent-rgb), 0.6) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .border-cyan-400\/50,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .border-cyan-500\/50 {
+  border-color: rgba(var(--tier-accent-rgb), 0.5) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .border-cyan-400\/40 {
+  border-color: rgba(var(--tier-accent-rgb), 0.4) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .border-cyan-500\/30 {
+  border-color: rgba(var(--tier-accent-rgb), 0.3) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .border-cyan-400\/20,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .border-cyan-500\/20,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .border-cyan-500\/25 {
+  border-color: rgba(var(--tier-accent-rgb), 0.22) !important;
+}
+
+/* 3. Bordes Neón (Hover y Focus) */
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:border-cyan-400:hover {
+  border-color: var(--tier-accent) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:border-cyan-400\/60:hover {
+  border-color: rgba(var(--tier-accent-rgb), 0.7) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:border-cyan-400\/50:hover {
+  border-color: rgba(var(--tier-accent-rgb), 0.6) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:border-cyan-400\/40:hover {
+  border-color: rgba(var(--tier-accent-rgb), 0.5) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .focus\:border-cyan-400:focus,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .focus\:border-cyan-400:focus-within {
+  border-color: var(--tier-accent) !important;
+}
+
+/* 4. Fondos Tenues / Badges / Pills */
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-400\/15,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-500\/15 {
+  background-color: rgba(var(--tier-accent-rgb), 0.15) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-400\/20,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-500\/20 {
+  background-color: rgba(var(--tier-accent-rgb), 0.2) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-500\/25 {
+  background-color: rgba(var(--tier-accent-rgb), 0.25) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-500\/10 {
+  background-color: rgba(var(--tier-accent-rgb), 0.1) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-500\/5 {
+  background-color: rgba(var(--tier-accent-rgb), 0.05) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-950\/25 {
+  background-color: rgba(var(--tier-accent-rgb), 0.08) !important;
+}
+
+/* 5. Fondos Sólidos */
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-400,
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .bg-cyan-500 {
+  background-color: var(--tier-accent) !important;
+  color: #000000 !important;
+}
+
+/* 6. Fondos en Hover */
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:bg-cyan-500\/10:hover {
+  background-color: rgba(var(--tier-accent-rgb), 0.1) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:bg-cyan-500\/15:hover {
+  background-color: rgba(var(--tier-accent-rgb), 0.15) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:bg-cyan-500\/20:hover {
+  background-color: rgba(var(--tier-accent-rgb), 0.2) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:bg-cyan-500\/25:hover {
+  background-color: rgba(var(--tier-accent-rgb), 0.25) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:bg-cyan-500\/30:hover {
+  background-color: rgba(var(--tier-accent-rgb), 0.3) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:bg-cyan-500\/40:hover {
+  background-color: rgba(var(--tier-accent-rgb), 0.4) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .hover\:bg-cyan-950\/20:hover {
+  background-color: rgba(var(--tier-accent-rgb), 0.08) !important;
+}
+
+/* 7. Controles de Rango / Sliders / Rings */
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .accent-cyan-400 {
+  accent-color: var(--tier-accent) !important;
+}
+
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .ring-cyan-400 {
+  --tw-ring-color: var(--tier-accent) !important;
+}
+
+/* 8. Gradientes de Encabezados Cyber */
+:is(#main-tierlist-view, .tierlist-fullscreen-view) .from-cyan-500\/25 {
+  --tw-gradient-from: rgba(var(--tier-accent-rgb), 0.25) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(var(--tier-accent-rgb), 0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}

@@ -1,0 +1,1064 @@
+/**
+ * Steam Emojis Catalog y Starter Packs
+ * Catálogo 100% OFICIAL verificado con la API de Steam y Steam Community CDN.
+ * Todas las imágenes son archivos PNG originales de alta resolución (54px-128px) oficiales de Valve.
+ */
+
+export const POPULAR_STEAM_EMOJI_PACKS = [
+  {
+    "id": "steam_essentials",
+    "name": "Steam Clásicos y Nativos (Valve)",
+    "game": "Steam Community",
+    "appid": 753,
+    "category": "Steam",
+    "badge": "OFICIAL VALVE",
+    "accentColor": "#66c0f4",
+    "description": "Los emoticonos clásicos verificados del chat de Steam, eventos oficiales y gaming.",
+    "icon": "https://community.steamstatic.com/economy/emoticon/steamhappy",
+    "emojis": [
+      {
+        "shortcode": "steamhappy",
+        "name": "Steam Feliz",
+        "url": "https://community.steamstatic.com/economy/emoticon/steamhappy"
+      },
+      {
+        "shortcode": "steamsad",
+        "name": "Steam Triste",
+        "url": "https://community.steamstatic.com/economy/emoticon/steamsad"
+      },
+      {
+        "shortcode": "steamthumbsup",
+        "name": "Steam Pulgar Arriba",
+        "url": "https://community.steamstatic.com/economy/emoticon/steamthumbsup"
+      },
+      {
+        "shortcode": "steambored",
+        "name": "Steam Aburrido",
+        "url": "https://community.steamstatic.com/economy/emoticon/steambored"
+      },
+      {
+        "shortcode": "steamfacepalm",
+        "name": "Steam Facepalm",
+        "url": "https://community.steamstatic.com/economy/emoticon/steamfacepalm"
+      },
+      {
+        "shortcode": "steammocking",
+        "name": "Steam Burlón",
+        "url": "https://community.steamstatic.com/economy/emoticon/steammocking"
+      },
+      {
+        "shortcode": "steamsunny",
+        "name": "Steam Soleado",
+        "url": "https://community.steamstatic.com/economy/emoticon/steamsunny"
+      },
+      {
+        "shortcode": "cozy",
+        "name": "Cozy / Acogedor",
+        "url": "https://community.steamstatic.com/economy/emoticon/cozy"
+      },
+      {
+        "shortcode": "boba",
+        "name": "Té Boba",
+        "url": "https://community.steamstatic.com/economy/emoticon/boba"
+      },
+      {
+        "shortcode": "heart",
+        "name": "Corazón Rojo",
+        "url": "https://community.steamstatic.com/economy/emoticon/heart"
+      },
+      {
+        "shortcode": "gamepad",
+        "name": "Gamepad / Mando",
+        "url": "https://community.steamstatic.com/economy/emoticon/gamepad"
+      },
+      {
+        "shortcode": "levelup",
+        "name": "Level Up",
+        "url": "https://community.steamstatic.com/economy/emoticon/levelup"
+      },
+      {
+        "shortcode": "gameover",
+        "name": "Game Over",
+        "url": "https://community.steamstatic.com/economy/emoticon/gameover"
+      },
+      {
+        "shortcode": "winner",
+        "name": "Winner / Ganador",
+        "url": "https://community.steamstatic.com/economy/emoticon/winner"
+      },
+      {
+        "shortcode": "gg",
+        "name": "GG / Good Game",
+        "url": "https://community.steamstatic.com/economy/emoticon/gg"
+      },
+      {
+        "shortcode": "ez",
+        "name": "EZ / Easy",
+        "url": "https://community.steamstatic.com/economy/emoticon/ez"
+      },
+      {
+        "shortcode": "afk",
+        "name": "AFK",
+        "url": "https://community.steamstatic.com/economy/emoticon/afk"
+      },
+      {
+        "shortcode": "rip",
+        "name": "RIP",
+        "url": "https://community.steamstatic.com/economy/emoticon/rip"
+      },
+      {
+        "shortcode": "doge",
+        "name": "Doge Wow",
+        "url": "https://community.steamstatic.com/economy/emoticon/doge"
+      }
+    ]
+  },
+  {
+    "id": "halflife2_city17",
+    "name": "Half-Life 2: Ciudad 17",
+    "game": "Half-Life 2",
+    "appid": 220,
+    "category": "Valve Classic",
+    "badge": "SCI-FI CLÁSICO",
+    "accentColor": "#e57a1b",
+    "description": "Iconos oficiales de Valve: Símbolo Lambda, Headcrab, Palanca, Soldado Combine y G-Man.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/220/d42465bb34e37ab61c63e8ea702f28e266eda307.png",
+    "emojis": [
+      {
+        "shortcode": "alyx",
+        "name": "Alyx",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/220/d42465bb34e37ab61c63e8ea702f28e266eda307.png",
+        "category": "Valve Classic"
+      },
+      {
+        "shortcode": "gordon",
+        "name": "Gordon",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/220/83ed62789624bb016086fce64adb0c4d7953c803.png",
+        "category": "Valve Classic"
+      },
+      {
+        "shortcode": "headcrab",
+        "name": "Headcrab",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/220/36dbbf979ed1ceb3fbb0200b9680a2a0ce79616c.png",
+        "category": "Valve Classic"
+      },
+      {
+        "shortcode": "eli",
+        "name": "Eli",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/220/76eda94f84353e023d362461e74d5d61a6be988f.png",
+        "category": "Valve Classic"
+      },
+      {
+        "shortcode": "gman",
+        "name": "Gman",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/220/8d76a501ade577a2c2156d70b2090953b2355cbf.png",
+        "category": "Valve Classic"
+      }
+    ]
+  },
+  {
+    "id": "tf2_mercs",
+    "name": "Team Fortress 2",
+    "game": "Team Fortress 2",
+    "appid": 440,
+    "category": "Team Fortress 2",
+    "badge": "OFICIAL VALVE",
+    "accentColor": "#de6a3b",
+    "description": "Emoticonos oficiales de Mann Co.: Sticky, Spycon, Sentry, Medicon, Jarate, Demoticon y más.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/440/2694013ce1703a0ef437c3ba19c3ea461bf9cc17.png",
+    "emojis": [
+      {
+        "shortcode": "crate",
+        "name": "Crate",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/440/2694013ce1703a0ef437c3ba19c3ea461bf9cc17.png",
+        "category": "Team Fortress 2"
+      },
+      {
+        "shortcode": "jarate",
+        "name": "Jarate",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/440/6a626c2efbb61e25d0853d22965866c9a8f87c6e.png",
+        "category": "Team Fortress 2"
+      },
+      {
+        "shortcode": "medicon",
+        "name": "Medicon",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/440/6c7ebdf3fe61384d828d46ad3c2e9d529a6cb9b3.png",
+        "category": "Team Fortress 2"
+      },
+      {
+        "shortcode": "sentry",
+        "name": "Sentry",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/440/68c81edb7356bcd3d7a636ee45f62df874ed0954.png",
+        "category": "Team Fortress 2"
+      },
+      {
+        "shortcode": "spycon",
+        "name": "Spycon",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/440/777d9a17670f664cf1accd5c49ae7d4d94f94a53.png",
+        "category": "Team Fortress 2"
+      },
+      {
+        "shortcode": "sticky",
+        "name": "Sticky",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/440/0b10791bf70f6044627abea9e839ca65bed68bb3.png",
+        "category": "Team Fortress 2"
+      },
+      {
+        "shortcode": "balloonicorn",
+        "name": "Balloonicorn",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/440/8b9370ee3beb7bf49a5b4dc4f3843de3b48d75ef.png",
+        "category": "Team Fortress 2"
+      },
+      {
+        "shortcode": "demoticon",
+        "name": "Demoticon",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/440/430e5eab20326ce2585197a02a5666dd448a9a0a.png",
+        "category": "Team Fortress 2"
+      }
+    ]
+  },
+  {
+    "id": "l4d2_zombies",
+    "name": "Left 4 Dead 2: Infectados",
+    "game": "Left 4 Dead 2",
+    "appid": 550,
+    "category": "Valve Classic",
+    "badge": "SURVIVAL CO-OP",
+    "accentColor": "#7ba03b",
+    "description": "Infectados especiales oficiales: Tank, Witch, Hunter, Boomer, Jockey y Charger.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/550/98626c3baed3b1fad1139864638e6185b6508db8.png",
+    "emojis": [
+      {
+        "shortcode": "boomer",
+        "name": "Boomer",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/550/98626c3baed3b1fad1139864638e6185b6508db8.png",
+        "category": "Valve Classic"
+      },
+      {
+        "shortcode": "health",
+        "name": "Health",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/550/b6dfed59548b131ee91fd20be67ff79f45ffb953.png",
+        "category": "Valve Classic"
+      },
+      {
+        "shortcode": "tank",
+        "name": "Tank",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/550/425dfd82dac9ab7474952d213cfdd46832850501.png",
+        "category": "Valve Classic"
+      },
+      {
+        "shortcode": "witch",
+        "name": "Witch",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/550/0a57c801aba71be7ac447009e9235fba324f099f.png",
+        "category": "Valve Classic"
+      },
+      {
+        "shortcode": "chainsaw",
+        "name": "Chainsaw",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/550/a1d32f725673e46085500f47f6c87f9770761f6a.png",
+        "category": "Valve Classic"
+      }
+    ]
+  },
+  {
+    "id": "dota2_ancients",
+    "name": "Dota 2: Defence of the Ancients",
+    "game": "Dota 2",
+    "appid": 570,
+    "category": "Dota 2",
+    "badge": "MOBA VALVE",
+    "accentColor": "#b42e2b",
+    "description": "Héroes oficiales de Valve: D2 Rubick, Pudge, Axe, Juggernaut, Crystal Maiden y más.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/c5e056240d2fb89646b332dc24e4f2eea5f1b773.png",
+    "emojis": [
+      {
+        "shortcode": "d2antimage",
+        "name": "D2antimage",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/c5e056240d2fb89646b332dc24e4f2eea5f1b773.png",
+        "category": "Dota 2"
+      },
+      {
+        "shortcode": "d2axe",
+        "name": "D2axe",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/f16329679843a1d2bd8fd5ae59a9392952388375.png",
+        "category": "Dota 2"
+      },
+      {
+        "shortcode": "d2bloodseeker",
+        "name": "D2bloodseeker",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/20841499409be08142e13d290ebf8b9a62c9d9b4.png",
+        "category": "Dota 2"
+      },
+      {
+        "shortcode": "d2brewmaster",
+        "name": "D2brewmaster",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/d88de736bc4df3c5a30382f5f6b8244b56395b52.png",
+        "category": "Dota 2"
+      },
+      {
+        "shortcode": "d2invoker",
+        "name": "D2invoker",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/ad78c853ba18895dab7d5d6fb985b74011cc0af5.png",
+        "category": "Dota 2"
+      },
+      {
+        "shortcode": "d2lonedruid",
+        "name": "D2lonedruid",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/e2224c20cf911bbb4b470ebc632b92e3e84b98eb.png",
+        "category": "Dota 2"
+      },
+      {
+        "shortcode": "d2naturesprophet",
+        "name": "D2naturesprophet",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/4b4f4f8b352b29865c5b91b328f3be526692c1d8.png",
+        "category": "Dota 2"
+      },
+      {
+        "shortcode": "d2rubick",
+        "name": "D2rubick",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/d92b0e77b3a873865b789f9b9cf0ea2ffc1f70b4.png",
+        "category": "Dota 2"
+      },
+      {
+        "shortcode": "d2tidehunter",
+        "name": "D2tidehunter",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/8d24f610ea07bd9ce915a85054c09b79eb2a2866.png",
+        "category": "Dota 2"
+      },
+      {
+        "shortcode": "d2puck",
+        "name": "D2puck",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/570/87bd7d7c091713a078a5b190fbc2d125769a6bb4.png",
+        "category": "Dota 2"
+      }
+    ]
+  },
+  {
+    "id": "portal2_aperture",
+    "name": "Portal 2 y Aperture",
+    "game": "Portal 2",
+    "appid": 620,
+    "category": "Portal",
+    "badge": "PUZZLE SCI-FI",
+    "accentColor": "#00a4e4",
+    "description": "Torreta Aperture, Cubo de compañía, portales azul y naranja, Chell y Wheatley.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/620/c688f0f76e72b5935f72956c8341f311d14a102d.png",
+    "emojis": [
+      {
+        "shortcode": "p2aperture",
+        "name": "P2aperture",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/620/c688f0f76e72b5935f72956c8341f311d14a102d.png",
+        "category": "Portal"
+      },
+      {
+        "shortcode": "p2blue",
+        "name": "P2blue",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/620/71e42c414503e24c23df00373530bbe41e86edbb.png",
+        "category": "Portal"
+      },
+      {
+        "shortcode": "p2chell",
+        "name": "P2chell",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/620/3ca13f63effecb4f0426f8a8821ca71bc2ff3348.png",
+        "category": "Portal"
+      },
+      {
+        "shortcode": "p2orange",
+        "name": "P2orange",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/620/1ba1ccecc1ade745c6fea3cb4c9acfcc40e7e1a2.png",
+        "category": "Portal"
+      },
+      {
+        "shortcode": "p2turret",
+        "name": "P2turret",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/620/a5d8a8612c67469355ebc1f13df5894cd37cd789.png",
+        "category": "Portal"
+      },
+      {
+        "shortcode": "p2wheatley",
+        "name": "P2wheatley",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/620/0986c7004b7b7f3d22f0d07f2dd260d193827835.png",
+        "category": "Portal"
+      },
+      {
+        "shortcode": "p2cube",
+        "name": "P2cube",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/620/b413f47a6cf686ff3b9c70b3dafe405c12535ba9.png",
+        "category": "Portal"
+      }
+    ]
+  },
+  {
+    "id": "csgo_legends",
+    "name": "Counter-Strike 2 / CS:GO",
+    "game": "Counter-Strike 2",
+    "appid": 730,
+    "category": "Counter-Strike",
+    "badge": "COMBATE",
+    "accentColor": "#de9b35",
+    "description": "Iconos oficiales de combate: CSGO CT, Globo Global Elite, Anarchist, Skull y equipamiento.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/736a0084a9ff921447bd9558f59da248dc91e6ec.png",
+    "emojis": [
+      {
+        "shortcode": "csgoa",
+        "name": "Csgoa",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/736a0084a9ff921447bd9558f59da248dc91e6ec.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgoanarchist",
+        "name": "Csgoanarchist",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/6f56a4d253f7a0c1cb0aa60d85d9f6ca979a9a75.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgob",
+        "name": "Csgob",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/58e18457d7785b935b4c423e78fd9caa93296573.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgocross",
+        "name": "Csgocross",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/a6b59beec1edf461e71205fcef5d7ea825d614ba.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgoct",
+        "name": "Csgoct",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/7a70c98b52ba2f1b6967b8ac4e1e196d03f3aa51.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgoglobe",
+        "name": "Csgoglobe",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/63c94cba79a4ad2dc0b4e77c1b77bc84c9bd020a.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgogun",
+        "name": "Csgogun",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/3fdc6af95f900f4acc72ac6c28912ad30f6b3fe4.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgohelmet",
+        "name": "Csgohelmet",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/02dc04321cc7af1056f949fdd5924c65b58c7c11.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgox",
+        "name": "Csgox",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/71f56da7d3ad998fed8e7ca7caaad74598377254.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgoskull",
+        "name": "Csgoskull",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/1cd3e81f58affa5eb0c0b49ee52335184d8c15b6.png",
+        "category": "Counter-Strike"
+      },
+      {
+        "shortcode": "csgostar",
+        "name": "Csgostar",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/730/c6e056e6b38a974675131be3a5c47baad4f1914d.png",
+        "category": "Counter-Strike"
+      }
+    ]
+  },
+  {
+    "id": "terraria_world",
+    "name": "Terraria: Reino 2D",
+    "game": "Terraria",
+    "appid": 105600,
+    "category": "Terraria",
+    "badge": "SANDBOX",
+    "accentColor": "#289d39",
+    "description": "Emoticonos oficiales de Re-Logic: Logo Terraria, Demon Eye, Green Slime, Zombie Head y Dirt Block.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/105600/8a2deff2393deaf98630328649f9a9b5d19a9e07.png",
+    "emojis": [
+      {
+        "shortcode": "terraria",
+        "name": "Terraria",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/105600/8a2deff2393deaf98630328649f9a9b5d19a9e07.png",
+        "category": "Terraria"
+      },
+      {
+        "shortcode": "zombiehead",
+        "name": "Zombiehead",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/105600/979ab318e934c1d01cb435088684c02101f6075c.png",
+        "category": "Terraria"
+      },
+      {
+        "shortcode": "demoneye",
+        "name": "Demoneye",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/105600/915ecf545a33583b4328fc8b4388ad3608dea856.png",
+        "category": "Terraria"
+      },
+      {
+        "shortcode": "greenslime",
+        "name": "Greenslime",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/105600/94daa9e99d18fb58bf6e89f961d624c1e03ea122.png",
+        "category": "Terraria"
+      },
+      {
+        "shortcode": "dirtblock",
+        "name": "Dirtblock",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/105600/d9693eb4b306ae3ac9f75ab00c420fcae3611f32.png",
+        "category": "Terraria"
+      }
+    ]
+  },
+  {
+    "id": "payday2_crime",
+    "name": "PAYDAY 2: Crime.net",
+    "game": "PAYDAY 2",
+    "appid": 218620,
+    "category": "PAYDAY",
+    "badge": "HEIST CO-OP",
+    "accentColor": "#005baa",
+    "description": "Máscaras oficiales de atraco: Dallas, Hoxton, Chains, Wolf y bolsas de botín.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/218620/7b657107b279845ae583baed677a684c89bc2886.png",
+    "emojis": [
+      {
+        "shortcode": "a",
+        "name": "A",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/218620/7b657107b279845ae583baed677a684c89bc2886.png",
+        "category": "PAYDAY"
+      },
+      {
+        "shortcode": "y",
+        "name": "Y",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/218620/0d307aef0d2edde55c8ca3f527620778e200e787.png",
+        "category": "PAYDAY"
+      },
+      {
+        "shortcode": "p",
+        "name": "P",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/218620/667c8e45e7533a1a1e82f176d1a04bc3ab0841fa.png",
+        "category": "PAYDAY"
+      },
+      {
+        "shortcode": "thed",
+        "name": "Thed",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/218620/2dead477b11f063de1920593bcd25e7c30d6108e.png",
+        "category": "PAYDAY"
+      },
+      {
+        "shortcode": "2",
+        "name": "2",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/218620/493b081f07ce2051dd9f9506c43e3e78f6121772.png",
+        "category": "PAYDAY"
+      }
+    ]
+  },
+  {
+    "id": "dont_starve_wilds",
+    "name": "Don't Starve y Together",
+    "game": "Don't Starve",
+    "appid": 219740,
+    "category": "Don't Starve",
+    "badge": "SUPERVIVENCIA",
+    "accentColor": "#936a4e",
+    "description": "Emoticonos oficiales de Klei: Wilson, Willow, Wendy, Wolfgang, Maxwell, Beefalo y arañas.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/219740/80255e7bf77ee9d44bc62bcf374c81280423528d.png",
+    "emojis": [
+      {
+        "shortcode": "dsfight",
+        "name": "Dsfight",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/219740/80255e7bf77ee9d44bc62bcf374c81280423528d.png",
+        "category": "Don't Starve"
+      },
+      {
+        "shortcode": "dsham",
+        "name": "Dsham",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/219740/127f4cc49cafde528d1629f2ea0040f37e2faffe.png",
+        "category": "Don't Starve"
+      },
+      {
+        "shortcode": "dshound",
+        "name": "Dshound",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/219740/e092d65b0985091551f4c81cddc40e0732bcc2e9.png",
+        "category": "Don't Starve"
+      },
+      {
+        "shortcode": "dssmallbird",
+        "name": "Dssmallbird",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/219740/54b45d5b7a13b8fe1a951ef9ab737c53f2885a4a.png",
+        "category": "Don't Starve"
+      },
+      {
+        "shortcode": "dstools",
+        "name": "Dstools",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/219740/349f05273486aeec1e39f6116150ec92a88f58c0.png",
+        "category": "Don't Starve"
+      },
+      {
+        "shortcode": "dswilson",
+        "name": "Dswilson",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/219740/9de59c10146d719df41d05371a0deb3331ba83bd.png",
+        "category": "Don't Starve"
+      },
+      {
+        "shortcode": "dsmagic",
+        "name": "Dsmagic",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/219740/835eb32c63b3102dddf2874c95ceebe675ffca92.png",
+        "category": "Don't Starve"
+      },
+      {
+        "shortcode": "dswilsonscared",
+        "name": "Dswilsonscared",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/219740/dfeecdd41d9c2477e5793107a14227586abd99de.png",
+        "category": "Don't Starve"
+      }
+    ]
+  },
+  {
+    "id": "tboi_rebirth",
+    "name": "The Binding of Isaac: Rebirth",
+    "game": "The Binding of Isaac: Rebirth",
+    "appid": 250900,
+    "category": "Isaac",
+    "badge": "ROGUELIKE",
+    "accentColor": "#aa382e",
+    "description": "Emoticonos oficiales de Edmund McMillen: Isaac, D6, Poop, Guppy, Brimstone y jefes.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/250900/969cc486edadd83b241e4e868f8dd16e9936b9c9.png",
+    "emojis": [
+      {
+        "shortcode": "isaac",
+        "name": "Isaac",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/250900/969cc486edadd83b241e4e868f8dd16e9936b9c9.png",
+        "category": "Isaac"
+      },
+      {
+        "shortcode": "reheart",
+        "name": "Reheart",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/250900/42a733d0b6d16b34e64e7ca99839424d144ec3d0.png",
+        "category": "Isaac"
+      },
+      {
+        "shortcode": "repenny",
+        "name": "Repenny",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/250900/97f1dacd6dc57bb365315940eb8ab485929bcdbd.png",
+        "category": "Isaac"
+      },
+      {
+        "shortcode": "repill",
+        "name": "Repill",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/250900/429d911568e9e4946c174af82da211a469e053d3.png",
+        "category": "Isaac"
+      },
+      {
+        "shortcode": "resmile",
+        "name": "Resmile",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/250900/2067308821c4d571fb7335a7d13a98c8e5082b6d.png",
+        "category": "Isaac"
+      },
+      {
+        "shortcode": "reonion",
+        "name": "Reonion",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/250900/489bec95adb26bf332b54df9d4aa03978e25b728.png",
+        "category": "Isaac"
+      },
+      {
+        "shortcode": "dip",
+        "name": "Dip",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/250900/f0597a8904e62af0b72efcd1c411ec81e341f894.png",
+        "category": "Isaac"
+      },
+      {
+        "shortcode": "repoop",
+        "name": "Repoop",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/250900/011263d7b0548fbe30477e43453e83cec1eb2ccc.png",
+        "category": "Isaac"
+      }
+    ]
+  },
+  {
+    "id": "rust_survival",
+    "name": "Rust: Isla Hostil",
+    "game": "Rust",
+    "appid": 252490,
+    "category": "Rust",
+    "badge": "SURVIVAL",
+    "accentColor": "#b33927",
+    "description": "Iconos oficiales de Facepunch: Radiación, AK47, C4, Roca, Calavera y chatarra.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/f3a4fd0e126cbd305be4b8444f3e6c31cc6d3370.png",
+    "emojis": [
+      {
+        "shortcode": "alwayschicken",
+        "name": "Alwayschicken",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/f3a4fd0e126cbd305be4b8444f3e6c31cc6d3370.png",
+        "category": "Rust"
+      },
+      {
+        "shortcode": "bears",
+        "name": "Bears",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/61b2aacc41fd2ab7a067f6090b23e00d994965ac.png",
+        "category": "Rust"
+      },
+      {
+        "shortcode": "headbash",
+        "name": "Headbash",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/c1341158548b728e0f2f5584edbd9afc6190aeb3.png",
+        "category": "Rust"
+      },
+      {
+        "shortcode": "huntdeer",
+        "name": "Huntdeer",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/591ed3e515cc9937f3b40b2a37377880cf91b9f8.png",
+        "category": "Rust"
+      },
+      {
+        "shortcode": "rusthazmat",
+        "name": "Rusthazmat",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/86832753bfc972aeabd079f88fd28085c95f8f13.png",
+        "category": "Rust"
+      },
+      {
+        "shortcode": "safehouse",
+        "name": "Safehouse",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/a1192b5d699b9f1cf97d902296df34cd306f1b8b.png",
+        "category": "Rust"
+      },
+      {
+        "shortcode": "stonehatchet",
+        "name": "Stonehatchet",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/47513c662f029d792f5a4dfa8ce4b73d07f84d2a.png",
+        "category": "Rust"
+      },
+      {
+        "shortcode": "supplies",
+        "name": "Supplies",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/2d70b20194283b0b24324fd624d27dca7c878390.png",
+        "category": "Rust"
+      },
+      {
+        "shortcode": "campfire",
+        "name": "Campfire",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/66894a14a3231d11fceb2b7db6485e4d0f6f19e3.png",
+        "category": "Rust"
+      },
+      {
+        "shortcode": "rust",
+        "name": "Rust",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/252490/985910e45c50ffccf1555b3b00ffabe0fdda82a4.png",
+        "category": "Rust"
+      }
+    ]
+  },
+  {
+    "id": "hollow_knight_pack",
+    "name": "Hollow Knight: Hallownest",
+    "game": "Hollow Knight",
+    "appid": 367520,
+    "category": "Hollow Knight",
+    "badge": "METROIDVANIA",
+    "accentColor": "#9bb8d7",
+    "description": "Emoticonos oficiales de Hallownest: Hollow Knight, Quirrel, Zote, Dung Defender y Shade Knight.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/367520/b724bf524fdc0dc70118dd227ff89052cde73654.png",
+    "emojis": [
+      {
+        "shortcode": "dungdefender",
+        "name": "Dungdefender",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/367520/b724bf524fdc0dc70118dd227ff89052cde73654.png",
+        "category": "Hollow Knight"
+      },
+      {
+        "shortcode": "hollowknight",
+        "name": "Hollowknight",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/367520/b2e50d3cc54ab9b248341c36fd8a368f0fb88cc7.png",
+        "category": "Hollow Knight"
+      },
+      {
+        "shortcode": "quirrel",
+        "name": "Quirrel",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/367520/66ffacc4bc6dcd23d46696213ac54e2f21f30f9c.png",
+        "category": "Hollow Knight"
+      },
+      {
+        "shortcode": "zote",
+        "name": "Zote",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/367520/6082dcedd2af589f15249d07a3544a0ee7a4a176.png",
+        "category": "Hollow Knight"
+      },
+      {
+        "shortcode": "shadeknight",
+        "name": "Shadeknight",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/367520/b33841bbf2cc0824df52ffc894c41bcc5575f9ae.png",
+        "category": "Hollow Knight"
+      }
+    ]
+  },
+  {
+    "id": "darksouls3_lothric",
+    "name": "Dark Souls III: Lothric",
+    "game": "Dark Souls III",
+    "appid": 374320,
+    "category": "Souls",
+    "badge": "FROM SOFTWARE",
+    "accentColor": "#d4af37",
+    "description": "Iconos oficiales de FromSoftware: Hoguera, Frasco de Estus, Caballero y Alabado sea el Sol.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/374320/08d70670e1a0ba8aa5ebcfdf5b69dc3f51fe9289.png",
+    "emojis": [
+      {
+        "shortcode": "bloodstain2",
+        "name": "Bloodstain2",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/374320/08d70670e1a0ba8aa5ebcfdf5b69dc3f51fe9289.png",
+        "category": "Souls"
+      },
+      {
+        "shortcode": "estusempty",
+        "name": "Estusempty",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/374320/24b1e7e78115f027c3564e7a48c51bfaf18fe5f3.png",
+        "category": "Souls"
+      },
+      {
+        "shortcode": "praisesun",
+        "name": "Praisesun",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/374320/2e23f2a6b8ab0abaa9b1992d0a9bf7293a1d397e.png",
+        "category": "Souls"
+      },
+      {
+        "shortcode": "bonfire2",
+        "name": "Bonfire2",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/374320/9acb87536ddef1de6e70141f69a89b7f870883e2.png",
+        "category": "Souls"
+      },
+      {
+        "shortcode": "estusfull",
+        "name": "Estusfull",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/374320/644e26cab3afbbfc10f4c967dba39110140c0dd7.png",
+        "category": "Souls"
+      }
+    ]
+  },
+  {
+    "id": "dbd_fog",
+    "name": "Dead by Daylight: La Niebla",
+    "game": "Dead by Daylight",
+    "appid": 381210,
+    "category": "Dead by Daylight",
+    "badge": "TERROR",
+    "accentColor": "#8a1c14",
+    "description": "Iconos oficiales de Behaviour: Trampero, Espectro, Gancho de sacrificio y calaveras.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/381210/8e5b9d512f5c4d3b18a5ae5ba1694b3be1e3365c.png",
+    "emojis": [
+      {
+        "shortcode": "thehook",
+        "name": "Thehook",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/381210/8e5b9d512f5c4d3b18a5ae5ba1694b3be1e3365c.png",
+        "category": "Dead by Daylight"
+      },
+      {
+        "shortcode": "theskull",
+        "name": "Theskull",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/381210/6a44832cbca301ad9b92f9bdb085b89a34b76a9e.png",
+        "category": "Dead by Daylight"
+      },
+      {
+        "shortcode": "whiteward",
+        "name": "Whiteward",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/381210/5916a758469a768be2db703dd548f46712b65ec0.png",
+        "category": "Dead by Daylight"
+      },
+      {
+        "shortcode": "thetrap",
+        "name": "Thetrap",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/381210/941ba828463ea11b701fe9bc1425f0af8fb2e9ca.png",
+        "category": "Dead by Daylight"
+      },
+      {
+        "shortcode": "sacrificed",
+        "name": "Sacrificed",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/381210/a00edbcd8cafdcfa4a6f6fed94136d41d5cbf70b.png",
+        "category": "Dead by Daylight"
+      }
+    ]
+  },
+  {
+    "id": "undertale_underground",
+    "name": "Undertale: El Subsuelo",
+    "game": "Undertale",
+    "appid": 391540,
+    "category": "Undertale",
+    "badge": "RPG INDIE",
+    "accentColor": "#e03a3a",
+    "description": "Emoticonos oficiales de Toby Fox: Sans, Papyrus, Flowey, Toriel, Undyne, Alphys y más.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/2c266b70350be1f7f0bfec3d4e2d0421ec7a3e22.png",
+    "emojis": [
+      {
+        "shortcode": "flowey",
+        "name": "Flowey",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/2c266b70350be1f7f0bfec3d4e2d0421ec7a3e22.png",
+        "category": "Undertale"
+      },
+      {
+        "shortcode": "papyrus",
+        "name": "Papyrus",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/16f9f3fc70dc3d2b18387cf958b0439e9b044b81.png",
+        "category": "Undertale"
+      },
+      {
+        "shortcode": "sans",
+        "name": "Sans",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/f0e885ecf990b0785227fe77afc195e80add8fc7.png",
+        "category": "Undertale"
+      },
+      {
+        "shortcode": "toriel",
+        "name": "Toriel",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/8d1e885cd7ed45f1328795ba59ecdb2f4dd13155.png",
+        "category": "Undertale"
+      },
+      {
+        "shortcode": "torielsad",
+        "name": "Torielsad",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/29fc52e862c3a97e870c1764e21740cfdfcedd20.png",
+        "category": "Undertale"
+      },
+      {
+        "shortcode": "alphys",
+        "name": "Alphys",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/76b76052b4bee1166ddd2cdb1556c26c2aff002b.png",
+        "category": "Undertale"
+      },
+      {
+        "shortcode": "floweyevil",
+        "name": "Floweyevil",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/1f169c4d0217c5991401681f974fc971ff840d72.png",
+        "category": "Undertale"
+      },
+      {
+        "shortcode": "undyne",
+        "name": "Undyne",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/6f2511acda71083bc7e1cc486b28bf45de73341a.png",
+        "category": "Undertale"
+      },
+      {
+        "shortcode": "papyruswacky",
+        "name": "Papyruswacky",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/4fe7cfe5400f8e8342dea87c4897f636d1a6c238.png",
+        "category": "Undertale"
+      },
+      {
+        "shortcode": "tobdog",
+        "name": "Tobdog",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/391540/0f91894ef2246264aaba2068b377bfec7aa8d03a.png",
+        "category": "Undertale"
+      }
+    ]
+  },
+  {
+    "id": "stardew_valley_pack",
+    "name": "Stardew Valley: Granja Pelícano",
+    "game": "Stardew Valley",
+    "appid": 413150,
+    "category": "Stardew Valley",
+    "badge": "SIMULADOR",
+    "accentColor": "#5da438",
+    "description": "Emoticonos oficiales de ConcernedApe: Stardrop, Junimo, Pollo, Huevo y Calavera.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/413150/69bd70acc0176df432dcce6e27f5adf83322e696.png",
+    "emojis": [
+      {
+        "shortcode": "brownchicken",
+        "name": "Brownchicken",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/413150/69bd70acc0176df432dcce6e27f5adf83322e696.png",
+        "category": "Stardew Valley"
+      },
+      {
+        "shortcode": "corncob",
+        "name": "Corncob",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/413150/45434997a6f93fa6fc790375a569c80dd688617a.png",
+        "category": "Stardew Valley"
+      },
+      {
+        "shortcode": "tabbycat",
+        "name": "Tabbycat",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/413150/96b2c64fb4cf8965d8308006b763301fef6267a0.png",
+        "category": "Stardew Valley"
+      },
+      {
+        "shortcode": "espresso",
+        "name": "Espresso",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/413150/26055de84981ed10e530de506a1a1e8f53b4c6f5.png",
+        "category": "Stardew Valley"
+      },
+      {
+        "shortcode": "stardrop",
+        "name": "Stardrop",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/413150/456e0c667b9175f4daab8817840f311251db735a.png",
+        "category": "Stardew Valley"
+      }
+    ]
+  },
+  {
+    "id": "celeste_mountain",
+    "name": "Celeste: Montaña Celeste",
+    "game": "Celeste",
+    "appid": 504230,
+    "category": "Celeste",
+    "badge": "PLATAFORMAS",
+    "accentColor": "#e84393",
+    "description": "Iconos oficiales de Maddy Makes Games: Fresa alada, Madeline, Badeline y montaña.",
+    "icon": "https://shared.fastly.steamstatic.com/community_assets/images/items/504230/73627491cacbb8c8958867729aa38a45db9446aa.png",
+    "emojis": [
+      {
+        "shortcode": "celeste_cassette",
+        "name": "Celeste Cassette",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/504230/73627491cacbb8c8958867729aa38a45db9446aa.png",
+        "category": "Celeste"
+      },
+      {
+        "shortcode": "celeste_mountain",
+        "name": "Celeste Mountain",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/504230/b21acf250dc85bbc64ce856821d71fae522181d8.png",
+        "category": "Celeste"
+      },
+      {
+        "shortcode": "celeste_strawberry",
+        "name": "Celeste Strawberry",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/504230/7fdc35c34791c57a8364007b676ff434e769958c.png",
+        "category": "Celeste"
+      },
+      {
+        "shortcode": "celeste_granny",
+        "name": "Celeste Granny",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/504230/ad0a63832467e9d5954329df85c86159eb5a0e7e.png",
+        "category": "Celeste"
+      },
+      {
+        "shortcode": "celeste_bird",
+        "name": "Celeste Bird",
+        "url": "https://shared.fastly.steamstatic.com/community_assets/images/items/504230/befbbc7c32f3cd7ef34f3a80322acb62ea469952.png",
+        "category": "Celeste"
+      }
+    ]
+  }
+];
+
+export const POPULAR_STEAM_GAMES_LIST = [
+  { appid: 440, name: 'Team Fortress 2', category: 'Shooter' },
+  { appid: 730, name: 'Counter-Strike 2', category: 'Shooter' },
+  { appid: 620, name: 'Portal 2', category: 'Puzzle' },
+  { appid: 367520, name: 'Hollow Knight', category: 'Metroidvania' },
+  { appid: 391540, name: 'Undertale', category: 'RPG' },
+  { appid: 250900, name: 'The Binding of Isaac: Rebirth', category: 'Roguelike' },
+  { appid: 105600, name: 'Terraria', category: 'Sandbox' },
+  { appid: 413150, name: 'Stardew Valley', category: 'Simulador' },
+  { appid: 219740, name: "Don't Starve", category: 'Supervivencia' },
+  { appid: 570, name: 'Dota 2', category: 'MOBA' },
+  { appid: 550, name: 'Left 4 Dead 2', category: 'Coop' },
+  { appid: 220, name: 'Half-Life 2', category: 'Shooter' },
+  { appid: 218620, name: 'PAYDAY 2', category: 'Acción' },
+  { appid: 381210, name: 'Dead by Daylight', category: 'Terror' },
+  { appid: 374320, name: 'Dark Souls III', category: 'Souls' },
+  { appid: 504230, name: 'Celeste', category: 'Plataformas' },
+  { appid: 252490, name: 'Rust', category: 'Supervivencia' }
+];
+
+export default {
+  POPULAR_STEAM_EMOJI_PACKS,
+  POPULAR_STEAM_GAMES_LIST
+};

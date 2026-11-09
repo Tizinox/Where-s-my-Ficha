@@ -1,0 +1,529 @@
+<!-- ═════════════════════════════════════════════════════════
+     SUB-TAB 5: EMOJIS y EMOTICONOS PERSONALIZADOS
+     Sistema de emojis propios con sintaxis :shortcode:
+     ═════════════════════════════════════════════════════════ -->
+<div x-show="$store.settings.activeSubTab === 'emojis'" x-transition:enter="transition ease-out duration-200"
+  x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+  class="space-y-6">
+
+  <!-- BANNER CABECERA: EMOJIS HUB -->
+  <div
+    class="form-card relative overflow-hidden bg-gradient-to-r from-[#0d121a] via-[#121924] to-[#172233] border border-accent-gold/30 shadow-[0_0_25px_rgba(212,175,55,0.1)]">
+    <!-- Glow de fondo decorativo -->
+    <div class="absolute -right-10 -top-10 w-64 h-64 bg-accent-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5 min-w-0 flex-1">
+        <div
+          class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#171a21] to-[#1f2937] border-2 border-accent-gold/40 flex items-center justify-center text-accent-gold shadow-[0_0_15px_rgba(212,175,55,0.25)] shrink-0">
+          <i data-lucide="smile" class="w-6 h-6"></i>
+        </div>
+        <div class="min-w-0">
+          <h3 class="font-title text-xl font-bold tracking-wide uppercase text-white drop-shadow-md">
+            LIBRERÍA DE EMOJIS y EMOTICONOS
+          </h3>
+          <p class="text-xs text-parchment-cream/70 font-sans mt-0.5 max-w-2xl">
+            Crea tu colección de emoticonos personalizados (GIF, WebP, PNG, SVG). Úsalos en notas, citas, habilidades y
+            descripciones de cualquier personaje escribiendo su código o usando el selector flotante.
+          </p>
+        </div>
+      </div>
+
+      <!-- Acciones de Cabecera (Importar / Exportar / Probar Selector) -->
+      <div class="flex items-center gap-2.5 shrink-0 flex-wrap sm:flex-nowrap">
+        <!-- Input de archivo oculto para importar JSON -->
+        <input type="file" id="import-emojis-json-input" accept=".json" class="hidden"
+          @change="$store.customEmojis.importJsonFile($event)">
+
+        <button type="button" @click="$store.steamEmojis.open('packs')"
+          class="h-9 px-3.5 rounded-xl bg-[#66c0f4]/15 hover:bg-[#66c0f4]/25 border border-[#66c0f4]/40 text-[#66c0f4] hover:text-white font-mono text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95"
+          title="Explorar paquetes y catálogo de emoticonos de Steam">
+          <i data-lucide="steam" class="w-3.5 h-3.5"></i>
+          <span>Packs de Steam</span>
+        </button>
+
+        <button type="button" @click="document.getElementById('import-emojis-json-input').click()"
+          class="h-9 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-parchment-cream hover:text-white font-mono text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95"
+          title="Importar pack de emojis desde un archivo JSON">
+          <i data-lucide="upload" class="w-3.5 h-3.5 text-accent-cyan"></i>
+          <span>Importar Pack</span>
+        </button>
+
+        <button type="button" @click="$store.customEmojis.exportJson()"
+          class="h-9 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-parchment-cream hover:text-white font-mono text-xs font-semibold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm active:scale-95"
+          title="Exportar todos tus emojis personalizados como un archivo JSON de respaldo">
+          <i data-lucide="download" class="w-3.5 h-3.5 text-accent-gold"></i>
+          <span>Exportar Pack</span>
+        </button>
+
+        <button type="button" @click="$store.customEmojis.openPicker()"
+          class="h-9 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-md hover:brightness-110 active:scale-95 shrink-0"
+          :style="'background: ' + $store.settings.accentColor + '; color: #000; box-shadow: 0 0 14px rgba(' + $store.settings.rgbChannels + ', 0.35);'"
+          title="Abrir la ventana de selector rápido para probar cómo se ve en acción">
+          <i data-lucide="scan" class="w-4 h-4"></i>
+          <span>Probar Selector</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TELEMETRÍA: CAPACIDAD, SALUD Y MEMORIA -->
+    <div
+      class="relative z-10 mt-4 pt-3.5 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-3 flex-wrap">
+        <div class="flex items-center gap-1.5 font-mono text-[11px] text-parchment-cream/80">
+          <i data-lucide="cpu" class="w-3.5 h-3.5 text-accent-cyan"></i>
+          <span>Capacidad en Memoria:</span>
+          <span class="font-bold text-white font-mono"
+            x-text="$store.customEmojis.totalCount + ' / ' + $store.customEmojis.maxCapacity"></span>
+        </div>
+        <div class="w-28 sm:w-36 h-2 rounded-full bg-black/60 border border-white/10 overflow-hidden p-0.5">
+          <div class="h-full rounded-full transition-all duration-300"
+            :style="'width: ' + $store.customEmojis.capacityPercentage + '%; background-color: ' + $store.customEmojis.memoryHealth.color">
+          </div>
+        </div>
+        <span class="font-mono text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider"
+          :style="'background: ' + $store.customEmojis.memoryHealth.color + '22; color: ' + $store.customEmojis.memoryHealth.color + '; border: 1px solid ' + $store.customEmojis.memoryHealth.color + '44;'"
+          x-text="$store.customEmojis.memoryHealth.label"></span>
+      </div>
+
+      <div class="flex items-center gap-3 text-[11px] font-mono text-parchment-cream/60">
+        <span class="flex items-center gap-1.5">
+          <i data-lucide="hard-drive" class="w-3 h-3 text-accent-gold"></i>
+          <span>Espacio estimado:</span>
+          <strong class="text-parchment-cream font-mono" x-text="$store.customEmojis.estimatedMemoryFormatted"></strong>
+        </span>
+        <span class="hidden md:inline text-white/20">•</span>
+        <span class="hidden md:flex items-center gap-1 text-emerald-400/90 font-mono text-[10px]">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Almacenamiento Seguro (IndexedDB)</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANNER: INTEGRACIÓN OFICIAL DE STEAM EMOJIS -->
+  <div
+    class="form-card bg-gradient-to-r from-[#0b121c] via-[#0f1926] to-[#142336] border border-[#66c0f4]/30 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-2xl shadow-sm">
+    <div class="flex items-center gap-3.5 min-w-0">
+      <div
+        class="w-10 h-10 rounded-xl bg-black/60 border border-[#66c0f4]/40 flex items-center justify-center text-[#66c0f4] shrink-0 shadow-inner">
+        <i data-lucide="steam" class="w-5 h-5"></i>
+      </div>
+      <div class="min-w-0">
+        <h4 class="font-title text-sm font-bold text-white uppercase tracking-wider">¿Quieres emoticonos de tus juegos
+          favoritos de Steam?</h4>
+        <p class="text-xs text-parchment-cream/70 font-sans mt-0.5">Explora paquetes oficiales de Counter-Strike, Portal
+          2, TF2, Undertale, Hollow Knight, Isaac, Terraria o busca cualquier juego libremente.</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 shrink-0">
+      <button type="button" @click="$store.steamEmojis.open('packs')"
+        class="px-4 py-2 rounded-xl bg-[#66c0f4] text-black font-mono font-bold text-xs uppercase tracking-wider hover:brightness-110 transition-all flex items-center gap-2 cursor-pointer shadow">
+        <i data-lucide="package" class="w-4 h-4"></i>
+        <span>Explorar Catálogo Steam</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- GRID DE GESTIÓN (5 COLS FORMULARIO / 7 COLS GALERÍA) -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- ═════════════════════════════════════════════════════════
+         COLUMNA IZQUIERDA (5 COLS): FORMULARIO DE CREACIÓN / EDICIÓN
+         ═════════════════════════════════════════════════════════ -->
+    <div id="emoji-editor-form-card" class="lg:col-span-5 form-card space-y-4"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + ';'">
+
+      <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
+        <span class="text-xs uppercase font-mono font-bold tracking-wider text-parchment-cream flex items-center gap-2">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-accent-gold"></i>
+          <span
+            x-text="$store.customEmojis.editingEmojiId ? 'Editar Emoticono' : 'Nuevo Emoticono Personalizado'"></span>
+        </span>
+        <template x-if="$store.customEmojis.editingEmojiId">
+          <span
+            class="px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold">
+            MODO EDICIÓN
+          </span>
+        </template>
+      </div>
+
+      <!-- ESCAPARATE / PREVISUALIZACIÓN EN VIVO 1:1 -->
+      <div
+        class="p-5 rounded-2xl bg-gradient-to-b from-[#0a0e14] to-[#05070a] border border-white/10 flex flex-col items-center justify-center text-center space-y-3 relative overflow-hidden shadow-inner">
+        <!-- Glow ambiental -->
+        <div
+          class="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.06)_0%,transparent_70%)] pointer-events-none">
+        </div>
+
+        <!-- Caja del Emoji -->
+        <div
+          class="w-20 h-20 rounded-2xl bg-black/60 border border-white/15 flex items-center justify-center p-2 relative shadow-lg group transition-all"
+          :style="$store.customEmojis.formPreview ? ('box-shadow: 0 0 16px rgba(' + $store.settings.rgbChannels + ', 0.25); border-color: ' + $store.settings.accentColor + '50;') : ''">
+          <template x-if="$store.customEmojis.formPreview">
+            <div class="w-full h-full flex items-center justify-center relative">
+              <img :src="$store.customEmojis.formPreview" alt="Vista previa del emoji"
+                @error="$store.customEmojis.handlePreviewError()"
+                class="max-w-full max-h-full object-contain filter drop-shadow select-none transition-transform group-hover:scale-110" />
+              <!-- Badge GIF animado si aplica -->
+              <template x-if="$store.customEmojis.isGif($store.customEmojis.formPreview)">
+                <span
+                  class="absolute -top-1 -right-1 px-1 py-0.2 rounded text-[8px] font-mono font-bold bg-purple-500/80 text-white border border-purple-400 uppercase tracking-wider shadow-sm">
+                  GIF
+                </span>
+              </template>
+            </div>
+          </template>
+          <template x-if="!$store.customEmojis.formPreview">
+            <div class="flex flex-col items-center justify-center text-white/30 space-y-1">
+              <i data-lucide="image" class="w-7 h-7"></i>
+              <span class="text-[9px] font-mono uppercase">Sin Imagen</span>
+            </div>
+          </template>
+        </div>
+
+        <!-- Etiqueta del código en vivo -->
+        <div class="space-y-1 w-full max-w-md px-2">
+          <div class="flex items-center justify-center gap-1.5 flex-wrap">
+            <span class="font-mono text-sm font-bold text-accent-gold break-all"
+              x-text="$store.customEmojis.formShortcode ? (':' + $store.customEmojis.sanitizeShortcode($store.customEmojis.formShortcode) + ':') : ':código_emoji:'"></span>
+          </div>
+          <p class="text-xs text-ink-slate font-sans truncate"
+            x-text="$store.customEmojis.formName || 'Nombre descriptivo del emoji'"></p>
+        </div>
+
+        <!-- Simulador de Texto Enriquecido en Vivo -->
+        <div class="w-full pt-3 border-t border-white/10 text-left space-y-1.5">
+          <div
+            class="flex items-center justify-between text-[10px] font-mono text-parchment-cream/50 uppercase tracking-wider">
+            <span class="flex items-center gap-1.5 text-accent-gold font-bold">
+              <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+              <span>Simulación en Texto Enriquecido</span>
+            </span>
+            <span class="text-[9px] text-white/30 font-mono">Render en vivo</span>
+          </div>
+          <div
+            class="p-3.5 rounded-xl bg-black/50 border border-white/10 text-xs font-sans text-parchment-cream leading-relaxed break-words shadow-inner">
+            <span class="text-white/85">Operativo en canal</span>
+            <template x-if="$store.customEmojis.formPreview">
+              <img :src="$store.customEmojis.formPreview" class="custom-inline-emoji mx-1 align-middle"
+                alt="emoji de muestra" />
+            </template>
+            <template x-if="!$store.customEmojis.formPreview">
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-lg bg-black/60 border border-accent-gold/40 text-[11px] font-mono text-accent-gold font-bold align-middle mx-1 shadow-sm">
+                <span
+                  x-text="$store.customEmojis.formShortcode ? (':' + $store.customEmojis.sanitizeShortcode($store.customEmojis.formShortcode) + ':') : ':emoji:'"></span>
+              </span>
+            </template>
+            <span class="text-accent-cyan font-semibold font-mono">Transmisión iniciada y enlace verificado en red
+              segura.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CAMPOS DEL FORMULARIO -->
+      <div class="space-y-3.5">
+
+        <!-- 1. Carga de Imagen (Archivo o URL) -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-parchment-peach flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="file-image" class="w-3.5 h-3.5 text-accent-cyan"></i>
+              Imagen del Emoticono (Archivo o URL)
+            </span>
+            <span class="text-[10px] font-mono text-ink-slate font-bold">GIF ANIMADO, PNG, WebP, SVG</span>
+          </label>
+
+          <!-- Zona de Subida de Archivo -->
+          <div
+            class="relative border-2 border-dashed border-white/20 hover:border-accent-cyan/60 rounded-xl p-3 bg-black/30 text-center transition-colors group cursor-pointer"
+            @click="document.getElementById('emoji-file-uploader').click()">
+            <input type="file" id="emoji-file-uploader"
+              accept="image/png,image/gif,image/webp,image/jpeg,image/svg+xml,image/apng,.gif,.png,.webp,.jpg,.jpeg,.svg,.apng"
+              class="hidden" @change="$store.customEmojis.handleFileUpload($event)">
+
+            <div
+              class="flex items-center justify-center gap-2 text-xs font-mono text-parchment-cream/80 group-hover:text-white">
+              <template x-if="!$store.customEmojis.isProcessingFile">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="upload-cloud"
+                    class="w-4 h-4 text-accent-cyan group-hover:scale-110 transition-transform"></i>
+                  <span
+                    x-text="$store.customEmojis.formFileName ? ('Archivo: ' + $store.customEmojis.formFileName) : 'Elegir archivo local (GIF, PNG, WebP)'"></span>
+                </div>
+              </template>
+              <template x-if="$store.customEmojis.isProcessingFile">
+                <div class="flex items-center gap-2 text-accent-cyan animate-pulse">
+                  <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
+                  <span>Optimizando imagen...</span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- O Alternativa: URL Directa (Sin colisión visual de texto) -->
+          <div class="flex items-center gap-2 pt-1">
+            <div
+              class="flex-1 flex items-center rounded-xl bg-black/60 border border-white/15 focus-within:border-accent-cyan overflow-hidden transition-colors">
+              <span
+                class="px-2.5 py-2 text-xs font-mono text-ink-slate bg-white/5 border-r border-white/10 select-none shrink-0 font-bold">URL:</span>
+              <input type="url" x-model="$store.customEmojis.formUrl" @input="$store.customEmojis.handleUrlInput()"
+                @paste="setTimeout(() => $store.customEmojis.handleUrlInput(), 50)"
+                @change="$store.customEmojis.handleUrlInput()"
+                class="bg-transparent py-2 px-3 text-xs font-mono text-parchment-cream w-full focus:outline-none placeholder:text-white/30"
+                placeholder="https://ejemplo.com/icono.gif" />
+            </div>
+            <button type="button" x-show="$store.customEmojis.formPreview"
+              @click="$store.customEmojis.formPreview = ''; $store.customEmojis.formUrl = ''; $store.customEmojis.formFileName = '';"
+              class="px-2.5 py-2 rounded-xl bg-white/5 hover:bg-rose-500/20 text-ink-slate hover:text-rose-300 border border-white/10 text-xs font-mono transition-all cursor-pointer shrink-0"
+              title="Limpiar imagen cargada">
+              <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Código / Shortcode (:nombre:) -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-parchment-peach flex items-center gap-1.5">
+            <i data-lucide="terminal" class="w-3.5 h-3.5 text-accent-gold"></i>
+            Código Shortcode del Emoji
+          </label>
+          <div
+            class="flex items-center gap-1 p-1 rounded-xl bg-black/60 border border-white/15 focus-within:border-accent-gold transition-colors">
+            <span class="font-mono text-sm font-bold text-accent-gold px-2">:</span>
+            <input type="text" x-model="$store.customEmojis.formShortcode"
+              @input="$store.customEmojis.formShortcode = $store.customEmojis.sanitizeShortcode($event.target.value)"
+              class="bg-transparent text-xs font-mono text-parchment-cream w-full focus:outline-none placeholder:text-white/30"
+              placeholder="fuego_azul" maxlength="32" />
+            <span class="font-mono text-sm font-bold text-accent-gold px-2">:</span>
+          </div>
+          <p class="text-[10px] text-ink-slate font-mono">Solo letras minúsculas, números y guiones bajos (ej:
+            <code>pocion_vida</code>, <code>d20_crit</code>).
+          </p>
+        </div>
+
+        <!-- 3. Nombre Descriptivo -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-parchment-peach flex items-center gap-1.5">
+            <i data-lucide="tag" class="w-3.5 h-3.5 text-parchment-cream"></i>
+            Nombre Descriptivo / Título
+          </label>
+          <input type="text" x-model="$store.customEmojis.formName" class="form-input py-1.5 text-xs font-sans w-full"
+            placeholder="Emoji Personalizado / Reacción" maxlength="40" />
+        </div>
+
+        <!-- 4. Categoría -->
+        <div class="space-y-1">
+          <label class="text-xs font-bold text-parchment-peach flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="folder" class="w-3.5 h-3.5 text-accent-gold"></i>
+              Categoría
+            </span>
+            <span class="text-[10px] text-ink-slate">Para organizar tu librería</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <input type="text" x-model="$store.customEmojis.formCategory" list="emoji-category-datalist"
+              class="form-input py-1.5 text-xs font-mono w-full" placeholder="General" maxlength="24" />
+            <datalist id="emoji-category-datalist">
+              <option value="General"></option>
+              <option value="Reacciones"></option>
+              <option value="Combate"></option>
+              <option value="Objetos"></option>
+              <option value="Personaje"></option>
+              <option value="Cyberpunk"></option>
+              <option value="Gaming"></option>
+              <option value="Social"></option>
+            </datalist>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BOTONES DE ACCIÓN DEL FORMULARIO -->
+      <div class="pt-3 border-t border-white/10 flex items-center gap-2">
+        <template x-if="$store.customEmojis.editingEmojiId">
+          <button type="button" @click="$store.customEmojis.resetForm()"
+            class="px-3 py-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-mono text-ink-slate hover:text-white transition-all cursor-pointer">
+            Cancelar
+          </button>
+        </template>
+
+        <button type="button" @click="$store.customEmojis.saveCurrentEmoji()"
+          class="flex-1 py-2 px-4 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+          :style="'background: ' + $store.settings.accentColor + '; color: #000; box-shadow: 0 0 14px rgba(' + $store.settings.rgbChannels + ', 0.35);'">
+          <i data-lucide="check" class="w-4 h-4"></i>
+          <span x-text="$store.customEmojis.editingEmojiId ? 'Guardar Cambios' : 'Añadir a la Librería'"></span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════
+         COLUMNA DERECHA (7 COLS): GALERÍA DE EMOJIS y GESTIÓN
+         ═════════════════════════════════════════════════════════ -->
+    <div class="lg:col-span-7 form-card space-y-4"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + ';'">
+
+      <!-- CABECERA DE LA GALERÍA + FILTROS -->
+      <div class="space-y-3 border-b border-white/10 pb-3">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span
+              class="text-xs uppercase font-mono font-bold tracking-wider text-parchment-cream flex items-center gap-1.5">
+              <i data-lucide="boxes" class="w-4 h-4 text-accent-cyan"></i>
+              Librería Guardada
+            </span>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
+              :style="'background: rgba(' + $store.settings.rgbChannels + ', 0.15); color: ' + $store.settings.accentColor + '; border: 1px solid rgba(' + $store.settings.rgbChannels + ', 0.35);'"
+              x-text="$store.customEmojis.totalCount + ' ' + ($store.customEmojis.totalCount === 1 ? 'Emoji' : 'Emojis')">
+            </span>
+          </div>
+
+          <!-- Buscador Rápido (Sin colisión visual de ícono) -->
+          <div
+            class="w-full sm:w-60 flex items-center rounded-xl bg-black/60 border border-white/15 focus-within:border-accent-cyan px-2.5 py-1.5 transition-colors">
+            <i data-lucide="search" class="w-3.5 h-3.5 text-ink-slate shrink-0 mr-2"></i>
+            <input type="text" x-model="$store.customEmojis.query"
+              class="bg-transparent text-xs font-mono text-parchment-cream w-full focus:outline-none placeholder:text-white/30"
+              placeholder="Buscar :código:... " />
+            <button type="button" x-show="$store.customEmojis.query" @click="$store.customEmojis.query = ''"
+              class="text-ink-slate hover:text-white cursor-pointer shrink-0 ml-1">
+              <i data-lucide="x" class="w-3 h-3"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros de Categoría (Píldoras) -->
+        <template x-if="$store.customEmojis.categories.length > 0">
+          <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 pt-0.5">
+            <button type="button" @click="$store.customEmojis.selectedCategory = 'all'"
+              class="px-2.5 py-1 rounded-lg text-[11px] font-mono uppercase tracking-wider font-semibold border transition-all cursor-pointer whitespace-nowrap"
+              :class="$store.customEmojis.selectedCategory === 'all' 
+                ? 'bg-accent-gold text-black border-accent-gold shadow-sm font-bold' 
+                : 'bg-white/5 hover:bg-white/10 text-parchment-cream/70 border-white/10'">
+              Todos (<span x-text="$store.customEmojis.list.length"></span>)
+            </button>
+
+            <template x-for="cat in $store.customEmojis.categories" :key="'cat-' + cat">
+              <button type="button" @click="$store.customEmojis.selectedCategory = cat"
+                class="px-2.5 py-1 rounded-lg text-[11px] font-mono uppercase tracking-wider font-semibold border transition-all cursor-pointer whitespace-nowrap"
+                :class="$store.customEmojis.selectedCategory === cat 
+                  ? 'bg-accent-gold text-black border-accent-gold shadow-sm font-bold' 
+                  : 'bg-white/5 hover:bg-white/10 text-parchment-cream/70 border-white/10'">
+                <span x-text="cat"></span>
+              </button>
+            </template>
+          </div>
+        </template>
+      </div>
+
+      <!-- ESTADO VACÍO: SI NO HAY EMOJIS GUARDADOS -->
+      <template x-if="$store.customEmojis.list.length === 0">
+        <div
+          class="py-12 px-4 rounded-2xl bg-black/30 border border-white/10 text-center flex flex-col items-center justify-center space-y-3">
+          <div
+            class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-accent-gold shadow-inner">
+            <i data-lucide="smile" class="w-7 h-7"></i>
+          </div>
+          <div class="space-y-1 max-w-md">
+            <h4 class="font-title text-base font-bold text-parchment-cream uppercase tracking-wider">
+              Librería de Emoticonos Vacía
+            </h4>
+            <p class="text-xs text-ink-slate font-sans leading-relaxed">
+              Tu colección está limpia y lista para personalizar. Sube tus primeras imágenes PNG, WebP o GIFs animados
+              desde el panel izquierdo o importa un pack para empezar a usarlos en tus fichas.
+            </p>
+          </div>
+          <div class="pt-2 flex items-center gap-2">
+            <button type="button" @click="document.getElementById('emoji-file-uploader').click()"
+              class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer shadow-sm">
+              <i data-lucide="upload" class="w-3.5 h-3.5 text-accent-cyan"></i>
+              <span>Subir Mi Primer Emoji</span>
+            </button>
+          </div>
+        </div>
+      </template>
+
+      <!-- SI HAY BÚSQUEDA SIN RESULTADOS -->
+      <template x-if="$store.customEmojis.list.length > 0 && $store.customEmojis.filteredList.length === 0">
+        <div class="py-8 px-4 rounded-xl bg-black/30 border border-white/10 text-center space-y-2">
+          <i data-lucide="search-x" class="w-6 h-6 text-ink-slate mx-auto"></i>
+          <p class="text-xs text-ink-slate font-mono">No se encontraron emoticonos que coincidan con la búsqueda.</p>
+          <button type="button" @click="$store.customEmojis.query = ''; $store.customEmojis.selectedCategory = 'all';"
+            class="text-[11px] font-mono text-accent-gold hover:underline cursor-pointer">
+            Limpiar filtros
+          </button>
+        </div>
+      </template>
+
+      <!-- CUADRÍCULA DE EMOJIS GUARDADOS -->
+      <template x-if="$store.customEmojis.filteredList.length > 0">
+        <div
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[560px] overflow-y-auto custom-scrollbar pr-1">
+          <template x-for="emoji in $store.customEmojis.filteredList" :key="emoji.id">
+            <div
+              class="p-2.5 rounded-xl bg-black/40 hover:bg-black/70 border border-white/10 hover:border-accent-gold/50 transition-all flex flex-col items-center justify-between gap-2 group relative overflow-hidden shadow-sm"
+              :class="$store.customEmojis.editingEmojiId === emoji.id ? 'ring-2 ring-accent-gold border-accent-gold bg-accent-gold/10' : ''">
+
+              <!-- Badge GIF animado si aplica -->
+              <template x-if="$store.customEmojis.isGif(emoji)">
+                <span
+                  class="absolute top-1.5 right-1.5 px-1 py-0.2 rounded text-[8px] font-mono font-bold bg-purple-500/80 text-white border border-purple-400 uppercase tracking-wider shadow-sm z-10">
+                  GIF
+                </span>
+              </template>
+
+              <!-- Miniatura centrada con animación activa -->
+              <div
+                class="w-14 h-14 rounded-lg bg-black/70 border border-white/10 flex items-center justify-center p-1.5 transition-transform group-hover:scale-110 shadow-inner">
+                <img :src="emoji.url" :alt="':' + emoji.shortcode + ':'"
+                  class="max-w-full max-h-full object-contain filter drop-shadow select-none pointer-events-none"
+                  @error="$event.target.style.display='none'" />
+              </div>
+
+              <!-- Metadatos: Shortcode y Categoría -->
+              <div class="w-full text-center space-y-0.5">
+                <p class="font-mono text-xs font-bold text-accent-gold truncate px-1"
+                  :title="':' + emoji.shortcode + ':'" x-text="':' + emoji.shortcode + ':'"></p>
+                <p class="text-[10px] text-parchment-cream/70 font-sans truncate px-1" :title="emoji.name"
+                  x-text="emoji.name"></p>
+                <span
+                  class="inline-block px-1.5 py-0.2 rounded text-[9px] font-mono bg-white/5 text-ink-slate border border-white/5 truncate max-w-full"
+                  x-text="emoji.category || 'General'"></span>
+              </div>
+
+              <!-- Acciones Rápidas (Hover Bar) -->
+              <div class="w-full flex items-center justify-center gap-1 pt-1 border-t border-white/10">
+                <!-- Copiar código :shortcode: -->
+                <button type="button" @click="$store.customEmojis.copyShortcode(emoji)"
+                  class="p-1 rounded bg-white/5 hover:bg-accent-gold hover:text-black text-parchment-cream transition-all cursor-pointer"
+                  title="Copiar código al portapapeles">
+                  <i data-lucide="copy" class="w-3 h-3"></i>
+                </button>
+
+                <!-- Editar datos -->
+                <button type="button" @click="$store.customEmojis.editEmoji(emoji)"
+                  class="p-1 rounded bg-white/5 hover:bg-accent-cyan hover:text-black text-parchment-cream transition-all cursor-pointer"
+                  title="Editar este emoji">
+                  <i data-lucide="pencil" class="w-3 h-3"></i>
+                </button>
+
+                <!-- Eliminar -->
+                <button type="button" @click="$store.customEmojis.deleteEmoji(emoji.id)"
+                  class="p-1 rounded bg-white/5 hover:bg-rose-500 hover:text-white text-ink-slate transition-all cursor-pointer"
+                  title="Eliminar este emoji">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i>
+                </button>
+              </div>
+
+            </div>
+          </template>
+        </div>
+      </template>
+
+    </div>
+
+  </div>
+
+</div>

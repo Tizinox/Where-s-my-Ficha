@@ -1,0 +1,1490 @@
+<!-- ==============================================================
+         PANTALLA PRINCIPAL: PANEL DE PERSONAJES (FULLSCREEN DASHBOARD)
+         ============================================================== -->
+    <main id="main-dashboard-view" role="main" aria-label="Panel de Personajes"
+      x-data="{ isDraggingFiles: false, dragCounter: 0 }"
+      @keydown.escape.window="if ($store.app.activeView === 'dashboard' && $store.characters.selectedCount > 0) $store.characters.clearSelection()"
+      @dragenter.prevent="if ($event.dataTransfer && Array.from($event.dataTransfer.types || []).includes('Files')) { dragCounter++; isDraggingFiles = true; }"
+      @dragleave.prevent="dragCounter = Math.max(0, dragCounter - 1); if (dragCounter === 0) isDraggingFiles = false;"
+      @dragover.prevent
+      @drop.prevent="dragCounter = 0; isDraggingFiles = false; $store.characters.handleJSONDrop($event)"
+      class="dashboard-fullscreen-view col-span-full w-full min-h-screen bg-transparent px-4 sm:px-6 lg:px-8 py-8 pb-32 flex flex-col items-center justify-start overflow-y-auto relative"
+      :class="{ 'has-pattern-bg': $store.settings.dashboardBgMode === 'pattern' }"
+      style="grid-column: 1 / -1; grid-row: 2;" x-show="$store.app.activeView === 'dashboard'"
+      x-transition:enter="transition-opacity ease-out duration-200" x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-in duration-150"
+      x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+
+      <!-- Drag y Drop Cyber HUD Overlay para Archivos JSON -->
+      <div x-show="isDraggingFiles" x-cloak
+        class="fixed inset-0 z-50 pointer-events-none flex items-center justify-center p-6 bg-black/80 backdrop-blur-md transition-all">
+        <div class="flex flex-col items-center gap-3.5 p-8 rounded-3xl bg-[#090d16] border-2 border-dashed border-cyan-400 shadow-[0_0_60px_rgba(0,240,255,0.35)] text-center max-w-md animate-pulse">
+          <div class="w-16 h-16 rounded-2xl bg-cyan-500/20 border border-cyan-400/50 flex items-center justify-center text-cyan-300 shadow-lg">
+            <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+          </div>
+          <h3 class="font-title text-xl font-black uppercase text-white tracking-wider">
+            Soltar Fichas JSON Aquí
+          </h3>
+          <p class="text-xs font-mono text-slate-300 leading-relaxed">
+            Detecta automáticamente un archivo individual, un archivo con múltiples personajes o varios archivos JSON separados a la vez.
+          </p>
+          <span class="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-400/30">
+            Detección individual y prevención de colisiones
+          </span>
+        </div>
+      </div>
+
+      <!-- Capa de Fondo Fija / Pinned Viewport Wallpaper del Panel Principal (Cero cortes al scrollear) -->
+      <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden w-screen h-screen"
+        style="transform: translateZ(0); will-change: transform, filter;">
+
+        <!-- Base sólida oscura detrás de todo para que no se filtre ningún fondo de body -->
+        <div class="absolute inset-0 bg-[#080a0d]"></div>
+
+        <!-- Modo 1: Trama HUD / Rejilla Sci-Fi limpia -->
+        <template x-if="$store.settings.dashboardBgMode === 'pattern'">
+          <div class="absolute inset-0 pointer-events-none"
+            style="background-image: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.03) 0%, transparent 65%), linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px); background-size: 100% 100%, 32px 32px, 32px 32px;">
+          </div>
+        </template>
+
+        <!-- Modo 2: Custom - Imagen o GIF personalizado con encuadre X/Y, zoom y blur -->
+        <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
+          <div class="relative w-full h-full overflow-hidden">
+            <img :src="$store.settings.dashboardBgUrl"
+              class="w-full h-full object-cover transition-all duration-300 pointer-events-none"
+              :style="$store.settings.getDashboardBgStyle()" alt="" />
+            <div class="absolute inset-0 bg-[#0a0c0e]"
+              :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+          </div>
+        </template>
+
+        <!-- Modo 3: Dinámico - Fondo o Banner del personaje activo -->
+        <template
+          x-if="$store.settings.dashboardBgMode === 'dynamic' && ($store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl)">
+          <div class="relative w-full h-full overflow-hidden">
+            <img
+              :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl"
+              class="w-full h-full object-cover transition-all duration-300 pointer-events-none"
+              :style="$store.settings.getDashboardBgStyle()" alt="" />
+            <div class="absolute inset-0 bg-[#0a0c0e]"
+              :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+          </div>
+        </template>
+
+        <!-- Scrim Overlay de protección de contraste AAA -->
+        <div
+          class="absolute inset-0 bg-gradient-to-b from-[#0a0c0e]/80 via-[#0a0c0e]/50 to-[#0a0c0e]/90 pointer-events-none">
+        </div>
+      </div>
+
+      <!-- CONTENEDOR DE CONTENIDO CENTRADO (MAX-WIDTH 1400px) -->
+      <div class="relative z-10 w-full max-w-[1400px] mx-auto flex flex-col gap-6">
+
+        <!-- Header Expansivo -->
+        <div class="dashboard-header-panel w-full p-5 sm:p-6 rounded-2xl space-y-5">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
+            <!-- Título Principal y Contador Dinámico -->
+            <div class="flex items-center gap-3 shrink-0">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border transition-all"
+                :style="`background-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.12)}; border-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.4)}; color: ${$store.settings.accentColor}; box-shadow: 0 0 15px ${$store.app.hexToRgba($store.settings.accentColor, 0.25)};`">
+                <i data-lucide="users-round" class="w-6 h-6"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2.5">
+                  <h1
+                    class="font-title text-xl sm:text-2xl xl:text-3xl text-parchment-cream font-bold uppercase tracking-wider text-shadow-scrim whitespace-nowrap">
+                    Panel de Personajes
+                  </h1>
+                  <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full border shadow-sm transition-all whitespace-nowrap shrink-0 text-center inline-flex items-center justify-center"
+                    :style="`background-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.18)}; color: ${$store.settings.accentColor}; border-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.4)};`"
+                    :class="{ 'skeleton-shimmer': $store.characters.loading }"
+                    x-text="$store.characters.loading ? 'CARGANDO...' : `${$store.characters.list.length} OPERATIVOS`"></span>
+                </div>
+                <p class="text-xs text-ink-slate font-sans mt-0.5 truncate">
+                  Selecciona, administra o recluta nuevas fichas de rol.
+                </p>
+              </div>
+            </div>
+
+            <!-- Barra de Acciones Globales y Selector de Modo de Vista -->
+            <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap justify-start sm:justify-end min-h-[40px]">
+              
+              <!-- Badge / Botón de Backup Preventivo -->
+              <button type="button" x-show="$store.characters.isBackupRecommended" x-cloak
+                @click="$store.characters.exportAllJSON()"
+                class="px-2.5 sm:px-3 py-2 rounded-xl bg-amber-500/15 border border-amber-500/40 text-amber-400 hover:bg-amber-500/25 transition-all text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-[0_0_12px_rgba(245,158,11,0.2)] animate-pulse shrink-0 whitespace-nowrap"
+                title="Han transcurrido más de 7 días sin realizar un respaldo manual. Haz clic para descargar una copia de seguridad completa de todos tus personajes y carpetas.">
+                <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                <span class="hidden 2xl:inline">BACKUP RECOMENDADO</span>
+                <span class="inline 2xl:hidden">BACKUP</span>
+              </button>
+
+              <!-- Botón Personalizar Fondo del Panel -->
+              <button type="button" @click="$store.settings.openModal('environment')"
+                class="px-2.5 sm:px-3.5 py-2 rounded-xl border text-xs font-title font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm shrink-0 whitespace-nowrap"
+                :style="$store.settings.dashboardBgMode !== 'pattern' ? `border-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.6)}; color: ${$store.settings.accentColor}; background-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.15)}; box-shadow: 0 0 12px ${$store.app.hexToRgba($store.settings.accentColor, 0.25)};` : ''"
+                :class="$store.settings.dashboardBgMode !== 'pattern' ? '' : 'bg-black/60 border-white/10 hover:border-white/30 text-slate-300 hover:text-white'"
+                title="Personalizar Fondo del Panel (Imagen, GIF animado, Trama HUD, Encuadre, Desenfoque y Opacidad)">
+                <i data-lucide="image" class="w-4 h-4 shrink-0" :style="`color: ${$store.settings.accentColor}`"></i>
+                <span class="hidden 2xl:inline">FONDO DEL PANEL</span>
+                <span class="hidden sm:inline 2xl:hidden">FONDO</span>
+              </button>
+
+              <!-- Botón Acceso a Configuraciones Globales -->
+              <button type="button" @click="$store.settings.openModal()"
+                class="px-2.5 sm:px-3.5 py-2 rounded-xl border border-white/10 hover:border-white/30 bg-black/60 hover:bg-white/10 text-slate-300 hover:text-white text-xs font-title font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer shadow-sm group shrink-0 whitespace-nowrap"
+                title="Abrir Configuraciones Globales del Programa (Ctrl + ,)">
+                <i data-lucide="settings" class="w-4 h-4 text-slate-400 group-hover:text-white transition-colors shrink-0" :style="`color: ${$store.settings.accentColor}`"></i>
+                <span class="hidden 2xl:inline">CONFIGURACIONES</span>
+                <span class="hidden sm:inline 2xl:hidden">AJUSTES</span>
+              </button>
+
+              <!-- Separador vertical sutil entre herramientas y modo de vista -->
+              <div class="h-6 w-px bg-white/10 hidden sm:block shrink-0 mx-0.5"></div>
+
+              <!-- Control Selector de Modo de Vista (Cuadrícula vs Panorámica 16:5) -->
+              <div
+                class="flex items-center bg-black/60 border border-parchment-brown/30 rounded-xl p-1 shadow-inner select-none shrink-0">
+                <button type="button" @click="$store.characters.setRosterViewMode('grid')"
+                  :style="$store.characters.rosterViewMode === 'grid' ? `background-color: ${$store.settings.accentColor}; color: #000000; box-shadow: 0 0 10px ${$store.app.hexToRgba($store.settings.accentColor, 0.35)};` : ''"
+                  :class="$store.characters.rosterViewMode === 'grid' ? 'font-extrabold shadow-md' : 'text-parchment-cream/70 hover:text-white hover:bg-white/5'"
+                  class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-title font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+                  title="Vista Cuadrícula (Cubos / Tarjetas Estándar)">
+                  <i data-lucide="layout-grid" class="w-4 h-4 shrink-0"></i>
+                  <span class="hidden sm:inline">CUADRÍCULA</span>
+                </button>
+                <button type="button" @click="$store.characters.setRosterViewMode('banner')"
+                  :style="$store.characters.rosterViewMode === 'banner' ? `background-color: ${$store.settings.accentColor}; color: #000000; box-shadow: 0 0 10px ${$store.app.hexToRgba($store.settings.accentColor, 0.35)};` : ''"
+                  :class="$store.characters.rosterViewMode === 'banner' ? 'font-extrabold shadow-md' : 'text-parchment-cream/70 hover:text-white hover:bg-white/5'"
+                  class="px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-title font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
+                  title="Vista Panorámica (Banners 16:5 Completos)">
+                  <i data-lucide="rows-3" class="w-4 h-4 shrink-0"></i>
+                  <span class="hidden sm:inline">PANORÁMICA</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Centro de Acciones Primarias: Crear Ficha vs Crear Tier List -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-3 border-t border-parchment-brown/20 min-h-[96px]">
+            <!-- Opción 1: Crear Ficha de Rol -->
+            <button type="button" @click="$store.characters.createNew()"
+              class="group p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-cyan-950/40 via-[#0a0d14] to-black/60 border border-cyan-500/30 hover:border-cyan-400 hover:bg-cyan-950/50 transition-all cursor-pointer shadow-lg hover:shadow-[0_0_20px_rgba(6,182,212,0.2)] flex items-center justify-between gap-3 text-left min-h-[80px]">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.25)]">
+                  <i data-lucide="plus" class="w-5 h-5 stroke-[2.5]"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h2 class="font-title text-sm sm:text-base font-bold uppercase tracking-wider text-white group-hover:text-cyan-300 transition-colors">
+                      Crear una Ficha
+                    </h2>
+                  </div>
+                  <p class="text-xs text-slate-400 font-sans mt-0.5">
+                    Crea una nueva ficha de personaje en blanco con biografía, atributos, armas y habilidades.
+                  </p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-5 h-5 text-cyan-400/60 group-hover:text-cyan-300 group-hover:translate-x-1 transition-all shrink-0"></i>
+            </button>
+
+            <!-- Opción 2: Crear una Tier List -->
+            <button type="button" @click="$store.app.openTierListView()"
+              class="group p-3.5 sm:p-4 rounded-xl bg-gradient-to-r from-purple-950/40 via-[#0a0d14] to-black/60 border border-purple-500/40 hover:border-purple-400 hover:bg-purple-950/50 transition-all cursor-pointer shadow-lg hover:shadow-[0_0_20px_rgba(168,85,247,0.25)] flex items-center justify-between gap-3 text-left min-h-[80px]">
+              <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-purple-500/20 border border-purple-400/50 text-purple-300 flex items-center justify-center group-hover:scale-105 transition-transform shrink-0 shadow-[0_0_12px_rgba(168,85,247,0.3)]">
+                  <i data-lucide="trophy" class="w-5 h-5 text-amber-300"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-1.5">
+                    <h2 class="font-title text-sm sm:text-base font-bold uppercase tracking-wider text-white group-hover:text-purple-300 transition-colors">
+                      Crear una Tier List
+                    </h2>
+                  </div>
+                  <p class="text-xs text-slate-400 font-sans mt-0.5">
+                    Clasifica y compara a todos tus operativos en rangos jerárquicos S, A, B, C, D, E con Drag y Drop.
+                  </p>
+                </div>
+              </div>
+              <i data-lucide="chevron-right" class="w-5 h-5 text-purple-400/60 group-hover:text-purple-300 group-hover:translate-x-1 transition-all shrink-0"></i>
+            </button>
+          </div>
+
+          <!-- Barra de Búsqueda y Filtros en Tiempo Real -->
+          <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 pt-3 border-t border-parchment-brown/20">
+
+            <!-- Buscador de texto con icono de lupa (Full-Text Transversal) -->
+            <div class="sm:col-span-5 lg:col-span-4 relative group">
+              <i data-lucide="search"
+                class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors"
+                :style="`color: ${$store.settings.accentColor}`"></i>
+              <input type="text" x-model="$store.characters.searchQuery"
+                placeholder="Buscar por nombre, habilidades, armas, notas, creencias..."
+                aria-label="Buscar por nombre, habilidades, armas o notas"
+                class="dashboard-search-input w-full pl-10 pr-9 py-2 rounded-xl text-xs outline-none" />
+              <button x-show="$store.characters.searchQuery" @click="$store.characters.searchQuery = ''"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-ink-slate hover:text-white transition-colors cursor-pointer">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+
+            <!-- Filtro por Tier con chevron -->
+            <div class="sm:col-span-3 lg:col-span-3 relative group">
+              <select x-model="$store.characters.tierFilter"
+                aria-label="Filtrar por nivel de poder o tier"
+                class="dashboard-filter-select w-full text-xs py-2 pl-3 pr-8 rounded-xl appearance-none outline-none cursor-pointer">
+                <option value="all">Todos los Tiers de Poder</option>
+                <template x-for="tier in $store.characters.availableTiers" :key="tier">
+                  <option :value="tier" x-text="`Tier: ${tier}`"></option>
+                </template>
+              </select>
+              <i data-lucide="chevron-down"
+                class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-slate group-hover:text-white pointer-events-none transition-colors"></i>
+            </div>
+
+            <!-- Filtro por Clase con chevron -->
+            <div class="sm:col-span-2 lg:col-span-3 relative group">
+              <select x-model="$store.characters.classFilter"
+                aria-label="Filtrar por clase o rol"
+                class="dashboard-filter-select w-full text-xs py-2 pl-3 pr-8 rounded-xl appearance-none outline-none cursor-pointer">
+                <option value="all">Todas las Clases / Roles</option>
+                <template x-for="cls in $store.characters.availableClasses" :key="cls">
+                  <option :value="cls" x-text="cls"></option>
+                </template>
+              </select>
+              <i data-lucide="chevron-down"
+                class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 text-ink-slate group-hover:text-white pointer-events-none transition-colors"></i>
+            </div>
+
+            <!-- Ordenar por con chevron -->
+            <div class="sm:col-span-2 lg:col-span-2 relative group">
+              <select x-model="$store.characters.sortBy"
+                aria-label="Ordenar listado de operativos"
+                class="dashboard-filter-select w-full text-xs py-2 pl-3 pr-8 rounded-xl appearance-none outline-none font-mono cursor-pointer"
+                :style="`color: ${$store.settings.accentColor}`">
+                <option value="updatedAt">Ordenar: Reciente</option>
+                <option value="favorites">Ordenar: Favoritas ★</option>
+                <option value="name">Ordenar: Nombre (A-Z)</option>
+                <option value="tier">Ordenar: Tier</option>
+              </select>
+              <i data-lucide="chevron-down"
+                class="w-4 h-4 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors"
+                :style="`color: ${$store.app.hexToRgba($store.settings.accentColor, 0.7)}`"></i>
+            </div>
+
+          </div>
+
+          <!-- Barra de Carpetas y Drag y Drop (Folders Bar) -->
+          <div class="pt-3 border-t border-white/10 flex items-center gap-2 w-full min-w-0 select-none"
+            x-data="{
+              canScrollLeft: false,
+              canScrollRight: false,
+              hasOverflow: false,
+              checkScroll() {
+                const el = this.$refs.folderScroll;
+                if (!el) return;
+                const max = el.scrollWidth - el.clientWidth;
+                this.hasOverflow = max > 2;
+                this.canScrollLeft = el.scrollLeft > 4;
+                this.canScrollRight = el.scrollLeft < (max - 4);
+              },
+              scrollBy(amount) {
+                const el = this.$refs.folderScroll;
+                if (el) {
+                  el.scrollBy({ left: amount, behavior: 'smooth' });
+                  setTimeout(() => this.checkScroll(), 250);
+                }
+              },
+              handleWheel(e) {
+                const el = this.$refs.folderScroll;
+                if (!el) return;
+                if (el.scrollWidth > el.clientWidth) {
+                  e.preventDefault();
+                  el.scrollLeft += (e.deltaY || e.deltaX) * 0.9;
+                  this.checkScroll();
+                }
+              }
+            }"
+            x-init="
+              $nextTick(() => {
+                checkScroll();
+                setTimeout(() => checkScroll(), 150);
+                setTimeout(() => checkScroll(), 450);
+              });
+              $watch('$store.characters.folders.length', (newLen, oldLen) => {
+                $nextTick(() => {
+                  checkScroll();
+                  if (newLen > (oldLen || 0) && $refs.folderScroll) {
+                    $refs.folderScroll.scrollTo({ left: 99999, behavior: 'smooth' });
+                    setTimeout(() => checkScroll(), 350);
+                  }
+                });
+              });
+              $watch('$store.characters.activeFolderId', () => $nextTick(() => checkScroll()));
+            "
+            @resize.window="checkScroll()">
+
+            <!-- Flecha Izquierda: Estática en su posición, se atenúa suavemente al inicio -->
+            <button type="button"
+              x-show="hasOverflow"
+              :disabled="!canScrollLeft"
+              @click="scrollBy(-260)"
+              @dragover.prevent="scrollBy(-120)"
+              class="folder-nav-scroll-btn shrink-0"
+              :class="{ 'is-disabled': !canScrollLeft }"
+              title="Desplazar carpetas a la izquierda">
+              <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Contenedor Desplazable con Soporte de Rueda de Ratón y Deslizamiento -->
+            <div x-ref="folderScroll"
+              class="folder-tabs-container flex-1 min-w-0"
+              @scroll.passive="checkScroll()"
+              @wheel="handleWheel($event)">
+
+              <!-- Pestaña: TODOS LOS PERSONAJES -->
+              <button type="button" class="folder-tab-chip" :class="{ 
+                  'is-active': $store.characters.activeFolderId === 'all',
+                  'is-drag-target': $store.characters.dragOverFolderId === 'all'
+                }"
+                :style="`--folder-color: ${$store.settings.accentColor}; --folder-bg: ${$store.app.hexToRgba($store.settings.accentColor, 0.16)}; --folder-glow: ${$store.app.hexToRgba($store.settings.accentColor, 0.35)};`"
+                @click="$store.characters.setActiveFolder('all')"
+                @dragover.prevent="$store.characters.handleDragOverFolder($event, 'all')"
+                @dragleave="$store.characters.handleDragLeaveFolder($event, 'all')"
+                @drop.prevent="$store.characters.handleDropOnFolder($event, 'all')"
+                title="Mostrar todas las fichas del roster (Arrastra una ficha aquí para verla en todos)">
+                <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border transition-all"
+                  :style="`background-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.15)}; border-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.35)}; color: ${$store.settings.accentColor};`">
+                  <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                </div>
+                <span>Todos</span>
+                <span class="folder-tab-counter" x-text="$store.characters.list.length"></span>
+              </button>
+
+              <!-- Pestaña: SIN CARPETA (Solo visible si ya existen carpetas creadas) -->
+              <button type="button" class="folder-tab-chip" x-show="$store.characters.folders.length > 0" :class="{ 
+                  'is-active': $store.characters.activeFolderId === 'unassigned',
+                  'is-drag-target': $store.characters.dragOverFolderId === 'unassigned'
+                }" @click="$store.characters.setActiveFolder('unassigned')"
+                @dragover.prevent="$store.characters.handleDragOverFolder($event, 'unassigned')"
+                @dragleave="$store.characters.handleDragLeaveFolder($event, 'unassigned')"
+                @drop.prevent="$store.characters.handleDropOnFolder($event, 'unassigned')"
+                title="Fichas no asignadas a ninguna carpeta (Arrastra aquí para desvincular de carpeta)">
+                <div
+                  class="w-6 h-6 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center text-slate-300 shrink-0">
+                  <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
+                </div>
+                <span>Sin Carpeta</span>
+                <span class="folder-tab-counter" x-text="$store.characters.unassignedCharCount"></span>
+              </button>
+
+              <!-- Pestañas de Carpetas Creadas -->
+              <template x-for="folder in $store.characters.folders" :key="folder.id">
+                <div class="folder-tab-chip group" :class="{ 
+                    'is-active': $store.characters.activeFolderId === folder.id,
+                    'is-drag-target': $store.characters.dragOverFolderId === folder.id
+                  }"
+                  :style="`--folder-color: ${folder.color || $store.settings.accentColor}; --folder-bg: ${$store.app.hexToRgba(folder.color || $store.settings.accentColor, 0.16)}; --folder-glow: ${$store.app.hexToRgba(folder.color || $store.settings.accentColor, 0.4)};`"
+                  @click="$store.characters.setActiveFolder(folder.id)"
+                  @dragover.prevent="$store.characters.handleDragOverFolder($event, folder.id)"
+                  @dragleave="$store.characters.handleDragLeaveFolder($event, folder.id)"
+                  @drop.prevent="$store.characters.handleDropOnFolder($event, folder.id)"
+                  :title="`Carpeta: ${folder.name} (Arrastra una ficha aquí para moverla a este grupo)`">
+                  <template x-if="folder.customLogo">
+                    <div
+                      class="w-6 h-6 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-white/25 shadow-sm bg-black/40">
+                      <img :src="folder.customLogo" class="w-full h-full"
+                        :style="$store.characters.getFolderLogoStyle(folder)" alt="" />
+                    </div>
+                  </template>
+                  <template x-if="!folder.customLogo">
+                    <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 border"
+                      :style="`background-color: ${$store.app.hexToRgba(folder.color || $store.settings.accentColor, 0.15)}; border-color: ${$store.app.hexToRgba(folder.color || $store.settings.accentColor, 0.35)};`">
+                      <span class="w-4 h-4 shrink-0 flex items-center justify-center"
+                        x-html="$store.characters.renderFolderIconSvg(folder.icon, 'w-3.5 h-3.5', folder.color || $store.settings.accentColor)"></span>
+                    </div>
+                  </template>
+                  <span class="truncate max-w-[150px] sm:max-w-[200px]" x-text="folder.name"></span>
+                  <span class="folder-tab-counter" x-text="$store.characters.getFolderCharCount(folder.id)"></span>
+
+                  <!-- Opciones rápidas de la carpeta (Editar / Eliminar) -->
+                  <div
+                    class="flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity ml-1 pl-1 border-l border-white/10">
+                    <button type="button" class="p-1 rounded hover:bg-white/10 transition-colors cursor-pointer"
+                      :style="`--hover-color: ${$store.settings.accentColor}`"
+                      @click.stop="$store.characters.openEditFolderModal(folder)"
+                      title="Editar carpeta (nombre, icono, logo, color)">
+                      <i data-lucide="pencil" class="w-3 h-3"></i>
+                    </button>
+                    <button type="button"
+                      class="p-1 rounded hover:bg-red-500/20 hover:text-red-400 transition-colors cursor-pointer"
+                      @click.stop="
+                        if (confirm(`¿Eliminar la carpeta «${folder.name}»? Las fichas no se borrarán, solo volverán a Sin Carpeta.`)) {
+                          $store.characters.deleteFolder(folder.id);
+                        }
+                      " title="Eliminar carpeta">
+                      <i data-lucide="trash-2" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                </div>
+              </template>
+
+            </div>
+
+            <!-- Flecha Derecha: Estática en su posición, se atenúa suavemente al final -->
+            <button type="button"
+              x-show="hasOverflow"
+              :disabled="!canScrollRight"
+              @click="scrollBy(260)"
+              @dragover.prevent="scrollBy(120)"
+              class="folder-nav-scroll-btn shrink-0"
+              :class="{ 'is-disabled': !canScrollRight }"
+              title="Desplazar carpetas a la derecha">
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+
+            <!-- Botón + NUEVA CARPETA (Fijo y Siempre Accesible) -->
+            <button type="button" class="folder-add-btn shrink-0"
+              :style="`border-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.45)}; color: ${$store.settings.accentColor}; background-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.08)};`"
+              @click="$store.characters.openCreateFolderModal()" title="Crear una nueva carpeta de personajes">
+              <i data-lucide="folder-plus" class="w-4 h-4 stroke-[2.5]"></i>
+              <span class="hidden sm:inline">NUEVA CARPETA</span>
+              <span class="sm:hidden font-bold">+ CARPETA</span>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Grid Responsivo de Tarjetas (Character Cards: Cuadrícula o Panorámica) -->
+        <div class="w-full"
+          :class="$store.characters.rosterViewMode === 'banner' ? 'grid grid-cols-1 lg:grid-cols-2 gap-5' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'">
+
+          <!-- 1. ESTADO SKELETON: Mientras se cargan los personajes de IndexedDB -->
+          <template x-if="$store.characters.loading">
+            <div class="contents">
+              <!-- Grid de Esqueletos para Modo Cuadrícula -->
+              <template x-if="$store.characters.rosterViewMode === 'grid'">
+                <div class="contents">
+                  <template x-for="i in 8" :key="`skel-grid-${i}`">
+                    <div class="skeleton-card-grid p-5 space-y-4 flex flex-col justify-between min-h-[290px]">
+                      <div class="space-y-3.5">
+                        <!-- Fila Superior: Avatar + Nombre + Badges -->
+                        <div class="flex items-start justify-between gap-3">
+                          <div class="flex items-center gap-3 flex-1 min-w-0">
+                            <div class="w-14 h-14 min-w-[56px] min-h-[56px] rounded-2xl skeleton-shimmer shrink-0"></div>
+                            <div class="flex-1 space-y-2 min-w-0">
+                              <div class="h-5 w-4/5 rounded-md skeleton-shimmer"></div>
+                              <div class="h-3.5 w-1/2 rounded-md skeleton-shimmer"></div>
+                            </div>
+                          </div>
+                          <div class="w-6 h-6 rounded-lg skeleton-shimmer shrink-0"></div>
+                        </div>
+
+                        <!-- Fila de Slots / Tags -->
+                        <div class="flex items-center gap-2 pt-1">
+                          <div class="h-5 w-20 rounded-lg skeleton-shimmer"></div>
+                          <div class="h-5 w-24 rounded-lg skeleton-shimmer"></div>
+                          <div class="h-5 w-14 rounded-lg skeleton-shimmer"></div>
+                        </div>
+
+                        <!-- Frase del Personaje simulada -->
+                        <div class="space-y-1.5 pt-1.5">
+                          <div class="h-3 w-full rounded skeleton-shimmer opacity-70"></div>
+                          <div class="h-3 w-3/4 rounded skeleton-shimmer opacity-70"></div>
+                        </div>
+                      </div>
+
+                      <!-- Fila Inferior: Fecha y Botones de acción -->
+                      <div class="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+                        <div class="h-3.5 w-24 rounded skeleton-shimmer opacity-60"></div>
+                        <div class="flex items-center gap-1.5">
+                          <div class="w-7 h-7 rounded-lg skeleton-shimmer"></div>
+                          <div class="w-7 h-7 rounded-lg skeleton-shimmer"></div>
+                          <div class="w-16 h-7 rounded-lg skeleton-shimmer"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </template>
+
+              <!-- Grid de Esqueletos para Modo Panorámico 16:5 -->
+              <template x-if="$store.characters.rosterViewMode === 'banner'">
+                <div class="contents">
+                  <template x-for="i in 6" :key="`skel-ban-${i}`">
+                    <div class="skeleton-card-banner p-4 sm:p-5 flex flex-col justify-between gap-3 min-h-[175px]">
+                      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+                        <div class="flex items-center gap-3.5 min-w-0 flex-1">
+                          <div class="w-16 h-16 min-w-[64px] min-h-[64px] rounded-2xl skeleton-shimmer shrink-0"></div>
+                          <div class="space-y-2 flex-1 min-w-0">
+                            <div class="h-6 w-3/5 rounded-md skeleton-shimmer"></div>
+                            <div class="h-3.5 w-2/5 rounded-md skeleton-shimmer"></div>
+                          </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                          <div class="h-6 w-20 rounded-lg skeleton-shimmer"></div>
+                          <div class="h-6 w-16 rounded-lg skeleton-shimmer"></div>
+                        </div>
+                      </div>
+
+                      <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/10">
+                        <div class="h-3.5 w-32 rounded skeleton-shimmer opacity-60"></div>
+                        <div class="h-8 w-28 rounded-xl skeleton-shimmer"></div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- 2a. Estado Vacío: Sin personajes en la base de datos (Roster Vacío Total) -->
+          <template x-if="!$store.characters.loading && $store.characters.list.length === 0">
+            <div
+              class="col-span-full py-14 px-6 sm:px-12 text-center rounded-3xl border-2 backdrop-blur-xl relative overflow-hidden flex flex-col items-center justify-center space-y-6 shadow-2xl transition-all"
+              :style="`background: linear-gradient(180deg, rgba(14, 18, 28, 0.95) 0%, rgba(8, 11, 18, 0.98) 100%); border-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.35)}; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 40px ${$store.app.hexToRgba($store.settings.accentColor, 0.15)};`">
+
+              <!-- Línea láser de acento superior según tema -->
+              <div class="absolute inset-x-0 top-0 h-[2.5px]"
+                :style="`background: linear-gradient(90deg, transparent, ${$store.settings.accentColor}, transparent); box-shadow: 0 0 14px ${$store.settings.accentColor};`"></div>
+
+              <!-- Halo ambiental de fondo -->
+              <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-48 rounded-full pointer-events-none opacity-20 blur-3xl"
+                :style="`background-color: ${$store.settings.accentColor};`"></div>
+
+              <!-- Icono Cyber HUD Gigante y Centrado -->
+              <div class="relative">
+                <div class="w-20 h-20 rounded-3xl border-2 flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+                  :style="`background-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.12)}; border-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.5)}; color: ${$store.settings.accentColor}; box-shadow: 0 0 28px ${$store.app.hexToRgba($store.settings.accentColor, 0.35)};`">
+                  <svg class="w-10 h-10 stroke-[2]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <line x1="19" y1="8" x2="19" y2="14"></line>
+                    <line x1="22" y1="11" x2="16" y2="11"></line>
+                  </svg>
+                </div>
+                <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full animate-ping"
+                  :style="`background-color: ${$store.settings.accentColor};`"></span>
+                <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full"
+                  :style="`background-color: ${$store.settings.accentColor};`"></span>
+              </div>
+
+              <!-- Textos Informativos -->
+              <div class="space-y-2 max-w-lg">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10.5px] font-mono uppercase tracking-widest font-bold mb-1"
+                  :style="`background-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.1)}; border-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.35)}; color: ${$store.settings.accentColor};`">
+                  <span class="w-2 h-2 rounded-full animate-pulse" :style="`background-color: ${$store.settings.accentColor};`"></span>
+                  <span>BASE DE DATOS // 0 REGISTROS</span>
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-title font-black text-white uppercase tracking-wider drop-shadow-md">
+                  Roster de Operativos Vacío
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-300 font-sans leading-relaxed">
+                  No hay ningún personaje registrado en el sistema. Puedes reclutar tu primer operativo en blanco o importar una ficha o respaldo desde un archivo JSON.
+                </p>
+              </div>
+
+              <!-- Botones de Acción Prominentes (Totalmente visibles y centrados) -->
+              <div class="flex flex-col sm:flex-row items-center gap-3.5 pt-2 w-full max-w-md justify-center">
+                <!-- Botón Principal: Reclutar Nuevo Operativo -->
+                <button type="button" @click="$store.characters.createNew()"
+                  class="w-full sm:w-auto px-7 py-3.5 rounded-2xl font-title font-black uppercase tracking-wider text-xs sm:text-sm flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xl hover:brightness-110 active:scale-95 group"
+                  :style="`background-color: ${$store.settings.accentColor}; color: #000000; box-shadow: 0 0 25px ${$store.app.hexToRgba($store.settings.accentColor, 0.45)};`"
+                  title="Crear un personaje en blanco y abrir su editor">
+                  <svg class="w-4 h-4 stroke-[3] group-hover:rotate-90 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Reclutar Operativo</span>
+                </button>
+
+                <!-- Botón Secundario: Importar JSON -->
+                <button type="button" @click="$store.characters.triggerJSONImport()"
+                  class="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/20 hover:border-white/40 text-slate-200 hover:text-white font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all cursor-pointer hover:scale-105 active:scale-95 shadow-md"
+                  title="Importar una ficha individual o un respaldo de múltiples personajes (.json)">
+                  <svg class="w-4 h-4 text-cyan-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"></path>
+                    <path d="M12 12v9"></path>
+                    <path d="m16 16-4-4-4 4"></path>
+                  </svg>
+                  <span>Importar JSON</span>
+                </button>
+              </div>
+
+              <!-- Pista Drag & Drop -->
+              <div class="pt-2 text-[11px] font-mono text-slate-400 flex items-center gap-1.5 opacity-80">
+                <svg class="w-3.5 h-3.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 17 12 22 22 17"></polyline>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+                <span>Tip: También puedes arrastrar y soltar cualquier archivo .JSON directamente en esta pantalla.</span>
+              </div>
+            </div>
+          </template>
+
+          <!-- 2b. Estado Vacío: Con filtros o carpeta activa sin resultados -->
+          <template x-if="!$store.characters.loading && $store.characters.list.length > 0 && $store.characters.filteredList.length === 0">
+            <div
+              class="col-span-full py-12 px-6 text-center rounded-3xl border border-dashed border-white/20 bg-[#080a0e]/85 backdrop-blur-md space-y-5 flex flex-col items-center justify-center">
+              <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/15 flex items-center justify-center text-slate-400">
+                <svg class="w-7 h-7 stroke-[1.5]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  <line x1="8" y1="8" x2="14" y2="14"></line>
+                  <line x1="14" y1="8" x2="8" y2="14"></line>
+                </svg>
+              </div>
+              <div class="space-y-1.5 max-w-md">
+                <h2 class="text-xl font-title font-bold text-white uppercase tracking-wider">
+                  No se encontraron fichas
+                </h2>
+                <p class="text-xs text-slate-400 font-sans leading-relaxed">
+                  No hay operativos que coincidan con la búsqueda activa o los filtros aplicados en esta carpeta.
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center justify-center gap-3 pt-1">
+                <button type="button"
+                  @click="$store.characters.clearDashboardFilters(); $store.characters.setActiveFolder('all');"
+                  class="px-5 py-2.5 text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer border flex items-center gap-2 hover:scale-105 active:scale-95 shadow-sm"
+                  :style="`color: ${$store.settings.accentColor}; border-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.45)}; background-color: ${$store.app.hexToRgba($store.settings.accentColor, 0.1)};`">
+                  <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                  </svg>
+                  <span>Ver Todas las Fichas</span>
+                </button>
+                <button type="button" @click="$store.characters.createNew()"
+                  class="px-5 py-2.5 text-xs font-mono font-bold uppercase rounded-xl bg-white/10 hover:bg-white/15 border border-white/25 text-white transition-all cursor-pointer flex items-center gap-2 hover:scale-105 active:scale-95 shadow-sm">
+                  <svg class="w-3.5 h-3.5 text-cyan-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Reclutar Operativo</span>
+                </button>
+              </div>
+            </div>
+          </template>
+
+          <!-- 3. Tarjetas de Personajes Reales -->
+          <template x-for="char in $store.characters.paginatedList" :key="char.id">
+            <div class="dashboard-char-card group cursor-pointer flex flex-col justify-between"
+              x-data="{ isMenuOpen: false }" :class="{
+                'is-active-card': char.id === $store.characters.activeId,
+                'is-selected-card': $store.characters.isCharacterSelected(char.id),
+                'is-banner-mode': $store.characters.rosterViewMode === 'banner',
+                'is-being-dragged': $store.characters.draggingCharId === char.id || ($store.characters.draggingCharId && $store.characters.isCharacterSelected($store.characters.draggingCharId) && $store.characters.isCharacterSelected(char.id)),
+                'is-favorite-card': char.isFavorite,
+                'is-locked-card': char.isLocked,
+                'is-menu-open': isMenuOpen
+              }" draggable="true" @dragstart="$store.characters.startCharDrag($event, char.id)"
+              @dragend="$store.characters.endCharDrag()"
+              :style="`--char-accent: ${$store.characters.getCharAccentColor(char)}; --char-accent-glow: ${$store.app.hexToRgba($store.characters.getCharAccentColor(char), 0.35)}; --char-accent-border: ${$store.app.hexToRgba($store.characters.getCharAccentColor(char), 0.35)}; ${isMenuOpen ? 'overflow: visible !important; z-index: 9999 !important;' : ''}`"
+              @click="$store.characters.handleCardClick($event, char.id)"
+              :title="`${char.name || 'Sin Nombre'} (Arrastra esta tarjeta sobre una carpeta para organizarla)`">
+
+              <!-- Fondo Base Interior de la Tarjeta -->
+              <div class="dashboard-char-card-inner-bg"></div>
+
+              <!-- Banner de Fondo Personalizado con Scrim Overlay AAA -->
+              <template x-if="char.basics?.bannerDataUrl || char.visualSettings?.backgroundUrl">
+                <div class="card-banner-layer">
+                  <img :src="char.basics?.bannerDataUrl || char.visualSettings?.backgroundUrl" class="card-banner-img"
+                    :style="char.basics?.bannerTransform || ''" loading="lazy" decoding="async" alt="" />
+                  <div class="card-banner-scrim"></div>
+                </div>
+              </template>
+
+              <!-- Glow Overlay por defecto -->
+              <template x-if="!char.basics?.bannerDataUrl && !char.visualSettings?.backgroundUrl">
+                <div
+                  class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#080a0d] pointer-events-none z-0">
+                </div>
+              </template>
+
+              <!-- ==============================================
+                   BOTONES DE ACCIÓN: CHECKBOX DE SELECCIÓN MÚLTIPLE Y MENÚ 3 PUNTOS
+                   Posicionados en la esquina superior derecha del banner/tarjeta
+                   ============================================== -->
+              <div class="absolute top-2.5 right-2.5 z-30 flex items-center gap-1.5" @click.stop>
+                <!-- Checkbox de Selección Múltiple -->
+                <button type="button"
+                  @click.stop="$store.characters.toggleSelect(char.id)"
+                  class="w-7 h-7 rounded-xl flex items-center justify-center transition-all cursor-pointer backdrop-blur-md shadow-md border"
+                  :class="$store.characters.isCharacterSelected(char.id)
+                    ? 'bg-cyan-500 text-black border-cyan-300 shadow-[0_0_12px_rgba(0,240,255,0.6)] scale-105'
+                    : ($store.characters.selectedCount > 0
+                      ? 'opacity-80 hover:opacity-100 bg-black/80 border-white/30 text-white/40 hover:text-white hover:border-white/60'
+                      : 'opacity-0 group-hover:opacity-100 bg-black/80 border-white/20 text-transparent hover:text-white/60 hover:border-white/40')"
+                  :style="$store.characters.isCharacterSelected(char.id) ? `background-color: ${$store.settings.accentColor}; border-color: ${$store.settings.accentColor}; box-shadow: 0 0 12px ${$store.app.hexToRgba($store.settings.accentColor, 0.6)};` : ''"
+                  :title="$store.characters.isCharacterSelected(char.id) ? 'Deseleccionar ficha' : 'Seleccionar ficha (Ctrl/Shift + Clic)'">
+                  <svg class="w-3.5 h-3.5" :class="$store.characters.isCharacterSelected(char.id) ? 'stroke-[3]' : 'stroke-2'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </button>
+
+                <!-- Botón 3 Puntos (...) -->
+                <button type="button" @click.stop="isMenuOpen = !isMenuOpen"
+                  class="p-1.5 rounded-xl border border-white/20 bg-black/80 hover:bg-black text-parchment-cream/80 hover:text-white transition-all cursor-pointer shadow-md hover:border-white/40 backdrop-blur-md"
+                  :class="{ 'bg-white/25 text-white border-white/50 shadow-[0_0_14px_rgba(255,255,255,0.3)]': isMenuOpen }"
+                  title="Opciones de la Ficha">
+                  <svg class="w-4 h-4 shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="1.5" />
+                    <circle cx="19" cy="12" r="1.5" />
+                    <circle cx="5" cy="12" r="1.5" />
+                  </svg>
+                </button>
+
+                <!-- Menú Dropdown Flotante -->
+                <div x-show="isMenuOpen" @click.outside="isMenuOpen = false"
+                  x-transition:enter="transition ease-out duration-150"
+                  x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                  x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                  x-transition:leave="transition ease-in duration-100"
+                  x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                  x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                  class="absolute right-0 top-full mt-1.5 w-52 p-1.5 rounded-2xl bg-[#090c12] border border-white/25 shadow-2xl backdrop-blur-2xl z-50 space-y-0.5 text-xs select-none"
+                  style="box-shadow: 0 20px 45px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.8);" x-cloak>
+
+                  <!-- 1. Marcar como Favorita -->
+                  <button type="button" @click.stop="$store.characters.toggleFavorite(char.id); isMenuOpen = false"
+                    class="w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer hover:bg-white/10"
+                    :class="char.isFavorite ? 'text-amber-300 font-semibold' : 'text-parchment-cream/90'">
+                    <svg class="w-3.5 h-3.5 shrink-0"
+                      :class="char.isFavorite ? 'fill-amber-400 text-amber-400' : 'text-amber-400/80'"
+                      xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                      </polygon>
+                    </svg>
+                    <span x-text="char.isFavorite ? 'Quitar de Favoritas' : 'Marcar como Favorita'"></span>
+                  </button>
+
+                  <!-- 2. Bloquear / Proteger contra edición -->
+                  <button type="button" @click.stop="$store.characters.toggleLocked(char.id); isMenuOpen = false"
+                    class="w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 transition-colors cursor-pointer hover:bg-white/10"
+                    :class="char.isLocked ? 'text-amber-400 font-semibold' : 'text-parchment-cream/90'">
+                    <svg class="w-3.5 h-3.5 shrink-0 text-amber-400" xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                      stroke-linejoin="round">
+                      <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span x-text="char.isLocked ? 'Desbloquear Ficha' : 'Proteger contra Edición'"></span>
+                  </button>
+
+                  <div class="h-px bg-white/10 my-1"></div>
+
+                  <!-- 3. Copiar Ficha -->
+                  <button type="button" @click.stop="$store.characters.duplicate(char.id); isMenuOpen = false"
+                    class="w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 text-parchment-cream/90 hover:text-accent-cyan hover:bg-accent-cyan/10 transition-colors cursor-pointer">
+                    <svg class="w-3.5 h-3.5 shrink-0 text-accent-cyan" xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round">
+                      <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                    </svg>
+                    <span>Copiar Ficha</span>
+                  </button>
+
+                  <!-- 4. Descargar Ficha -->
+                  <button type="button" @click.stop="$store.characters.exportJSONForChar(char.id); isMenuOpen = false"
+                    class="w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 text-parchment-cream/90 hover:text-accent-gold hover:bg-accent-gold/10 transition-colors cursor-pointer">
+                    <svg class="w-3.5 h-3.5 shrink-0 text-accent-gold" xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>Descargar Ficha (JSON)</span>
+                  </button>
+
+                  <div class="h-px bg-white/10 my-1"></div>
+
+                  <!-- 5. Eliminar Ficha -->
+                  <button type="button" @click.stop="$store.characters.confirmDelete(char.id); isMenuOpen = false"
+                    class="w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 text-red-400 hover:text-red-300 hover:bg-red-500/15 transition-colors cursor-pointer">
+                    <svg class="w-3.5 h-3.5 shrink-0 text-red-400" xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                      stroke-linejoin="round">
+                      <path d="M3 6h18" />
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                    </svg>
+                    <span>Eliminar Ficha</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- ==============================================
+                   VISTA 1: MODO CUADRÍCULA / CUBOS (Standard Grid)
+                   ============================================== -->
+              <template x-if="$store.characters.rosterViewMode === 'grid'">
+                <div class="relative z-10 p-5 space-y-3.5 flex-1 flex flex-col justify-between">
+                  <!-- Bloque Superior: Header e Identidad -->
+                  <div class="space-y-3">
+                    <div class="flex items-start justify-between gap-3 pr-8">
+                      <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <!-- Avatar Frame Adaptativo con Pin de Favorita -->
+                        <div class="relative shrink-0">
+                          <div data-avatar-container="true"
+                            class="relative overflow-hidden border-[2.5px] bg-black/60 flex items-center justify-center shrink-0 shadow-xl group-hover:scale-105 transition-all duration-300"
+                            :class="($store.characters.getAvatarAspect(char) === 'portrait') ? 'w-14 h-[72px] min-w-[56px] min-h-[72px]' : 'w-14 h-14 min-w-[56px] min-h-[56px]'"
+                            :style="`border-color: ${char.isFavorite ? '#f59e0b' : $store.characters.getCharAccentColor(char)}; border-radius: ${$store.characters.getAvatarRadiusCss(char)}; box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 12px ${char.isFavorite ? 'rgba(245, 158, 11, 0.4)' : $store.app.hexToRgba($store.characters.getCharAccentColor(char), 0.3)}; overflow: hidden; position: relative; isolation: isolate;`"
+                            :title="`Operativo: ${char.name || 'Sin Nombre'}`">
+                            <template
+                              x-if="char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl)">
+                              <img
+                                :src="char.basics?.useIconForPfp ? (char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : (char.basics?.avatarDataUrl || char.basics?.iconDataUrl)"
+                                class="w-full h-full object-cover transition-all"
+                                :style="`${char.basics?.useIconForPfp ? (char.basics?.iconTransform || char.basics?.avatarTransform || '') : (char.basics?.avatarTransform || char.basics?.iconTransform || '')}; border-radius: ${$store.characters.getAvatarRadiusCss(char)};`"
+                                loading="lazy" decoding="async" alt="" />
+                            </template>
+                            <template
+                              x-if="!(char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl))">
+                              <div class="w-full h-full flex items-center justify-center">
+                                <svg class="w-7 h-7 text-white/80" xmlns="http://www.w3.org/2000/svg"
+                                  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                                  stroke-linecap="round" stroke-linejoin="round">
+                                  <circle cx="12" cy="8" r="5" />
+                                  <path d="M20 21a8 8 0 0 0-16 0" />
+                                </svg>
+                              </div>
+                            </template>
+                          </div>
+                          <!-- Marco de Avatar de Steam Superpuesto -->
+                          <template x-if="char.basics?.avatarFrame?.url">
+                            <img :src="char.basics.avatarFrame.url" class="steam-avatar-frame-overlay" loading="lazy" decoding="async" alt="" />
+                          </template>
+                          <!-- Pin Estrella Dorada de Favorito -->
+                          <div x-show="char.isFavorite"
+                            class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 border border-white/70 shadow-[0_0_8px_rgba(251,191,36,0.9)] flex items-center justify-center z-10"
+                            title="Ficha Favorita">
+                            <svg class="w-2.5 h-2.5 fill-white text-white" viewBox="0 0 24 24">
+                              <polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                              </polygon>
+                            </svg>
+                          </div>
+                        </div>
+
+                        <!-- Nombre y Subtítulo (Alias Condicional) -->
+                        <div class="min-w-0 flex-1">
+                          <h3
+                            class="font-title text-xl font-bold uppercase tracking-wider text-white truncate drop-shadow-md group-hover:text-[var(--char-accent)] transition-colors"
+                            x-text="char.name || 'Sin Nombre'" :title="char.name || 'Sin Nombre'"></h3>
+
+                          <template
+                            x-if="char.basics?.alias && char.basics.alias.trim() && char.basics.alias.trim().toLowerCase() !== (char.name || '').trim().toLowerCase()">
+                            <p class="text-xs text-parchment-cream/80 font-sans truncate font-medium"
+                              x-text="`«${char.basics.alias.trim()}»`" :title="`Alias: ${char.basics.alias.trim()}`">
+                            </p>
+                          </template>
+                        </div>
+                      </div>
+
+                      <!-- Badges de Estado en Esquina Superior -->
+                      <div class="flex items-center gap-1.5 shrink-0" @click.stop>
+                        <!-- Indicador Favorito -->
+                        <span x-show="char.isFavorite"
+                          class="shrink-0 p-1 rounded-lg bg-amber-500/15 border border-amber-400/50 text-amber-300 shadow-[0_0_8px_rgba(251,191,36,0.3)]"
+                          title="Ficha Favorita">
+                          <svg class="w-3.5 h-3.5 fill-amber-400 text-amber-400" viewBox="0 0 24 24">
+                            <polygon
+                              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                            </polygon>
+                          </svg>
+                        </span>
+
+                        <!-- Indicador Bloqueado / Protegido -->
+                        <span x-show="char.isLocked"
+                          class="shrink-0 p-1 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-400 shadow-sm"
+                          title="Ficha protegida contra edición">
+                          <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                          </svg>
+                        </span>
+
+                        <!-- Active Indicator Badge -->
+                        <span x-show="char.id === $store.characters.activeId"
+                          class="shrink-0 text-[9.5px] font-mono font-bold uppercase px-2 py-0.5 rounded-md bg-[var(--char-accent,#00F0FF)]/20 text-[var(--char-accent,#00F0FF)] border border-[var(--char-accent,#00F0FF)]/60 tracking-wider shadow-[0_0_10px_var(--char-accent-glow)]">
+                          ACTIVO
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Estructura Fija de Etiquetas (Slot System) -->
+                    <div class="flex items-center gap-1.5 flex-wrap h-7 min-h-[28px] overflow-hidden">
+                      <template x-if="char.basics?.race && char.basics.race.trim()">
+                        <span
+                          class="px-2.5 py-0.5 rounded-lg bg-black/70 border border-white/20 text-slate-200 text-xs font-sans font-medium truncate max-w-[120px] shadow-sm backdrop-blur-sm"
+                          x-text="char.basics.race.trim()" :title="`Raza: ${char.basics.race.trim()}`"></span>
+                      </template>
+
+                      <template
+                        x-if="(char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role) && (char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role).trim()">
+                        <span
+                          class="px-2.5 py-0.5 rounded-lg bg-accent-cyan/10 border border-accent-cyan/40 text-accent-cyan text-xs font-sans font-bold truncate max-w-[140px] shadow-sm backdrop-blur-sm"
+                          x-text="(char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role).trim()"
+                          :title="`Arquetipo/Rol: ${(char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role).trim()}`"></span>
+                      </template>
+
+                      <template
+                        x-if="!(char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role) || !(char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role).trim()">
+                        <span
+                          class="px-2 py-0.5 rounded-lg border border-dashed border-white/10 text-white/30 text-[11px] font-mono select-none"
+                          title="Sin Clase o Rol asignado">
+                          Sin Clase
+                        </span>
+                      </template>
+
+                      <template x-if="!$store.settings.hidePowerScalingTierBadge && char.powerScaling?.tier && char.powerScaling.tier.trim()">
+                        <span
+                          class="px-2.5 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/50 text-amber-300 font-mono text-[10.5px] font-extrabold tracking-wider shrink-0 shadow-sm"
+                          x-text="char.powerScaling.tier.trim()"
+                          :title="`Tier de Poder: ${char.powerScaling.tier.trim()}`"></span>
+                      </template>
+                    </div>
+
+                    <!-- Frase del Personaje (Modo Cuadrícula) con rotación animada cinematográfica -->
+                    <template x-if="$store.characters.getFeaturedQuote(char)">
+                      <div
+                        class="flex items-start gap-2 pt-1 text-[11.5px] italic text-parchment-cream/95 font-serif line-clamp-2 leading-snug"
+                        x-data="{
+                          currentQuote: $store.characters.getFeaturedQuote(char),
+                          isFading: false,
+                          init() {
+                            this.$watch('$store.characters.quoteRotationIndex', () => {
+                              const next = $store.characters.getFeaturedQuote(char);
+                              if (next && next !== this.currentQuote) {
+                                this.isFading = true;
+                                setTimeout(() => {
+                                  this.currentQuote = next;
+                                  this.isFading = false;
+                                }, 380);
+                              } else if (next) {
+                                this.currentQuote = next;
+                              }
+                            });
+                          }
+                        }">
+                        <svg class="w-3.5 h-3.5 text-accent-gold shrink-0 mt-0.5 opacity-90"
+                          xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2H4c-1.25 0-2 .75-2 2v6c0 7 1 8 3 8Z" />
+                          <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2h-4c-1.25 0-2 .75-2 2v6c0 7 1 8 3 8Z" />
+                        </svg>
+                        <span class="line-clamp-2 quote-rotating-text"
+                          :class="isFading ? 'is-fading-out' : 'is-fading-in'" x-text="`“${currentQuote}”`"
+                          :title="`Frase: ${currentQuote}`"></span>
+                      </div>
+                    </template>
+
+                    <!-- Micro-etiqueta de Coincidencia de Búsqueda -->
+                    <template
+                      x-if="$store.characters.searchQuery && $store.characters.getSearchMatch(char, $store.characters.searchQuery).subfieldTag">
+                      <div
+                        class="search-match-tag flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium truncate mt-1">
+                        <i data-lucide="search" class="w-3 h-3 shrink-0"></i>
+                        <span class="truncate"
+                          x-text="`Coincidencia en: ${$store.characters.getSearchMatch(char, $store.characters.searchQuery).subfieldTag}`"></span>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- Bloque Inferior: Timestamp y Botones de Acción -->
+                  <div class="space-y-2.5 pt-2.5 border-t border-white/10">
+                    <div class="flex items-center justify-between text-[10.5px] font-mono text-ink-slate"
+                      :title="`Última actualización: ${$store.characters.formatDate(char.updatedAt)}`">
+                      <span class="flex items-center gap-1.5 min-w-0 truncate">
+                        <i data-lucide="clock" class="w-3 h-3 text-white/40 shrink-0"></i>
+                        <span x-text="`Modificado: ${$store.characters.formatDate(char.updatedAt)}`"
+                          class="truncate"></span>
+                      </span>
+
+                      <!-- Insignias de Steam (Máx 3) -->
+                      <template x-if="char.basics?.steamBadges && char.basics.steamBadges.filter(Boolean).length > 0">
+                        <div class="flex items-center gap-1.5 shrink-0 pl-1.5 border-l border-white/10 ml-1.5" @click.stop>
+                          <template x-for="(b, bIdx) in char.basics.steamBadges.filter(Boolean).slice(0, 3)" :key="b.id || bIdx">
+                            <div class="relative group/badge flex items-center justify-center steam-badge-item w-5 h-5 max-w-[20px] max-h-[20px] cursor-help">
+                              <img :src="b.url" :alt="b.name" class="w-5 h-5 max-w-[20px] max-h-[20px] object-contain" :class="b.isFoil ? 'steam-foil-badge' : ''" loading="lazy" />
+                              <!-- Tooltip Enriquecido -->
+                              <div class="steam-badge-tooltip p-2 rounded-xl bg-[#0b0e14]/95 border border-white/15 shadow-2xl backdrop-blur-md flex items-center gap-2.5 pointer-events-none">
+                                <img :src="b.url" class="w-8 h-8 object-contain shrink-0" :class="b.isFoil ? 'steam-foil-badge' : ''" />
+                                <div class="text-left space-y-0.5 min-w-0">
+                                  <div class="flex items-center gap-1.5">
+                                    <span class="text-xs font-title font-bold text-white leading-tight truncate max-w-[130px]" x-text="b.name"></span>
+                                    <span x-show="b.isFoil" class="px-1 py-0.2 rounded text-[7.5px] font-mono font-black uppercase bg-gradient-to-r from-amber-400 to-amber-200 text-black shrink-0">FOIL</span>
+                                  </div>
+                                  <p class="text-[10px] font-sans text-parchment-cream/70 truncate max-w-[130px]" x-text="b.game"></p>
+                                  <span class="text-[9px] font-mono text-cyan-300 block" x-text="b.level"></span>
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+
+                    <div class="pt-0.5" @click.stop>
+                      <button type="button"
+                        class="w-full py-2 px-3 rounded-xl bg-[var(--char-accent,#00F0FF)] text-black font-extrabold text-xs font-title uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_var(--char-accent-glow)] hover:brightness-110 active:scale-[0.98] transition-all truncate"
+                        @click="$store.characters.openCharacterSheet(char.id)" title="Abrir Ficha de Personaje">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0 stroke-[2.5]"></i>
+                        <span class="truncate">ABRIR FICHA</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+
+              <!-- =======================================================
+                   VISTA 2: MODO PANORÁMICO HORIZONTAL 16:5 (Banner Full)
+                   ======================================================= -->
+              <template x-if="$store.characters.rosterViewMode === 'banner'">
+                <div class="relative z-10 p-4 sm:p-5 flex-1 flex flex-col justify-between gap-3">
+                  <!-- Header Panorámico: Avatar + Identidad + Badges en Formato Horizontal -->
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 pr-8">
+                    <div class="flex items-center gap-3.5 min-w-0 flex-1">
+                      <!-- Avatar Frame Panorámico con Pin de Favorita -->
+                      <div class="relative shrink-0">
+                        <div data-avatar-container="true"
+                          class="relative overflow-hidden border-[2.5px] bg-black/60 flex items-center justify-center shrink-0 shadow-xl group-hover:scale-105 transition-all duration-300"
+                          :class="($store.characters.getAvatarAspect(char) === 'portrait') ? 'w-16 h-[82px] min-w-[64px] min-h-[82px]' : 'w-16 h-16 min-w-[64px] min-h-[64px]'"
+                          :style="`border-color: ${char.isFavorite ? '#f59e0b' : $store.characters.getCharAccentColor(char)}; border-radius: ${$store.characters.getAvatarRadiusCss(char)}; box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 14px ${char.isFavorite ? 'rgba(245, 158, 11, 0.4)' : $store.app.hexToRgba($store.characters.getCharAccentColor(char), 0.35)}; overflow: hidden; position: relative; isolation: isolate;`"
+                          :title="`Operativo: ${char.name || 'Sin Nombre'}`">
+                          <template
+                            x-if="char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl)">
+                            <img
+                              :src="char.basics?.useIconForPfp ? (char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : (char.basics?.avatarDataUrl || char.basics?.iconDataUrl)"
+                              class="w-full h-full object-cover transition-all"
+                              :style="`${char.basics?.useIconForPfp ? (char.basics?.iconTransform || char.basics?.avatarTransform || '') : (char.basics?.avatarTransform || char.basics?.iconTransform || '')}; border-radius: ${$store.characters.getAvatarRadiusCss(char)};`"
+                              loading="lazy" decoding="async" alt="" />
+                          </template>
+                          <template
+                            x-if="!(char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl))">
+                            <div class="w-full h-full flex items-center justify-center">
+                              <svg class="w-8 h-8 text-white/80" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                stroke-linejoin="round">
+                                <circle cx="12" cy="8" r="5" />
+                                <path d="M20 21a8 8 0 0 0-16 0" />
+                              </svg>
+                            </div>
+                          </template>
+                        </div>
+                        <!-- Marco de Avatar de Steam Superpuesto -->
+                        <template x-if="char.basics?.avatarFrame?.url">
+                          <img :src="char.basics.avatarFrame.url" class="steam-avatar-frame-overlay" loading="lazy" decoding="async" alt="" />
+                        </template>
+                        <!-- Pin Estrella Dorada de Favorito -->
+                        <div x-show="char.isFavorite"
+                          class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-300 border border-white/70 shadow-[0_0_8px_rgba(251,191,36,0.9)] flex items-center justify-center z-10"
+                          title="Ficha Favorita">
+                          <svg class="w-2.5 h-2.5 fill-white text-white" viewBox="0 0 24 24">
+                            <polygon
+                              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                            </polygon>
+                          </svg>
+                        </div>
+                      </div>
+
+                      <!-- Identidad Expandida -->
+                      <div class="min-w-0 flex-1 space-y-1">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <h3
+                            class="font-title text-xl font-bold uppercase tracking-wider text-white truncate drop-shadow-md group-hover:text-[var(--char-accent)] transition-colors"
+                            x-text="char.name || 'Sin Nombre'" :title="char.name || 'Sin Nombre'"></h3>
+
+                          <!-- Badge Activo en Línea -->
+                          <span x-show="char.id === $store.characters.activeId"
+                            class="shrink-0 text-[9.5px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md bg-[var(--char-accent,#00F0FF)]/20 text-[var(--char-accent,#00F0FF)] border border-[var(--char-accent,#00F0FF)]/60 tracking-wider shadow-[0_0_10px_var(--char-accent-glow)]">
+                            ACTIVO
+                          </span>
+
+                          <!-- Badge Favorita en Línea -->
+                          <span x-show="char.isFavorite"
+                            class="shrink-0 text-[9.5px] font-mono font-bold uppercase px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-400/50 tracking-wider flex items-center gap-1 shadow-[0_0_8px_rgba(251,191,36,0.3)]">
+                            <svg class="w-3.5 h-3.5 fill-amber-400 text-amber-400" viewBox="0 0 24 24">
+                              <polygon
+                                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                              </polygon>
+                            </svg>
+                            FAVORITA
+                          </span>
+
+                          <!-- Badge Bloqueada en Línea -->
+                          <span x-show="char.isLocked"
+                            class="shrink-0 text-[9.5px] font-mono font-bold uppercase px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/40 tracking-wider flex items-center gap-1 shadow-sm"
+                            title="Ficha protegida contra edición">
+                            <svg class="w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            PROTEGIDA
+                          </span>
+                        </div>
+
+                        <!-- Alias si existe -->
+                        <template
+                          x-if="char.basics?.alias && char.basics.alias.trim() && char.basics.alias.trim().toLowerCase() !== (char.name || '').trim().toLowerCase()">
+                          <p class="text-xs text-parchment-cream/80 font-sans truncate font-medium"
+                            x-text="`«${char.basics.alias.trim()}»`" :title="`Alias: ${char.basics.alias.trim()}`">
+                          </p>
+                        </template>
+
+                        <!-- Tags Horizontales -->
+                        <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+                          <template x-if="char.basics?.race && char.basics.race.trim()">
+                            <span
+                              class="px-2.5 py-0.5 rounded-lg bg-black/70 border border-white/20 text-slate-200 text-xs font-sans font-medium truncate max-w-[130px] shadow-sm backdrop-blur-sm"
+                              x-text="char.basics.race.trim()" :title="`Raza: ${char.basics.race.trim()}`"></span>
+                          </template>
+
+                          <template
+                            x-if="(char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role) && (char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role).trim()">
+                            <span
+                              class="px-2.5 py-0.5 rounded-lg bg-accent-cyan/10 border border-accent-cyan/40 text-accent-cyan text-xs font-sans font-bold truncate max-w-[150px] shadow-sm backdrop-blur-sm"
+                              x-text="(char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role).trim()"
+                              :title="`Arquetipo/Rol: ${(char.extras?.fgcStyle || char.extras?.charClass || char.basics?.role).trim()}`"></span>
+                          </template>
+
+                          <template x-if="!$store.settings.hidePowerScalingTierBadge && char.powerScaling?.tier && char.powerScaling.tier.trim()">
+                            <span
+                              class="px-2.5 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/50 text-amber-300 font-mono text-[10.5px] font-extrabold tracking-wider shrink-0 shadow-sm"
+                              x-text="char.powerScaling.tier.trim()"
+                              :title="`Tier de Poder: ${char.powerScaling.tier.trim()}`"></span>
+                          </template>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Frase del Personaje (Modo Panorámica) con rotación animada cinematográfica -->
+                  <template x-if="$store.characters.getFeaturedQuote(char)">
+                    <div
+                      class="flex items-center gap-2 pt-1 text-xs italic text-parchment-cream/95 font-serif line-clamp-1"
+                      x-data="{
+                        currentQuote: $store.characters.getFeaturedQuote(char),
+                        isFading: false,
+                        init() {
+                          this.$watch('$store.characters.quoteRotationIndex', () => {
+                            const next = $store.characters.getFeaturedQuote(char);
+                            if (next && next !== this.currentQuote) {
+                              this.isFading = true;
+                              setTimeout(() => {
+                                this.currentQuote = next;
+                                this.isFading = false;
+                              }, 380);
+                            } else if (next) {
+                              this.currentQuote = next;
+                            }
+                          });
+                        }
+                      }">
+                      <svg class="w-3.5 h-3.5 text-accent-gold/90 shrink-0" xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2H4c-1.25 0-2 .75-2 2v6c0 7 1 8 3 8Z" />
+                        <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2h-4c-1.25 0-2 .75-2 2v6c0 7 1 8 3 8Z" />
+                      </svg>
+                      <span class="truncate quote-rotating-text" :class="isFading ? 'is-fading-out' : 'is-fading-in'"
+                        x-text="`“${currentQuote}”`" :title="`Frase: ${currentQuote}`"></span>
+                    </div>
+                  </template>
+
+                  <!-- Micro-etiqueta de Coincidencia Panorámica -->
+                  <template
+                    x-if="$store.characters.searchQuery && $store.characters.getSearchMatch(char, $store.characters.searchQuery).subfieldTag">
+                    <div
+                      class="search-match-tag flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium truncate">
+                      <i data-lucide="search" class="w-3 h-3 shrink-0"></i>
+                      <span class="truncate"
+                        x-text="`Coincidencia en: ${$store.characters.getSearchMatch(char, $store.characters.searchQuery).subfieldTag}`"></span>
+                    </div>
+                  </template>
+
+                  <!-- Barra Inferior Panorámica: Timestamp a la izquierda, Botones a la derecha -->
+                  <div
+                    class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2.5 border-t border-white/10">
+                    <div class="flex items-center gap-2 text-[10.5px] font-mono text-ink-slate min-w-0"
+                      :title="`Última actualización: ${$store.characters.formatDate(char.updatedAt)}`">
+                      <span class="flex items-center gap-1.5 truncate">
+                        <i data-lucide="clock" class="w-3 h-3 text-white/40 shrink-0"></i>
+                        <span x-text="`Modificado: ${$store.characters.formatDate(char.updatedAt)}`"
+                          class="truncate"></span>
+                      </span>
+
+                      <!-- Insignias de Steam (Máx 3) -->
+                      <template x-if="char.basics?.steamBadges && char.basics.steamBadges.filter(Boolean).length > 0">
+                        <div class="flex items-center gap-1.5 shrink-0 pl-2 border-l border-white/15 ml-1" @click.stop>
+                          <template x-for="(b, bIdx) in char.basics.steamBadges.filter(Boolean).slice(0, 3)" :key="b.id || bIdx">
+                            <div class="relative group/badge flex items-center justify-center steam-badge-item w-5 h-5 max-w-[20px] max-h-[20px] cursor-help">
+                              <img :src="b.url" :alt="b.name" class="w-5 h-5 max-w-[20px] max-h-[20px] object-contain" :class="b.isFoil ? 'steam-foil-badge' : ''" loading="lazy" />
+                              <!-- Tooltip Enriquecido -->
+                              <div class="steam-badge-tooltip p-2 rounded-xl bg-[#0b0e14]/95 border border-white/15 shadow-2xl backdrop-blur-md flex items-center gap-2.5 pointer-events-none">
+                                <img :src="b.url" class="w-8 h-8 object-contain shrink-0" :class="b.isFoil ? 'steam-foil-badge' : ''" />
+                                <div class="text-left space-y-0.5 min-w-0">
+                                  <div class="flex items-center gap-1.5">
+                                    <span class="text-xs font-title font-bold text-white leading-tight truncate max-w-[140px]" x-text="b.name"></span>
+                                    <span x-show="b.isFoil" class="px-1 py-0.2 rounded text-[7.5px] font-mono font-black uppercase bg-gradient-to-r from-amber-400 to-amber-200 text-black shrink-0">FOIL</span>
+                                  </div>
+                                  <p class="text-[10px] font-sans text-parchment-cream/70 truncate max-w-[140px]" x-text="b.game"></p>
+                                  <span class="text-[9px] font-mono text-cyan-300 block" x-text="b.level"></span>
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </template>
+                    </div>
+
+                    <!-- Botón Principal ABRIR FICHA -->
+                    <div class="flex items-center gap-1.5 shrink-0" @click.stop>
+                      <button type="button"
+                        class="py-2 px-4 rounded-xl bg-[var(--char-accent,#00F0FF)] text-black font-extrabold text-xs font-title uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_15px_var(--char-accent-glow)] hover:brightness-110 active:scale-[0.98] transition-all"
+                        @click="$store.characters.openCharacterSheet(char.id)" title="Abrir Ficha de Personaje">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5 shrink-0 stroke-[2.5]"></i>
+                        <span>ABRIR FICHA</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- Tarjeta Especial Fija de Creación Rápida (Solo visible cuando hay personajes en la lista) -->
+          <div class="dashboard-char-create-card group cursor-pointer select-none"
+            x-show="!$store.characters.loading && $store.characters.filteredList.length > 0"
+            :class="{ 'is-banner-mode': $store.characters.rosterViewMode === 'banner' }"
+            @click="$store.characters.createNew()" title="Crear y reclutar una nueva ficha de rol en blanco">
+            <div class="create-icon-wrapper">
+              <i data-lucide="plus" class="w-7 h-7 stroke-[2.5]"></i>
+            </div>
+            <div>
+              <h4
+                class="font-title text-lg font-bold uppercase tracking-wider text-white group-hover:text-accent-cyan transition-colors">
+                Reclutar Operativo
+              </h4>
+              <p class="text-xs font-mono text-slate-400 group-hover:text-slate-200 transition-colors mt-1">
+                + Nueva Ficha en Blanco
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Paginación HUD -->
+        <div x-show="!$store.characters.loading && $store.characters.filteredList.length > $store.characters.itemsPerPage" x-cloak
+          class="w-full flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl bg-black/60 border border-parchment-brown/20 text-xs font-mono select-none">
+
+          <div class="text-[11px] text-ink-slate uppercase tracking-wider flex items-center gap-1.5 font-mono">
+            <i data-lucide="layers" class="w-3.5 h-3.5 text-accent-cyan"></i>
+            <span>PÁGINA <strong class="text-accent-cyan" x-text="$store.characters.currentPage"></strong> DE <strong
+                class="text-parchment-cream" x-text="$store.characters.totalPages"></strong></span>
+            <span class="text-ink-slate/60">|</span>
+            <span>(TOTAL: <strong class="text-parchment-cream" x-text="$store.characters.filteredList.length"></strong>
+              OPERATIVOS)</span>
+          </div>
+
+          <div class="flex items-center gap-1.5">
+            <button type="button" @click="$store.characters.prevPage()" :disabled="$store.characters.currentPage === 1"
+              class="px-2.5 py-1 rounded-lg border text-xs font-bold font-mono transition-all flex items-center gap-1 cursor-pointer"
+              :class="$store.characters.currentPage === 1 ? 'opacity-30 border-parchment-brown/20 text-ink-slate cursor-not-allowed' : 'bg-slate-900 border-accent-cyan/40 text-accent-cyan hover:bg-accent-cyan/20'">
+              <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+              <span>ANT</span>
+            </button>
+
+            <div class="flex items-center gap-1">
+              <template x-for="page in $store.characters.totalPages" :key="page">
+                <button type="button" @click="$store.characters.setPage(page)"
+                  class="w-7 h-7 rounded-lg border text-xs font-bold font-mono transition-all flex items-center justify-center cursor-pointer"
+                  :class="$store.characters.currentPage === page ? 'bg-accent-cyan/20 text-accent-cyan border-accent-cyan/60 shadow-[0_0_8px_rgba(0,240,255,0.3)]' : 'bg-slate-950/80 border-parchment-brown/20 text-ink-slate hover:text-parchment-cream hover:border-parchment-brown/40'"
+                  x-text="page">
+                </button>
+              </template>
+            </div>
+
+            <button type="button" @click="$store.characters.nextPage()"
+              :disabled="$store.characters.currentPage === $store.characters.totalPages"
+              class="px-2.5 py-1 rounded-lg border text-xs font-bold font-mono transition-all flex items-center gap-1 cursor-pointer"
+              :class="$store.characters.currentPage === $store.characters.totalPages ? 'opacity-30 border-parchment-brown/20 text-ink-slate cursor-not-allowed' : 'bg-slate-900 border-accent-cyan/40 text-accent-cyan hover:bg-accent-cyan/20'">
+              <span>SIG</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════════════════════
+           BARRA FLOTANTE DE ACCIONES EN LOTE (CYBER HUD MULTI-SELECT)
+           Totalmente sincronizada con el color de tema personalizado de configuraciones
+           ══════════════════════════════════════════════════════════════════════════ -->
+      <div id="characters-multiselect-floating-bar"
+        x-show="$store.characters.selectedCount > 0"
+        x-cloak
+        x-data="{ isFolderMenuOpen: false }"
+        @click.outside="isFolderMenuOpen = false"
+        x-transition:enter="transition cubic-bezier(0.16, 1, 0.3, 1) duration-300"
+        x-transition:enter-start="opacity-0 translate-y-10 scale-95"
+        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+        x-transition:leave="transition cubic-bezier(0.16, 1, 0.3, 1) duration-200"
+        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+        x-transition:leave-end="opacity-0 translate-y-10 scale-95"
+        class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95vw] max-w-4xl p-3 sm:p-3.5 rounded-2xl backdrop-blur-2xl border-2 flex flex-col md:flex-row items-center justify-between gap-3 select-none transition-all"
+        :style="$store.characters.getMultiselectBarStyle()">
+
+        <!-- Acento luminoso láser superior según color de configuraciones -->
+        <div class="absolute inset-x-0 top-0 h-[2px] opacity-85" :style="$store.characters.getMultiselectLaserStyle()"></div>
+
+        <!-- Sección Izquierda: Contador, Miniaturas y Deseleccionar -->
+        <div class="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+          <div class="flex items-center gap-2.5">
+            <!-- Indicador Pulsante con color de tema -->
+            <div class="relative w-7 h-7 rounded-xl border flex items-center justify-center shrink-0 transition-colors"
+              :style="$store.characters.getMultiselectIconBoxStyle()">
+              <i data-lucide="layers" class="w-4 h-4" :style="`color: ${$store.characters.getMultiselectAccentColor()};`"></i>
+              <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full animate-ping"
+                :style="`background-color: ${$store.characters.getMultiselectAccentColor()};`"></span>
+            </div>
+
+            <!-- Texto y Contador -->
+            <div class="flex items-center gap-1.5">
+              <span class="font-title text-sm sm:text-base font-black text-white" x-text="$store.characters.selectedCount"></span>
+              <span class="text-[11px] font-mono font-bold uppercase tracking-wider"
+                :style="`color: ${$store.characters.getMultiselectAccentColor()};`">
+                <span x-text="$store.characters.selectedCount === 1 ? 'Ficha' : 'Fichas'"></span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Pila de Miniaturas de Fichas Seleccionadas -->
+          <div class="flex items-center -space-x-2 overflow-hidden px-1 py-0.5">
+            <template x-for="(char, idx) in $store.characters.selectedCharacters.slice(0, 4)" :key="char.id">
+              <div class="w-7 h-7 rounded-lg overflow-hidden border-2 bg-black/80 shrink-0 shadow-md relative transition-colors"
+                :style="`border-color: ${$store.characters.getMultiselectAccentColor()};`"
+                :title="char.name">
+                <template x-if="char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl)">
+                  <img :src="char.basics?.useIconForPfp ? (char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : (char.basics?.avatarDataUrl || char.basics?.iconDataUrl)"
+                    class="w-full h-full object-cover pointer-events-none" alt="" />
+                </template>
+                <template x-if="!(char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl))">
+                  <div class="w-full h-full flex items-center justify-center text-[10px] font-bold text-white bg-slate-800"
+                    x-text="(char.name || '?').charAt(0).toUpperCase()"></div>
+                </template>
+              </div>
+            </template>
+
+            <!-- Badge de +N si hay más de 4 con acento dinámico -->
+            <template x-if="$store.characters.selectedCount > 4">
+              <div class="w-7 h-7 rounded-lg border-2 text-[9px] font-mono font-black flex items-center justify-center shrink-0 shadow-md transition-colors"
+                :style="`border-color: ${$store.characters.getMultiselectAccentColor()}; color: ${$store.characters.getMultiselectAccentColor()}; background-color: rgba(${$store.characters.getMultiselectRgbChannels()}, 0.25);`"
+                x-text="`+${$store.characters.selectedCount - 4}`"></div>
+            </template>
+          </div>
+
+          <!-- Botón Seleccionar Todas en la Página Actual -->
+          <button type="button" @click="$store.characters.selectAllVisible()"
+            class="px-2.5 py-1 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] font-mono text-slate-300 hover:text-white transition-all cursor-pointer shrink-0"
+            title="Seleccionar todas las fichas de esta página">
+            Todas
+          </button>
+
+          <!-- Botón Deseleccionar / Cancelar -->
+          <button type="button" @click="$store.characters.clearSelection()"
+            class="w-8 h-8 rounded-xl bg-white/5 hover:bg-rose-500/20 border border-white/10 hover:border-rose-400/50 text-slate-400 hover:text-rose-300 flex items-center justify-center transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95 shrink-0"
+            title="Deseleccionar todo (Esc)"
+            aria-label="Deseleccionar todo">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Separador Central Vertical -->
+        <div class="h-8 w-px bg-white/15 hidden md:block"></div>
+
+        <!-- Sección Derecha: Acciones en Lote (Carpeta, Favoritas, Exportar, Eliminar) -->
+        <div class="flex items-center gap-2 flex-wrap w-full md:w-auto justify-center md:justify-end">
+          
+          <!-- Dropdown Desplegable: Mover a Carpeta -->
+          <div class="relative">
+            <button type="button" @click="isFolderMenuOpen = !isFolderMenuOpen"
+              class="h-9 px-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/20 hover:border-cyan-400/50 text-slate-200 hover:text-cyan-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm">
+              <i data-lucide="folder-input" class="w-3.5 h-3.5 text-cyan-400"></i>
+              <span>Mover a Carpeta</span>
+              <i data-lucide="chevron-up" class="w-3 h-3 text-slate-400 transition-transform" :class="{ 'rotate-180': isFolderMenuOpen }"></i>
+            </button>
+
+            <!-- Menú Flotante de Carpetas -->
+            <div x-show="isFolderMenuOpen" @click.outside="isFolderMenuOpen = false"
+              x-transition:enter="transition ease-out duration-150"
+              x-transition:enter-start="opacity-0 scale-95 translate-y-2"
+              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+              x-transition:leave="transition ease-in duration-100"
+              x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+              x-transition:leave-end="opacity-0 scale-95 translate-y-2"
+              class="absolute bottom-full mb-2 left-0 sm:left-auto sm:right-0 w-60 p-1.5 rounded-2xl bg-[#090c14] border border-white/25 shadow-2xl backdrop-blur-2xl z-50 space-y-1 text-xs select-none max-h-64 overflow-y-auto"
+              style="box-shadow: 0 20px 50px rgba(0,0,0,0.95), 0 0 30px rgba(0,0,0,0.8);">
+
+              <div class="px-2.5 py-1.5 text-[10px] font-mono uppercase text-slate-400 font-bold border-b border-white/10 flex items-center justify-between">
+                <span>Destino de fichas:</span>
+                <span class="text-cyan-400" x-text="`${$store.characters.selectedCount} seleccionadas`"></span>
+              </div>
+
+              <!-- Sin Carpeta (Desvincular) -->
+              <button type="button" @click="$store.characters.moveSelectedToFolder(null); isFolderMenuOpen = false"
+                class="w-full text-left px-2.5 py-2 rounded-xl flex items-center gap-2 transition-colors cursor-pointer hover:bg-white/10 text-slate-300 hover:text-white">
+                <i data-lucide="folder-x" class="w-3.5 h-3.5 text-slate-400"></i>
+                <span class="truncate">Sin Carpeta (Desvincular)</span>
+              </button>
+
+              <!-- Carpetas del usuario -->
+              <template x-for="fold in $store.characters.folders" :key="fold.id">
+                <button type="button" @click="$store.characters.moveSelectedToFolder(fold.id); isFolderMenuOpen = false"
+                  class="w-full text-left px-2.5 py-2 rounded-xl flex items-center gap-2 transition-colors cursor-pointer hover:bg-white/10 text-slate-200 hover:text-white">
+                  <span class="w-3 h-3 rounded-full shrink-0" :style="`background-color: ${fold.color || '#00f0ff'}; box-shadow: 0 0 6px ${fold.color || '#00f0ff'};`"></span>
+                  <span class="truncate flex-1 font-sans" x-text="fold.name"></span>
+                </button>
+              </template>
+            </div>
+          </div>
+
+          <!-- Botón Marcar Favoritas -->
+          <button type="button" @click="$store.characters.toggleFavoriteSelected()"
+            class="h-9 px-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/20 hover:border-amber-400/50 text-slate-200 hover:text-amber-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+            title="Alternar estado de Favorita en todas las fichas seleccionadas">
+            <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span class="hidden sm:inline">Favoritas</span>
+          </button>
+
+          <!-- Botón Exportar JSON en Lote -->
+          <button type="button" @click="$store.characters.exportSelectedJSON()"
+            class="h-9 px-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-white/20 hover:border-emerald-400/50 text-slate-200 hover:text-emerald-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+            title="Exportar archivo JSON con las fichas seleccionadas">
+            <i data-lucide="download" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span class="hidden sm:inline">Exportar JSON</span>
+          </button>
+
+          <!-- Separador Vertical Delgado -->
+          <div class="h-6 w-px bg-white/15 mx-0.5 hidden sm:block"></div>
+
+          <!-- Botón Eliminar Múltiples Fichas -->
+          <button type="button" @click="$store.characters.confirmDeleteSelected()"
+            class="h-9 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/40 hover:border-rose-400 text-rose-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-sm"
+            title="Eliminar permanentemente las fichas seleccionadas">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-400"></i>
+            <span>Eliminar</span>
+          </button>
+        </div>
+
+      </div>
+
+    </main>

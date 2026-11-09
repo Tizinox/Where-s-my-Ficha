@@ -1,0 +1,9 @@
+# ¿Where is my Ficha?
+
+> Aplicación web táctica para crear, gestionar, exportar y clasificar fichas de personajes de rol y tier lists interactivas.
+
+## Secciones y Enlaces
+- [Panel de Personajes](/): Centro de comando táctico para selección, administración y búsqueda de fichas.
+- [Editor de Fichas](/): Módulo de creación y edición profunda de estadísticas, armas, habilidades e inventario.
+- [Creador de Tier Lists](/): Clasificador jerárquico con arrastre interactivo por rangos de poder S a E.
+- [Configuración del Sistema](/): Personalización de temas Cyberpunk, paletas neón y ajustes de accesibilidad.
