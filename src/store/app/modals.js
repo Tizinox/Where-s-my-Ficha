@@ -145,6 +145,7 @@ export function createModalMethods() {
             { isOpen: () => Boolean(charStore?.showImportPreview), close: () => charStore.closeImportPreview() },
             { isOpen: () => Boolean(charStore?.renameTarget), close: () => { charStore.renameTarget = null; } },
             { isOpen: () => Boolean(charStore?.deleteTarget), close: () => charStore.cancelDelete() },
+            { isOpen: () => Boolean(charStore?.deleteFolderTarget), close: () => charStore.cancelDeleteFolder() },
             { isOpen: () => Boolean(charStore?.folderModalOpen), close: () => charStore.closeFolderModal() },
             { isOpen: () => Boolean(customEmojisStore?.isOpen), close: () => customEmojisStore.closePicker() },
             { isOpen: () => Boolean(steamEmojisStore?.isOpen), close: () => steamEmojisStore.close() },

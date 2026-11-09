@@ -375,7 +375,7 @@
         <div class="p-3 rounded-xl bg-black/50 border border-white/10 flex items-center justify-between">
           <span class="text-[11px] font-mono text-ink-slate uppercase">Vista Previa:</span>
           <div class="folder-tab-chip is-active"
-            :style="`--folder-color: ${$store.characters.folderForm.color || $store.settings.accentColor || '#00F0FF'}; --folder-bg: ${$store.app.hexToRgba($store.characters.folderForm.color || $store.settings.accentColor || '#00F0FF', 0.14)}; --folder-glow: ${$store.app.hexToRgba($store.characters.folderForm.color || $store.settings.accentColor || '#00F0FF', 0.35)};`">
+            :style="`--folder-color: ${$store.characters.folderForm.color || $store.settings.accentColor || '#00F0FF'}; --folder-bg: ${$store.app.hexToRgba($store.characters.folderForm.color || $store.settings.accentColor || '#00F0FF', 0.16)}; --folder-glow: ${$store.app.hexToRgba($store.characters.folderForm.color || $store.settings.accentColor || '#00F0FF', 0.45)};`">
             <template x-if="$store.characters.folderForm.customLogo">
               <div class="w-4 h-4 rounded overflow-hidden shrink-0 flex items-center justify-center">
                 <img :src="$store.characters.folderForm.customLogo" class="w-full h-full"
@@ -395,20 +395,123 @@
       </div>
 
       <!-- Acciones del Modal (Footer siempre visible y fijado) -->
-      <div class="shrink-0 flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
-        <button type="button" @click="$store.characters.closeFolderModal()"
-          class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-slate-300 hover:text-white transition-all cursor-pointer font-mono">
-          Cancelar
-        </button>
-        <button type="button" @click="$store.characters.saveFolderForm()"
-          :disabled="!$store.characters.folderForm.name.trim()"
-          class="px-5 py-2.5 rounded-xl font-hud font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:brightness-110 active:brightness-95 select-none"
-          :style="`background-color: ${$store.settings.accentColor}; color: #000000; box-shadow: ${$store.settings.disableGlowEffects ? 'none' : `0 0 16px ${$store.app.hexToRgba($store.settings.glowColor || $store.settings.accentColor, 0.45)}`};`">
-          <i data-lucide="check" class="w-4 h-4 stroke-[2.5]"></i>
-          <span x-text="$store.characters.folderModalMode === 'create' ? 'Crear Carpeta' : 'Guardar Carpeta'"></span>
-        </button>
+      <div class="shrink-0 flex items-center justify-between gap-2.5 pt-3 border-t border-white/10">
+        <div>
+          <button type="button" x-show="$store.characters.folderModalMode === 'edit'"
+            @click="
+              const fId = $store.characters.folderForm.id;
+              const f = $store.characters.folders.find(fold => fold.id === fId) || $store.characters.folderForm;
+              $store.characters.closeFolderModal();
+              $store.characters.confirmDeleteFolder(f);
+            "
+            class="px-3 py-2 rounded-xl text-rose-400 hover:text-white hover:bg-rose-500/20 border border-transparent hover:border-rose-500/30 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+            title="Eliminar esta carpeta">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+            <span class="hidden sm:inline">Eliminar Carpeta</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2.5">
+          <button type="button" @click="$store.characters.closeFolderModal()"
+            class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-xs text-slate-300 hover:text-white transition-all cursor-pointer font-mono">
+            Cancelar
+          </button>
+          <button type="button" @click="$store.characters.saveFolderForm()"
+            :disabled="!$store.characters.folderForm.name.trim()"
+            class="px-5 py-2.5 rounded-xl font-hud font-bold text-xs uppercase tracking-wider transition-all cursor-pointer flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:brightness-110 active:brightness-95 select-none"
+            :style="`background-color: ${$store.settings.accentColor}; color: #000000; box-shadow: ${$store.settings.disableGlowEffects ? 'none' : `0 0 16px ${$store.app.hexToRgba($store.settings.glowColor || $store.settings.accentColor, 0.45)}`};`">
+            <i data-lucide="check" class="w-4 h-4 stroke-[2.5]"></i>
+            <span x-text="$store.characters.folderModalMode === 'create' ? 'Crear Carpeta' : 'Guardar Carpeta'"></span>
+          </button>
+        </div>
       </div>
 
     </div>
+    </template>
+  </div>
+
+  <!-- ==============================================================
+       MODAL DE CONFIRMACIÓN: ELIMINAR CARPETA (DISEÑO DEDICADO HUD)
+       ============================================================== -->
+  <div id="delete-folder-modal" x-data x-show="Boolean($store.characters.deleteFolderTarget)" x-cloak
+    class="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md"
+    x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100" x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
+    @keydown.escape.window="$store.characters.cancelDeleteFolder()"
+    @keydown.enter.window="$store.characters.deleteFolderTarget && $store.characters.executeDeleteFolder()"
+    role="dialog" aria-modal="true" aria-labelledby="delete-folder-title">
+
+    <!-- Backdrop click para cancelar -->
+    <div class="absolute inset-0" @click="$store.characters.cancelDeleteFolder()"></div>
+
+    <template x-if="Boolean($store.characters.deleteFolderTarget)">
+      <div
+        class="relative w-full max-w-md bg-[#0a0d14] border border-rose-500/40 rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 select-none shadow-[0_0_40px_rgba(244,63,94,0.25)]"
+        @click.stop>
+
+        <!-- Top Accent Bar Carmesí -->
+        <div class="h-1.5 w-full bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500"></div>
+
+        <div class="p-6 space-y-4">
+          <!-- Icon & Title -->
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border border-rose-500/40 bg-rose-500/15 text-rose-400 shadow-[0_0_16px_rgba(244,63,94,0.3)]">
+              <i data-lucide="folder-minus" class="w-6 h-6"></i>
+            </div>
+            <div class="min-w-0">
+              <h3 id="delete-folder-title" class="font-title text-lg font-bold text-white uppercase tracking-wider truncate">
+                ¿Eliminar Carpeta?
+              </h3>
+              <span class="text-[10.5px] font-mono uppercase tracking-wider font-bold text-rose-400">
+                Confirmación de Organización
+              </span>
+            </div>
+          </div>
+
+          <!-- Vista Previa de la Carpeta que se va a eliminar -->
+          <div class="p-3.5 rounded-xl bg-black/60 border border-white/10 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border"
+              :style="`background-color: ${$store.app.hexToRgba($store.characters.deleteFolderTarget.color || $store.settings.accentColor, 0.15)}; border-color: ${$store.app.hexToRgba($store.characters.deleteFolderTarget.color || $store.settings.accentColor, 0.4)}; color: ${$store.characters.deleteFolderTarget.color || $store.settings.accentColor};`">
+              <template x-if="$store.characters.deleteFolderTarget.customLogo">
+                <img :src="$store.characters.deleteFolderTarget.customLogo" class="w-full h-full rounded-[inherit] object-cover" alt="" />
+              </template>
+              <template x-if="!$store.characters.deleteFolderTarget.customLogo">
+                <span class="w-5 h-5 flex items-center justify-center"
+                  x-html="$store.characters.renderFolderIconSvg($store.characters.deleteFolderTarget.icon, 'w-5 h-5', $store.characters.deleteFolderTarget.color || $store.settings.accentColor)"></span>
+              </template>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="font-title text-base font-bold text-white truncate" x-text="$store.characters.deleteFolderTarget.name"></h4>
+              <p class="text-xs text-slate-400 font-mono">
+                <span class="font-bold text-amber-300" x-text="$store.characters.getFolderCharCount($store.characters.deleteFolderTarget.id)"></span> ficha(s) contenida(s)
+              </p>
+            </div>
+          </div>
+
+          <!-- Mensaje de Protección de Datos: Las fichas NO se pierden -->
+          <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-start gap-2.5 text-xs text-amber-200/90 font-sans leading-relaxed">
+            <i data-lucide="shield-check" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+            <div>
+              <strong>Tus fichas están seguras:</strong> Ningún personaje se borrará. Solamente se retirarán de esta carpeta y volverán a estar visibles en la sección <em>«Sin Carpeta»</em>.
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+            <button type="button" @click="$store.characters.cancelDeleteFolder()"
+              class="px-4 py-2.5 rounded-xl text-xs font-mono font-bold text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">
+              Cancelar
+            </button>
+
+            <button type="button" @click="$store.characters.executeDeleteFolder()"
+              class="px-5 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg transition-all hover:scale-[1.02] active:scale-95 cursor-pointer bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-rose-900/40">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+              <span>Eliminar Carpeta</span>
+            </button>
+          </div>
+
+        </div>
+      </div>
     </template>
   </div>

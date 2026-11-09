@@ -48,6 +48,20 @@
         </button>
       </div>
 
+      <!-- Cartel de Advertencia: Mecánica en Fase Beta -->
+      <div class="p-3.5 rounded-xl bg-amber-500/15 border border-amber-500/40 flex items-start gap-3 text-amber-200 shadow-inner">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+        <div class="text-xs space-y-1">
+          <p class="font-bold text-amber-300 font-mono uppercase tracking-wider text-[11px] flex items-center gap-2">
+            <span>Aviso: Mecánica en Fase Beta</span>
+            <span class="px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/50 text-[9px]">EXPERIMENTAL</span>
+          </p>
+          <p class="text-amber-200/90 leading-relaxed font-sans text-xs">
+            Esta mecánica está en fase beta y es muy propensa a fallar, bugearse, verse mal visualmente o directamente romperse en caso de ser usada. Te recomendamos proceder con precaución y mantener respaldos de tus fichas.
+          </p>
+        </div>
+      </div>
+
       <!-- Formulario -->
       <form @submit.prevent="$store.characters.saveCustomTabModal()" class="space-y-5">
 

@@ -35,6 +35,26 @@ export function createFolderMethods() {
     draggingCharId: null,
     dragOverFolderId: null,
 
+    // Estado Confirmación de Eliminación de Carpeta (Modal dedicado sin confirm nativo)
+    deleteFolderTarget: null,
+
+    confirmDeleteFolder(folder) {
+      if (!folder) return;
+      this.deleteFolderTarget = folder;
+      window.Alpine?.nextTick(() => window.lucide?.createIcons?.());
+    },
+
+    cancelDeleteFolder() {
+      this.deleteFolderTarget = null;
+    },
+
+    async executeDeleteFolder() {
+      if (!this.deleteFolderTarget) return;
+      const folderId = this.deleteFolderTarget.id;
+      this.deleteFolderTarget = null;
+      await this.deleteFolder(folderId);
+    },
+
     renderFolderIconSvg(iconName, className = 'w-4 h-4', color = 'currentColor', strokeWidth = 1.25) {
       const name = String(iconName || 'folder').trim();
       const pascal = name.replace(/(^\w|-\w)/g, t => t.replace(/-/g, '').toUpperCase());

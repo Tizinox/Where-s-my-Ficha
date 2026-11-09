@@ -659,11 +659,14 @@ export function createNavigationMethods() {
         window.Alpine?.store('settings')?.forceCloseAllModals?.();
       } catch (e) { }
 
-      // 1. Sincronizar y limpiar editor activo y selecciones de texto para evitar el shock del Cycle Collector
+      // 1. Sincronizar y limpiar editor activo y selecciones de texto
       try {
         window.globalTextFormatter?.syncActiveEditor?.();
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
-          document.activeElement.blur();
+          const tag = document.activeElement.tagName;
+          if (tag === 'INPUT' || tag === 'TEXTAREA' || document.activeElement.isContentEditable) {
+            document.activeElement.blur();
+          }
         }
         const sel = window.getSelection?.();
         if (sel && sel.rangeCount > 0) {
@@ -675,7 +678,6 @@ export function createNavigationMethods() {
       try {
         const charStore = window.Alpine?.store('characters');
         charStore?.saveIfPending?.();
-        charStore?.clearTabCompletionCache?.();
         if (typeof charStore?.pruneUndoImagePool === 'function') {
           charStore.pruneUndoImagePool(charStore.undoStack, charStore.redoStack);
         }

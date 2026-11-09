@@ -22,11 +22,21 @@
 /* El sidebar y el contenido de la ficha solo se muestran en Modo Editor */
 #app:not([data-active-view="editor"]) #app-sidebar,
 #app:not([data-active-view="editor"]) #app-content,
+#app:not([data-active-view="editor"]) #app-header [x-show*="editor"],
 #app-sidebar[style*="display: none"],
 #app-sidebar[style*="display:none"],
 #app-content[style*="display: none"],
 #app-content[style*="display:none"] {
   display: none !important;
+}
+
+/* Cancelar de inmediato cualquier transición o animación activa al salir del editor para liberar el compositor GPU */
+#app:not([data-active-view="editor"]) #app-sidebar *,
+#app:not([data-active-view="editor"]) #app-content *,
+#app:not([data-active-view="editor"]) #btn-back-to-dashboard,
+#app:not([data-active-view="editor"]) #btn-dashboard {
+  animation: none !important;
+  transition: none !important;
 }
 
 #app:not([data-active-view="tierlist"]) #main-tierlist-view,

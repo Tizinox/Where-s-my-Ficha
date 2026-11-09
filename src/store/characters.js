@@ -131,11 +131,19 @@ export function registerCharactersStore(Alpine) {
     },
 
     // ── Recordatorio de Backup (7 Días) ──────────────────────────────
-    lastJsonExportTimestamp: Number(ls.get('superficha_last_export_timestamp', 0)) || 0,
+    lastJsonExportTimestamp: (() => {
+      const stored = ls.get('superficha_last_export_timestamp', null);
+      if (stored === null || stored === undefined || stored === '' || stored === 0 || stored === '0') {
+        const now = Date.now();
+        ls.set('superficha_last_export_timestamp', now);
+        return now;
+      }
+      return Number(stored) || Date.now();
+    })(),
 
     get isBackupRecommended() {
       if (this.list.length === 0) return false;
-      if (!this.lastJsonExportTimestamp) return true;
+      if (!this.lastJsonExportTimestamp) return false;
       const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
       return (Date.now() - this.lastJsonExportTimestamp) > SEVEN_DAYS_MS;
     },
@@ -856,6 +864,9 @@ export function registerCharactersStore(Alpine) {
           this.activeId = initialChar.id;
           await this._persist(initialChar);
           await db.meta.put({ key: 'activeId', value: initialChar.id });
+          // Inicializar timestamp de backup en la primera creación para evitar alerta preventiva inmediata
+          this.lastJsonExportTimestamp = Date.now();
+          ls.set('superficha_last_export_timestamp', this.lastJsonExportTimestamp);
         } else {
           const savedMeta = await db.meta.get('activeId');
           const savedActive = savedMeta?.value;
