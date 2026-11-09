@@ -94,6 +94,7 @@
   --border-secondary: rgba(var(--accent-secondary-rgb), 0.35);
   --border-tertiary: rgba(var(--accent-tertiary-rgb), 0.35);
   --border-strong: rgba(var(--accent-primary-rgb), 0.55);
+  --border-width: 1px;
 
   --font-display: 'Barlow Condensed', sans-serif;
   --font-body: 'Inter Tight', sans-serif;
@@ -422,7 +423,30 @@ textarea.form-textarea,
 
 .dashboard-header-panel {
   background-color: var(--bg-panel) !important;
+  background-image: linear-gradient(180deg, rgba(var(--bg-panel-rgb), 0.95) 0%, rgba(var(--bg-panel-rgb), 0.98) 100%) !important;
   border-color: var(--border-custom) !important;
+}
+
+.dashboard-char-card,
+.dashboard-char-card-inner-bg,
+.skeleton-card-grid,
+.skeleton-card-banner {
+  background: linear-gradient(180deg, rgba(var(--bg-panel-rgb), 0.95) 0%, rgba(var(--bg-panel-rgb), 0.98) 100%) !important;
+}
+
+.dashboard-char-create-card {
+  background: linear-gradient(180deg, rgba(var(--bg-panel-rgb), 0.6) 0%, rgba(var(--bg-panel-rgb), 0.8) 100%) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+.dashboard-search-input,
+.dashboard-filter-select {
+  background-color: rgba(var(--bg-panel-rgb), 0.88) !important;
+  border-color: var(--border-custom) !important;
+}
+
+.tierlist-cyber-panel {
+  background: linear-gradient(135deg, rgba(var(--bg-panel-rgb), 0.94) 0%, rgba(var(--bg-panel-rgb), 0.96) 100%) !important;
 }
 
 /* ── Reset Alpine ──────────────────────────────────────────── */
@@ -851,5 +875,136 @@ body::before {
 .shadow-accent-cyan\/50,
 .shadow-accent-cyan\/60 {
   box-shadow: 0 0 16px var(--accent-glow, rgba(var(--accent-primary-rgb, 0, 240, 255), 0.25)) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   GLOBAL INTERFACE BORDER WIDTH CONTROLS (--border-width)
+   ══════════════════════════════════════════════════════════ */
+/* 1. Paneles, tarjetas y marcos de Configuración (Settings) */
+.settings-fullscreen-view .settings-card,
+.settings-fullscreen-view .dashboard-header-panel,
+.settings-fullscreen-view .rounded-2xl.border,
+.settings-fullscreen-view .rounded-xl.border,
+.settings-fullscreen-view .rounded-lg.border,
+.settings-fullscreen-view .p-4.rounded-2xl,
+.settings-fullscreen-view .p-5.rounded-2xl,
+.settings-fullscreen-view div[class*="rounded-2xl"][class*="border"],
+.settings-fullscreen-view div[class*="rounded-xl"][class*="border"],
+.settings-fullscreen-view div[class*="rounded-lg"][class*="border"] {
+  border-width: var(--border-width, 1px) !important;
+  border-style: solid;
+}
+
+/* 2. Botones, canales y contenedores de opciones dentro de Configuración */
+.settings-fullscreen-view button.border:not([class*="border-t"]):not([class*="border-b"]):not([class*="border-l"]):not([class*="border-r"]):not([class*="border-0"]),
+.settings-fullscreen-view button[class*="rounded-xl"][class*="border"],
+.settings-fullscreen-view button[class*="rounded-lg"][class*="border"],
+.settings-fullscreen-view button[class*="rounded-md"][class*="border"] {
+  border-width: var(--border-width, 1px) !important;
+}
+
+/* 3. Tarjetas, paneles y modales globales (Dashboard, Fichas, Tierlist y Modales) */
+.dashboard-char-card,
+.dashboard-char-create-card,
+.dashboard-header-panel,
+.dashboard-stat-chip,
+.dashboard-quick-filter-pill,
+.form-card,
+.section-panel,
+.modal-box,
+.modal-dialog,
+.tierlist-cyber-panel,
+.tier-row,
+.tier-monument,
+#tierlist-render-board,
+.cyber-card,
+.cyber-panel {
+  border-width: var(--border-width, 1px) !important;
+  border-style: solid;
+}
+
+/* 4. En chamfer mode, actualizar el inset de las tarjetas para que el borde exterior revele el grosor exacto */
+[data-corner-style="chamfer"] .dashboard-char-card .dashboard-char-card-inner-bg {
+  inset: var(--border-width, 1px) !important;
+}
+
+[data-corner-style="chamfer"] .dashboard-char-card .card-banner-layer {
+  inset: var(--border-width, 1px) !important;
+  width: calc(100% - calc(var(--border-width, 1px) * 2)) !important;
+  height: calc(100% - calc(var(--border-width, 1px) * 2)) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   AUTO-CONTRAST FOR LIGHT SURFACE THEMES (WCAG AA/AAA)
+   Se activa automáticamente cuando la luminancia de superficie
+   supera 0.42 (incluye #FFFFFF, #BBB7AD, marfiles y tonos claros).
+   ══════════════════════════════════════════════════════════ */
+[data-surface-theme="light"],
+.surface-light {
+  color-scheme: light;
+  --text-primary: #0B0F19;
+  --text-secondary: rgba(11, 15, 25, 0.75);
+  --text-muted: rgba(11, 15, 25, 0.50);
+}
+
+/* Títulos y textos principales en modo claro */
+[data-surface-theme="light"] .text-parchment-cream,
+[data-surface-theme="light"] .text-parchment-peach,
+[data-surface-theme="light"] .text-parchment-light,
+[data-surface-theme="light"] .text-parchment-soft,
+.surface-light .text-parchment-cream,
+.surface-light .text-parchment-peach,
+.surface-light .text-parchment-light,
+.surface-light .text-parchment-soft {
+  color: #0B0F19 !important;
+}
+
+/* Textos blancos estándar se adaptan a oscuro excepto en botones o elementos con fondo propio */
+[data-surface-theme="light"] .text-white:not([class*="bg-"]):not([class*="badge"]):not([class*="btn"]):not([data-protect-contrast]):not(.cyber-color-popover *),
+.surface-light .text-white:not([class*="bg-"]):not([class*="badge"]):not([class*="btn"]):not([data-protect-contrast]):not(.cyber-color-popover *) {
+  color: #0B0F19 !important;
+}
+
+/* Subtítulos, labels y descripciones secundarias */
+[data-surface-theme="light"] .text-ink-slate,
+[data-surface-theme="light"] .text-ink-gray,
+[data-surface-theme="light"] .text-slate-300:not([class*="bg-"]):not([data-protect-contrast]):not(.cyber-color-popover *),
+[data-surface-theme="light"] .text-slate-400:not([class*="bg-"]):not([data-protect-contrast]):not(.cyber-color-popover *),
+.surface-light .text-ink-slate,
+.surface-light .text-ink-gray,
+.surface-light .text-slate-300:not([class*="bg-"]):not([data-protect-contrast]):not(.cyber-color-popover *),
+.surface-light .text-slate-400:not([class*="bg-"]):not([data-protect-contrast]):not(.cyber-color-popover *) {
+  color: rgba(11, 15, 25, 0.75) !important;
+}
+
+/* Desactivar scrim de sombras de texto oscuras sobre fondo claro */
+[data-surface-theme="light"] .text-shadow-scrim,
+.surface-light .text-shadow-scrim {
+  text-shadow: none !important;
+}
+
+/* Inputs de búsqueda y filtros en dashboard y settings */
+[data-surface-theme="light"] .dashboard-search-input,
+[data-surface-theme="light"] .dashboard-filter-select,
+.surface-light .dashboard-search-input,
+.surface-light .dashboard-filter-select {
+  color: #0B0F19 !important;
+}
+
+[data-surface-theme="light"] .dashboard-search-input::placeholder,
+.surface-light .dashboard-search-input::placeholder {
+  color: rgba(11, 15, 25, 0.55) !important;
+}
+
+/* Proteger el popover del selector de color HUD para que mantenga su estética cyberpunk oscura */
+.cyber-color-popover,
+[data-protect-contrast] {
+  color-scheme: dark !important;
+}
+.cyber-color-popover .text-white {
+  color: #FFFFFF !important;
+}
+.cyber-color-popover .text-parchment-cream {
+  color: #F8FAFC !important;
 }
 

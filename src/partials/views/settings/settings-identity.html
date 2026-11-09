@@ -218,8 +218,8 @@
     </div>
 
     <!-- 3. MÓDULO A: TRÍADA DE ACENTOS CROMÁTICOS (CANALES 1, 2 Y 3) -->
-    <div class="p-4 sm:p-5 rounded-2xl border space-y-4 shadow-xl transition-all"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; box-shadow: 0 0 16px ' + ($store.settings.activeGlowColor) + '15;'"
+    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-4 shadow-xl transition-all"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid; box-shadow: 0 0 16px ' + ($store.settings.activeGlowColor) + '15;'"
       x-data="{ activeAccentChannel: 'primary' }">
       
       <!-- Cabecera del Módulo de Acentos -->
@@ -289,25 +289,29 @@
           <p class="text-[11px] text-ink-slate">Botones primarios, indicadores de foco, bordes activos y elementos emblemáticos.</p>
         </div>
 
-        <!-- Selector Unificado de Color HEX -->
-        <div class="flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner">
-          <div class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group"
-            :style="'background-color: ' + $store.settings.accentColor + '; box-shadow: 0 0 12px ' + $store.settings.accentColor + '50;'">
-            <input type="color" x-model="$store.settings.accentColor"
-              class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(($store.settings.accentColor || '').toUpperCase()) ? 'text-black' : 'text-white'"></i>
-          </div>
+        <!-- Selector Profesional Cyber HUD: Primario -->
+        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
+          x-data="cyberColorPicker({ label: 'Color Primario', defaultColor: '#00F0FF', value: () => $store.settings.accentColor, onSelect: (hex) => { $store.settings.accentColor = hex; }, swatches: $store.settings.popularAccentSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+          <button type="button" @click="toggle()"
+            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 transition-transform active:scale-95"
+            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
+            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
+            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
+              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
+          </button>
           <div class="flex-1 flex items-center gap-1 px-1">
             <span class="text-xs font-mono text-ink-slate font-bold">#</span>
             <input type="text"
-              :value="($store.settings.accentColor || '').replace('#', '')"
-              @input="$store.settings.accentColor = '#' + $event.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6)"
+              :value="(currentHex || '').replace('#', '').toUpperCase()"
+              @input="setFromHex('#' + $event.target.value, false)"
               class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
               placeholder="00F0FF" maxlength="6">
           </div>
           <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="$store.settings.accentColor.toUpperCase()"></span>
+            x-text="currentHex.toUpperCase()"></span>
+
+          <!-- Popover Flotante Cyber HUD -->
+          <include src="./src/partials/views/settings/cyber-color-popover.html"></include>
         </div>
 
         <!-- Muestrarios Rápidos Cromáticos -->
@@ -353,25 +357,29 @@
           <p class="text-[11px] text-ink-slate">Habilidades pasivas, metas secundarias, enlaces, gradientes y acentos de relación.</p>
         </div>
 
-        <!-- Selector Unificado de Color Secundario -->
-        <div class="flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner">
-          <div class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group"
-            :style="'background-color: ' + $store.settings.secondaryColor + '; box-shadow: 0 0 12px ' + $store.settings.secondaryColor + '50;'">
-            <input type="color" x-model="$store.settings.secondaryColor"
-              class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(($store.settings.secondaryColor || '').toUpperCase()) ? 'text-black' : 'text-white'"></i>
-          </div>
+        <!-- Selector Profesional Cyber HUD: Secundario -->
+        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
+          x-data="cyberColorPicker({ label: 'Color Secundario', defaultColor: '#FF0077', value: () => $store.settings.secondaryColor, onSelect: (hex) => { $store.settings.secondaryColor = hex; }, swatches: $store.settings.popularSecondarySwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+          <button type="button" @click="toggle()"
+            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-transform active:scale-95"
+            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
+            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
+            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
+              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
+          </button>
           <div class="flex-1 flex items-center gap-1 px-1">
             <span class="text-xs font-mono text-ink-slate font-bold">#</span>
             <input type="text"
-              :value="($store.settings.secondaryColor || '').replace('#', '')"
-              @input="$store.settings.secondaryColor = '#' + $event.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6)"
+              :value="(currentHex || '').replace('#', '').toUpperCase()"
+              @input="setFromHex('#' + $event.target.value, false)"
               class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
               placeholder="FF0077" maxlength="6">
           </div>
           <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="$store.settings.secondaryColor.toUpperCase()"></span>
+            x-text="currentHex.toUpperCase()"></span>
+
+          <!-- Popover Flotante Cyber HUD -->
+          <include src="./src/partials/views/settings/cyber-color-popover.html"></include>
         </div>
 
         <!-- Muestrarios Rápidos Cromáticos Secundarios -->
@@ -406,25 +414,29 @@
           <p class="text-[11px] text-ink-slate">Hitos especiales, atributos auxiliares, tags de arsenal e items de soporte.</p>
         </div>
 
-        <!-- Selector Unificado de Color Terciario -->
-        <div class="flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner">
-          <div class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group"
-            :style="'background-color: ' + $store.settings.tertiaryColor + '; box-shadow: 0 0 12px ' + $store.settings.tertiaryColor + '50;'">
-            <input type="color" x-model="$store.settings.tertiaryColor"
-              class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(($store.settings.tertiaryColor || '').toUpperCase()) ? 'text-black' : 'text-white'"></i>
-          </div>
+        <!-- Selector Profesional Cyber HUD: Terciario -->
+        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
+          x-data="cyberColorPicker({ label: 'Color Terciario / Oro', defaultColor: '#D4AF37', value: () => $store.settings.tertiaryColor, onSelect: (hex) => { $store.settings.tertiaryColor = hex; }, swatches: $store.settings.popularTertiarySwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+          <button type="button" @click="toggle()"
+            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-amber-400/50 transition-transform active:scale-95"
+            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
+            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
+            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
+              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
+          </button>
           <div class="flex-1 flex items-center gap-1 px-1">
             <span class="text-xs font-mono text-ink-slate font-bold">#</span>
             <input type="text"
-              :value="($store.settings.tertiaryColor || '').replace('#', '')"
-              @input="$store.settings.tertiaryColor = '#' + $event.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6)"
+              :value="(currentHex || '').replace('#', '').toUpperCase()"
+              @input="setFromHex('#' + $event.target.value, false)"
               class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
               placeholder="D4AF37" maxlength="6">
           </div>
           <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="$store.settings.tertiaryColor.toUpperCase()"></span>
+            x-text="currentHex.toUpperCase()"></span>
+
+          <!-- Popover Flotante Cyber HUD -->
+          <include src="./src/partials/views/settings/cyber-color-popover.html"></include>
         </div>
 
         <!-- Muestrarios Rápidos Cromáticos Terciarios -->
@@ -451,8 +463,8 @@
     </div>
 
     <!-- 4. MÓDULO B: ATMÓSFERA, ILUMINACIÓN y SUPERFICIES (CANALES 4, 5 Y 6) -->
-    <div class="p-4 sm:p-5 rounded-2xl border space-y-4 shadow-xl transition-all"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; box-shadow: 0 0 16px ' + ($store.settings.activeGlowColor) + '15;'"
+    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-4 shadow-xl transition-all"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid; box-shadow: 0 0 16px ' + ($store.settings.activeGlowColor) + '15;'"
       x-data="{ activeAtmosChannel: 'glow' }">
       
       <!-- Cabecera del Módulo de Atmósfera -->
@@ -538,26 +550,30 @@
           </button>
         </div>
 
-        <!-- Selector Unificado de Color Glow (si Custom) -->
+        <!-- Selector Profesional Cyber HUD: Resplandor (si Custom) -->
         <template x-if="$store.settings.glowMode === 'custom'">
-          <div class="flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner animate-fadeIn">
-            <div class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group"
-              :style="'background-color: ' + $store.settings.glowColor + '; box-shadow: 0 0 12px ' + $store.settings.glowColor + '50;'">
-              <input type="color" x-model="$store.settings.glowColor"
-                class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
-              <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(($store.settings.glowColor || '').toUpperCase()) ? 'text-black' : 'text-white'"></i>
-            </div>
+          <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner animate-fadeIn"
+            x-data="cyberColorPicker({ label: 'Color de Resplandor', defaultColor: '#00F0FF', value: () => $store.settings.glowColor, onSelect: (hex) => { $store.settings.glowColor = hex; }, swatches: $store.settings.popularAccentSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+            <button type="button" @click="toggle()"
+              class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-transform active:scale-95"
+              :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
+              :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
+              <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
+                :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
+            </button>
             <div class="flex-1 flex items-center gap-1 px-1">
               <span class="text-xs font-mono text-ink-slate font-bold">#</span>
               <input type="text"
-                :value="($store.settings.glowColor || '').replace('#', '')"
-                @input="$store.settings.glowColor = '#' + $event.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6)"
+                :value="(currentHex || '').replace('#', '').toUpperCase()"
+                @input="setFromHex('#' + $event.target.value, false)"
                 class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
                 placeholder="00F0FF" maxlength="6">
             </div>
             <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-              x-text="$store.settings.glowColor.toUpperCase()"></span>
+              x-text="currentHex.toUpperCase()"></span>
+
+            <!-- Popover Flotante Cyber HUD -->
+            <include src="./src/partials/views/settings/cyber-color-popover.html"></include>
           </div>
         </template>
       </div>
@@ -572,24 +588,29 @@
           <p class="text-[11px] text-ink-slate">Tinte de fondo oscuro de tarjetas, paneles y modales (Obsidiana, Marino, Vacío, etc.).</p>
         </div>
 
-        <!-- Selector Unificado de Color Superficie -->
-        <div class="flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner">
-          <div class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group"
-            :style="'background-color: ' + $store.settings.surfaceColor + '; box-shadow: 0 0 12px ' + $store.settings.surfaceColor + '50;'">
-            <input type="color" x-model="$store.settings.surfaceColor"
-              class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-white"></i>
-          </div>
+        <!-- Selector Profesional Cyber HUD: Superficie -->
+        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
+          x-data="cyberColorPicker({ label: 'Color de Superficie', defaultColor: '#0A0D14', value: () => $store.settings.surfaceColor, onSelect: (hex) => { $store.settings.surfaceColor = hex; }, swatches: $store.settings.popularSurfaceSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+          <button type="button" @click="toggle()"
+            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-transform active:scale-95"
+            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
+            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
+            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
+              :class="['#FFFFFF', '#BBB7AD', '#E2E8F0', '#F8FAFC'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
+          </button>
           <div class="flex-1 flex items-center gap-1 px-1">
             <span class="text-xs font-mono text-ink-slate font-bold">#</span>
             <input type="text"
-              :value="($store.settings.surfaceColor || '').replace('#', '')"
-              @input="$store.settings.surfaceColor = '#' + $event.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6)"
+              :value="(currentHex || '').replace('#', '').toUpperCase()"
+              @input="setFromHex('#' + $event.target.value, false)"
               class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
               placeholder="0A0D14" maxlength="6">
           </div>
           <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="$store.settings.surfaceColor.toUpperCase()"></span>
+            x-text="currentHex.toUpperCase()"></span>
+
+          <!-- Popover Flotante Cyber HUD -->
+          <include src="./src/partials/views/settings/cyber-color-popover.html"></include>
         </div>
 
         <!-- Muestrarios Rápidos Cromáticos Superficie -->
@@ -623,24 +644,29 @@
           <p class="text-[11px] text-ink-slate">Marcos de tarjetas, cuadrículas de fondo, líneas divisorias y delimitadores.</p>
         </div>
 
-        <!-- Selector Unificado de Color Bordes -->
-        <div class="flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner">
-          <div class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group"
-            :style="'background-color: ' + $store.settings.borderColor + '; box-shadow: 0 0 12px ' + $store.settings.borderColor + '50;'">
-            <input type="color" x-model="$store.settings.borderColor"
-              class="absolute inset-0 opacity-0 w-full h-full cursor-pointer">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none text-white"></i>
-          </div>
+        <!-- Selector Profesional Cyber HUD: Bordes -->
+        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
+          x-data="cyberColorPicker({ label: 'Color de Bordes', defaultColor: '#222A36', value: () => $store.settings.borderColor, onSelect: (hex) => { $store.settings.borderColor = hex; }, swatches: $store.settings.popularBorderSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+          <button type="button" @click="toggle()"
+            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-transform active:scale-95"
+            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
+            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
+            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
+              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
+          </button>
           <div class="flex-1 flex items-center gap-1 px-1">
             <span class="text-xs font-mono text-ink-slate font-bold">#</span>
             <input type="text"
-              :value="($store.settings.borderColor || '').replace('#', '')"
-              @input="$store.settings.borderColor = '#' + $event.target.value.replace(/[^0-9A-Fa-f]/g, '').slice(0, 6)"
+              :value="(currentHex || '').replace('#', '').toUpperCase()"
+              @input="setFromHex('#' + $event.target.value, false)"
               class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
               placeholder="222A36" maxlength="6">
           </div>
           <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="$store.settings.borderColor.toUpperCase()"></span>
+            x-text="currentHex.toUpperCase()"></span>
+
+          <!-- Popover Flotante Cyber HUD -->
+          <include src="./src/partials/views/settings/cyber-color-popover.html"></include>
         </div>
 
         <!-- Muestrarios Rápidos Cromáticos Bordes -->
@@ -662,6 +688,64 @@
             </template>
           </div>
         </div>
+
+        <!-- Control de Grosor de Bordes (Border Width) -->
+        <div class="pt-3 border-t border-white/10 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-parchment-cream flex items-center gap-1.5">
+              <i data-lucide="square" class="w-3.5 h-3.5 text-emerald-400"></i>
+              Grosor de Bordes de Interfaz (--border-width)
+            </span>
+            <span class="text-xs font-mono font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30"
+              x-text="($store.settings.borderWidth || 1) + 'px'"></span>
+          </div>
+          <p class="text-[11px] text-ink-slate">Ajusta el grosor y presencia de los bordes estructurales de tarjetas, paneles y divisores.</p>
+
+          <!-- Botones de Preajustes Rápidos -->
+          <div class="grid grid-cols-4 gap-2 pt-1">
+            <button type="button" @click="$store.settings.setBorderWidth(1)"
+              class="px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 cursor-pointer"
+              :class="($store.settings.borderWidth || 1) === 1 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-black/30 border-white/10 text-ink-slate hover:text-white hover:border-white/20'">
+              <span class="w-6 h-0.5 bg-current rounded-full"></span>
+              <span>1px Fino</span>
+            </button>
+            <button type="button" @click="$store.settings.setBorderWidth(2)"
+              class="px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 cursor-pointer"
+              :class="($store.settings.borderWidth || 1) === 2 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-black/30 border-white/10 text-ink-slate hover:text-white hover:border-white/20'">
+              <span class="w-6 h-1 bg-current rounded-full"></span>
+              <span>2px Medio</span>
+            </button>
+            <button type="button" @click="$store.settings.setBorderWidth(3)"
+              class="px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 cursor-pointer"
+              :class="($store.settings.borderWidth || 1) === 3 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-black/30 border-white/10 text-ink-slate hover:text-white hover:border-white/20'">
+              <span class="w-6 h-1.5 bg-current rounded-full"></span>
+              <span>3px Grueso</span>
+            </button>
+            <button type="button" @click="$store.settings.setBorderWidth(4)"
+              class="px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 cursor-pointer"
+              :class="($store.settings.borderWidth || 1) === 4 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-black/30 border-white/10 text-ink-slate hover:text-white hover:border-white/20'">
+              <span class="w-6 h-2 bg-current rounded-full"></span>
+              <span>4px Ultra</span>
+            </button>
+          </div>
+
+          <!-- Slider de Precisión con Vista Previa en Vivo -->
+          <div class="flex items-center gap-3 pt-1.5">
+            <span class="text-[10px] font-mono text-ink-slate">1px</span>
+            <input type="range" min="1" max="5" step="1"
+              :value="$store.settings.borderWidth || 1"
+              @input="$store.settings.setBorderWidth(parseInt($event.target.value, 10))"
+              @change="$store.settings.setBorderWidth(parseInt($event.target.value, 10))"
+              class="w-full accent-emerald-400 cursor-pointer h-1.5 bg-black/40 rounded-lg appearance-none">
+            <span class="text-[10px] font-mono text-ink-slate">5px</span>
+
+            <!-- Mini Caja de Previsualización Dinámica -->
+            <div class="w-8 h-8 rounded shrink-0 flex items-center justify-center text-[10px] font-mono font-bold transition-all"
+              :style="`border: ${$store.settings.borderWidth || 1}px solid ${$store.settings.borderColor || '#222A36'}; background-color: ${$store.settings.surfaceColor || '#0a0c0e'}; color: ${$store.settings.accentColor || '#00F0FF'};`">
+              BOX
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -676,8 +760,8 @@
   <div class="lg:col-span-7 space-y-6">
 
     <!-- 1. JERARQUÍAS TIPOGRÁFICAS (GOOGLE FONTS) -->
-    <div class="p-4 sm:p-5 rounded-2xl border space-y-5 shadow-xl transition-colors"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + ';'"
+    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-5 shadow-xl transition-colors"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid;'"
       x-data="{ fontCategory: 'display' }">
       <div
         class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
@@ -1314,8 +1398,8 @@
     </div>
 
     <!-- 2. GEOMETRÍA DE BORDES Y ESQUINAS -->
-    <div class="p-4 sm:p-5 rounded-2xl border space-y-3.5 shadow-xl transition-colors"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + ';'">
+    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-3.5 shadow-xl transition-colors"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid;'">
       <div class="flex items-center justify-between">
         <label class="text-sm font-bold text-parchment-peach flex items-center gap-2">
           <i data-lucide="shapes" class="w-4 h-4 text-accent-cyan"></i>
@@ -1374,8 +1458,8 @@
     </div>
 
     <!-- 3. PREFERENCIAS DE RENDERIZADO y MODOS VISUALES (PANEL UNIFICADO DE INTERRUPTORES) -->
-    <div class="p-4 sm:p-5 rounded-2xl border space-y-4 shadow-xl transition-colors"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + ';'">
+    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-4 shadow-xl transition-colors"
+      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid;'">
 
       <!-- A) Visibilidad de Íconos en Interfaz -->
       <div class="space-y-3">

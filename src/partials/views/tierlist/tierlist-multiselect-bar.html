@@ -13,6 +13,7 @@
   x-transition:leave-start="opacity-100 translate-y-0 scale-100"
   x-transition:leave-end="opacity-0 translate-y-10 scale-95"
   class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[95vw] max-w-4xl p-3 sm:p-3.5 rounded-2xl backdrop-blur-2xl border-2 flex flex-col md:flex-row items-center justify-between gap-3 select-none transition-all"
+  :class="$store.tierlist.selectedCount > 0 ? '' : 'hidden pointer-events-none'"
   :style="$store.tierlist.getMultiselectBarStyle()">
 
   <!-- Acento luminoso láser superior según color de configuraciones -->
@@ -34,24 +35,31 @@
         <span class="font-title text-sm sm:text-base font-black text-white" x-text="$store.tierlist.selectedCount"></span>
         <span class="text-[11px] font-mono font-bold uppercase tracking-wider"
           :style="`color: ${$store.tierlist.getMultiselectAccentColor()};`">
-          <span x-text="$store.tierlist.selectedCount === 1 ? 'Operativo' : 'Operativos'"></span>
+          <span x-text="$store.tierlist.selectedCountLabel"></span>
         </span>
       </div>
     </div>
 
-    <!-- Pila de Miniaturas de Operativos Seleccionados -->
+    <!-- Pila de Miniaturas de Elementos Seleccionados (Operativos y Operadores) -->
     <div class="flex items-center -space-x-2 overflow-hidden px-1 py-0.5">
-      <template x-for="(char, idx) in $store.tierlist.selectedCharacters.slice(0, 4)" :key="char.id">
-        <div class="w-7 h-7 rounded-lg overflow-hidden border-2 bg-black/80 shrink-0 shadow-md relative transition-colors"
+      <template x-for="(item, idx) in $store.tierlist.selectedDisplayItems.slice(0, 4)" :key="item.id">
+        <div class="w-7 h-7 rounded-lg overflow-hidden border-2 bg-black/80 shrink-0 shadow-md relative transition-colors flex items-center justify-center"
           :style="`border-color: ${$store.tierlist.getMultiselectAccentColor()};`"
-          :title="char.name">
-          <template x-if="char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl)">
-            <img :src="char.basics?.useIconForPfp ? (char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : (char.basics?.avatarDataUrl || char.basics?.iconDataUrl)"
-              class="w-full h-full object-cover pointer-events-none" alt="" />
+          :title="item.name">
+          <template x-if="item.isOperator">
+            <span class="font-mono font-black text-xs leading-none select-none" :style="`color: ${item.color};`" x-text="item.symbol"></span>
           </template>
-          <template x-if="!(char.basics?.useIconForPfp ? Boolean(char.basics?.iconDataUrl || char.basics?.avatarDataUrl) : Boolean(char.basics?.avatarDataUrl || char.basics?.iconDataUrl))">
-            <div class="w-full h-full flex items-center justify-center text-[10px] font-bold text-white bg-slate-800"
-              x-text="(char.name || '?').charAt(0).toUpperCase()"></div>
+          <template x-if="!item.isOperator">
+            <div class="w-full h-full">
+              <template x-if="item.char?.basics?.useIconForPfp ? Boolean(item.char?.basics?.iconDataUrl || item.char?.basics?.avatarDataUrl) : Boolean(item.char?.basics?.avatarDataUrl || item.char?.basics?.iconDataUrl)">
+                <img :src="item.char?.basics?.useIconForPfp ? (item.char?.basics?.iconDataUrl || item.char?.basics?.avatarDataUrl) : (item.char?.basics?.avatarDataUrl || item.char?.basics?.iconDataUrl)"
+                  class="w-full h-full object-cover pointer-events-none" alt="" />
+              </template>
+              <template x-if="!(item.char?.basics?.useIconForPfp ? Boolean(item.char?.basics?.iconDataUrl || item.char?.basics?.avatarDataUrl) : Boolean(item.char?.basics?.avatarDataUrl || item.char?.basics?.iconDataUrl))">
+                <div class="w-full h-full flex items-center justify-center text-[10px] font-bold text-white bg-slate-800"
+                  x-text="(item.char?.name || '?').charAt(0).toUpperCase()"></div>
+              </template>
+            </div>
           </template>
         </div>
       </template>

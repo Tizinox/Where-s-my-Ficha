@@ -187,6 +187,10 @@ export function createCustomTabMethods() {
 
       const tabLabel = this.active.customTabs[idx].label || 'Sección';
 
+      if (typeof this.pushUndoSnapshot === 'function') {
+        this.pushUndoSnapshot(`Eliminar sección "${tabLabel}"`);
+      }
+
       this.active.customTabs.splice(idx, 1);
 
       if (Array.isArray(this.active.activeTabs)) {
@@ -202,7 +206,11 @@ export function createCustomTabMethods() {
         if (appStore.currentTab === tabId) {
           appStore.setTab(appStore.activeTabs[0] || 'basics');
         }
-        appStore.toast(`Sección "${tabLabel}" eliminada permanentemente.`, 'info');
+        appStore.toast(`Sección "${tabLabel}" eliminada.`, 'info', {
+          label: 'DESHACER (Ctrl+Z)',
+          onClick: () => this.undo(),
+          duration: 6000
+        });
       }
 
       this.scheduleAutoSave();
@@ -840,9 +848,16 @@ export function createCustomTabMethods() {
       const tab = this.getCustomTab(tabId);
       if (!tab || !Array.isArray(tab.blocks)) return;
       if (blockIndex >= 0 && blockIndex < tab.blocks.length) {
+        if (typeof this.pushUndoSnapshot === 'function') {
+          this.pushUndoSnapshot('Eliminar bloque');
+        }
         tab.blocks.splice(blockIndex, 1);
         this.scheduleAutoSave();
-        window.Alpine?.store('app')?.toast?.('Bloque eliminado.', 'info');
+        window.Alpine?.store('app')?.toast?.('Bloque eliminado.', 'info', {
+          label: 'DESHACER (Ctrl+Z)',
+          onClick: () => this.undo(),
+          duration: 6000
+        });
       }
     },
 

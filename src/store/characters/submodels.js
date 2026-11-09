@@ -51,8 +51,16 @@ export function createSubmodelMethods() {
     removeQuote(index) {
       if (!this.active || !this.active.basics || !Array.isArray(this.active.basics.quotes)) return;
       if (index >= 0 && index < this.active.basics.quotes.length) {
+        if (typeof this.pushUndoSnapshot === 'function') {
+          this.pushUndoSnapshot('Eliminar cita');
+        }
         this.active.basics.quotes.splice(index, 1);
         this.scheduleAutoSave();
+        window.Alpine?.store('app')?.toast('Cita eliminada.', 'info', {
+          label: 'DESHACER (Ctrl+Z)',
+          onClick: () => this.undo(),
+          duration: 6000
+        });
       }
     },
 
@@ -324,12 +332,19 @@ export function createSubmodelMethods() {
       if (!this.active) return;
       const skill = this.active.skills.find(s => s.id === skillId);
       if (!skill) return;
+      if (typeof this.pushUndoSnapshot === 'function') {
+        this.pushUndoSnapshot('Quitar imagen de habilidad');
+      }
       skill.imageDataUrl = '';
       skill.imageTransform = '';
       skill.imageIsGif = false;
       skill.imageFit = 'contain';
       this.scheduleAutoSave();
-      window.Alpine?.store('app')?.toast('Imagen de la habilidad eliminada.', 'info');
+      window.Alpine?.store('app')?.toast('Imagen de la habilidad eliminada.', 'info', {
+        label: 'DESHACER (Ctrl+Z)',
+        onClick: () => this.undo(),
+        duration: 6000
+      });
     },
 
     // ── Galería Extras ──────────────────────────────────────────
@@ -366,9 +381,16 @@ export function createSubmodelMethods() {
 
     removeGalleryImage(imgId) {
       if (!this.active || !Array.isArray(this.active.extras.gallery)) return;
+      if (typeof this.pushUndoSnapshot === 'function') {
+        this.pushUndoSnapshot('Eliminar imagen de galería');
+      }
       this.active.extras.gallery = this.active.extras.gallery.filter(g => g.id !== imgId);
       this.scheduleAutoSave();
-      window.Alpine?.store('app')?.toast('Imagen eliminada de la galería.', 'info');
+      window.Alpine?.store('app')?.toast('Imagen eliminada de la galería.', 'info', {
+        label: 'DESHACER (Ctrl+Z)',
+        onClick: () => this.undo(),
+        duration: 6000
+      });
     },
 
     toggleGalleryImageFit(imgId) {
@@ -401,9 +423,16 @@ export function createSubmodelMethods() {
 
     removeRelation(relationId) {
       if (!this.active || !Array.isArray(this.active.social?.relations)) return;
+      if (typeof this.pushUndoSnapshot === 'function') {
+        this.pushUndoSnapshot('Eliminar relación');
+      }
       this.active.social.relations = this.active.social.relations.filter(r => r.id !== relationId);
       this.scheduleAutoSave();
-      window.Alpine?.store('app')?.toast('Relación eliminada.', 'info');
+      window.Alpine?.store('app')?.toast('Relación eliminada.', 'info', {
+        label: 'DESHACER (Ctrl+Z)',
+        onClick: () => this.undo(),
+        duration: 6000
+      });
     },
 
     // ── Matriz de Facciones ────────────────────────────────────
@@ -423,9 +452,16 @@ export function createSubmodelMethods() {
 
     removeFactionRelation(factionId) {
       if (!this.active || !Array.isArray(this.active.social?.factions)) return;
+      if (typeof this.pushUndoSnapshot === 'function') {
+        this.pushUndoSnapshot('Eliminar facción');
+      }
       this.active.social.factions = this.active.social.factions.filter(f => f.id !== factionId);
       this.scheduleAutoSave();
-      window.Alpine?.store('app')?.toast('Facción eliminada.', 'info');
+      window.Alpine?.store('app')?.toast('Facción eliminada.', 'info', {
+        label: 'DESHACER (Ctrl+Z)',
+        onClick: () => this.undo(),
+        duration: 6000
+      });
     },
 
     // ── Armas y Artefactos ─────────────────────────────────────
@@ -653,11 +689,18 @@ export function createSubmodelMethods() {
     removeWeaponImage(weaponId) {
       const weapon = this.active?.weapons?.find(w => w.id === weaponId);
       if (weapon) {
+        if (typeof this.pushUndoSnapshot === 'function') {
+          this.pushUndoSnapshot('Quitar imagen de arma');
+        }
         weapon.imageDataUrl = '';
         weapon.imageTransform = '';
         weapon.imageIsGif = false;
         this.scheduleAutoSave();
-        window.Alpine?.store('app')?.toast('Imagen del arma eliminada.', 'info');
+        window.Alpine?.store('app')?.toast('Imagen del arma eliminada.', 'info', {
+          label: 'DESHACER (Ctrl+Z)',
+          onClick: () => this.undo(),
+          duration: 6000
+        });
       }
     },
 
@@ -691,8 +734,16 @@ export function createSubmodelMethods() {
 
     removeFeat(id) {
       if (!this.active) return;
+      if (typeof this.pushUndoSnapshot === 'function') {
+        this.pushUndoSnapshot('Eliminar hazaña');
+      }
       this.active.powerScaling.feats = this.active.powerScaling.feats.filter(f => f.id !== id);
       this.scheduleAutoSave();
+      window.Alpine?.store('app')?.toast('Hazaña eliminada.', 'info', {
+        label: 'DESHACER (Ctrl+Z)',
+        onClick: () => this.undo(),
+        duration: 6000
+      });
     },
 
     addHaxTag() {
@@ -711,8 +762,16 @@ export function createSubmodelMethods() {
 
     removeHaxTag(index) {
       if (!this.active || !Array.isArray(this.active.powerScaling.haxList)) return;
+      if (typeof this.pushUndoSnapshot === 'function') {
+        this.pushUndoSnapshot('Eliminar hax');
+      }
       this.active.powerScaling.haxList.splice(index, 1);
       this.scheduleAutoSave();
+      window.Alpine?.store('app')?.toast('Hax eliminado.', 'info', {
+        label: 'DESHACER (Ctrl+Z)',
+        onClick: () => this.undo(),
+        duration: 6000
+      });
     },
 
     addResistanceTag(customTag = null) {
@@ -734,8 +793,16 @@ export function createSubmodelMethods() {
 
     removeResistanceTag(index) {
       if (!this.active || !Array.isArray(this.active.powerScaling.resistancesList)) return;
+      if (typeof this.pushUndoSnapshot === 'function') {
+        this.pushUndoSnapshot('Eliminar resistencia');
+      }
       this.active.powerScaling.resistancesList.splice(index, 1);
       this.scheduleAutoSave();
+      window.Alpine?.store('app')?.toast('Resistencia eliminada.', 'info', {
+        label: 'DESHACER (Ctrl+Z)',
+        onClick: () => this.undo(),
+        duration: 6000
+      });
     },
 
     toggleResistancePreset(tag) {

@@ -759,6 +759,9 @@ export function registerCharactersStore(Alpine) {
     },
 
     getMultiselectBarStyle() {
+      if (!this.selectedCount || this.selectedCount <= 0) {
+        return 'display: none !important;';
+      }
       const settings = Alpine.store('settings');
       const rgb = settings?.rgbChannels || '0, 240, 255';
       const surface = settings?.surfaceColor || '#07090d';

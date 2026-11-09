@@ -47,7 +47,7 @@
         'tier-drag-target': $store.tierlist.draggingCharId !== null
       }" 
       x-init="$nextTick(() => $store.tierlist.refreshIcons())"
-      @dragover.prevent @dragenter.prevent @drop="$store.tierlist.handleDropOnTier($event, tier.id)">
+      @dragover.prevent @dragenter.prevent @drop.prevent.stop="$store.tierlist.handleDropOnTier($event, tier.id)">
 
       <!-- Lado Izquierdo: Monumento del Rango (Label + Count + Selector) - FUENTE SIEMPRE PURAMENTE BLANCA -->
       <div
@@ -91,7 +91,7 @@
         class="tier-dropzone-grid flex-1 p-2.5 sm:p-3.5 flex items-center flex-wrap transition-all"
         :style="`background-color: rgba(0, 0, 0, ${(($store.tierlist.rowOpacity ?? 40) * 0.4) / 100}); min-height: ${Math.max(90, ($store.tierlist.tokenSize || 72) + 32)}px; gap: ${$store.tierlist.itemGap ?? 10}px;`"
         @dragover.prevent="$store.tierlist.handleTierDropzoneDragOver($event, tier.id)"
-        @drop.prevent="$store.tierlist.handleDropOnTier($event, tier.id)"
+        @drop.prevent.stop="$store.tierlist.handleDropOnTier($event, tier.id)"
         @click="$store.tierlist.handleTierClick(tier.id)">
 
         <template x-for="(item, itemIdx) in $store.tierlist.getTierRowItems(tier.id)" :key="item.rawId">

@@ -58,6 +58,7 @@ export function registerSettingsStore(Alpine) {
     glowMode: cached.glowMode || DEFAULT_SETTINGS.glowMode,
     surfaceColor: cached.surfaceColor || DEFAULT_SETTINGS.surfaceColor,
     borderColor: cached.borderColor || DEFAULT_SETTINGS.borderColor,
+    borderWidth: cached.borderWidth ? parseInt(cached.borderWidth, 10) : (DEFAULT_SETTINGS.borderWidth || 1),
 
     fontDisplay: cached.fontDisplay || DEFAULT_SETTINGS.fontDisplay,
     fontBody: cached.fontBody || DEFAULT_SETTINGS.fontBody,
@@ -297,6 +298,18 @@ export function registerSettingsStore(Alpine) {
       return this.accentColor || DEFAULT_SETTINGS.accentColor;
     },
 
+    get isLightSurface() {
+      const surface = this.surfaceColor || DEFAULT_SETTINGS.surfaceColor;
+      const rgb = this.hexToRgb(surface);
+      if (!rgb) return false;
+      const normalize = (val) => {
+        const s = val / 255;
+        return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      };
+      const lum = 0.2126 * normalize(rgb.r) + 0.7152 * normalize(rgb.g) + 0.0722 * normalize(rgb.b);
+      return lum > 0.42; // Detecta blanco puro (#FFF) y tonalidades claras como #BBB7AD (lum ~0.47)
+    },
+
     get scopedThemeStyle() {
       const accent = this.accentColor || DEFAULT_SETTINGS.accentColor;
       const rgb = this.hexToRgb(accent) || { r: 0, g: 240, b: 255 };
@@ -323,7 +336,13 @@ export function registerSettingsStore(Alpine) {
       const fHud = `"${(this.fontHud || 'Chakra Petch').trim()}", "Chakra Petch", sans-serif`;
       const fTierlist = `"${(this.fontTierlist || 'Barlow Condensed').trim()}", "Barlow Condensed", sans-serif`;
 
-      return `--accent-primary:${accent};--accent-primary-rgb:${rgb.r},${rgb.g},${rgb.b};--accent:${accent};--accent-secondary:${secondary};--accent-secondary-rgb:${secRgb.r},${secRgb.g},${secRgb.b};--accent-tertiary:${tertiary};--accent-tertiary-rgb:${tertRgb.r},${tertRgb.g},${tertRgb.b};--accent-dim:rgba(${rgb.r},${rgb.g},${rgb.b},0.18);--accent-secondary-dim:rgba(${secRgb.r},${secRgb.g},${secRgb.b},0.18);--accent-tertiary-dim:rgba(${tertRgb.r},${tertRgb.g},${tertRgb.b},0.18);--accent-glow:${glowRgba};--accent-secondary-glow:${secGlow};--accent-tertiary-glow:${tertGlow};--accent-glow-lg:${glowLg};--border-accent:rgba(${rgb.r},${rgb.g},${rgb.b},0.25);--border-secondary:rgba(${secRgb.r},${secRgb.g},${secRgb.b},0.35);--border-tertiary:rgba(${tertRgb.r},${tertRgb.g},${tertRgb.b},0.35);--border-strong:rgba(${rgb.r},${rgb.g},${rgb.b},0.55);--border-custom:${border};--border-custom-rgb:${bordRgb.r},${bordRgb.g},${bordRgb.b};--border-subtle:rgba(${bordRgb.r},${bordRgb.g},${bordRgb.b},0.45);--border-panel:${border};--bg-panel-custom:${surface};--bg-panel-rgb:${surfRgb.r},${surfRgb.g},${surfRgb.b};--bg-panel:rgba(${surfRgb.r},${surfRgb.g},${surfRgb.b},0.95);--bg-panel-2:rgba(${Math.min(255,surfRgb.r+7)},${Math.min(255,surfRgb.g+8)},${Math.min(255,surfRgb.b+11)},0.96);--bg-panel-3:rgba(${Math.min(255,surfRgb.r+14)},${Math.min(255,surfRgb.g+16)},${Math.min(255,surfRgb.b+22)},0.98);--bg-base:${surface};--gradient-accent:linear-gradient(135deg,${accent} 0%,${secondary} 100%);--gradient-accent-h:linear-gradient(90deg,${accent} 0%,${secondary} 100%);--gradient-accent-tri:linear-gradient(90deg,${accent} 0%,${secondary} 50%,${tertiary} 100%);--font-display:${fDisplay};--font-body:${fBody};--font-input:${fInput};--font-hud:${fHud};--font-tierlist:${fTierlist};--font-weight-display:${this.fontWeightDisplay || '700'};--font-weight-body:${this.fontWeightBody || '400'};--font-weight-input:${this.fontWeightInput || '400'};--font-weight-hud:${this.fontWeightHud || '600'};--font-weight-tierlist:${this.fontWeightTierlist || '900'};`;
+      const isLight = this.isLightSurface;
+      const textPrimary = isLight ? '#0B0F19' : '#FFFFFF';
+      const textSecondary = isLight ? 'rgba(11, 15, 25, 0.75)' : 'rgba(255, 255, 255, 0.70)';
+      const textMuted = isLight ? 'rgba(11, 15, 25, 0.50)' : 'rgba(255, 255, 255, 0.38)';
+      const bWidth = `${this.borderWidth || 1}px`;
+
+      return `--accent-primary:${accent};--accent-primary-rgb:${rgb.r},${rgb.g},${rgb.b};--accent:${accent};--accent-secondary:${secondary};--accent-secondary-rgb:${secRgb.r},${secRgb.g},${secRgb.b};--accent-tertiary:${tertiary};--accent-tertiary-rgb:${tertRgb.r},${tertRgb.g},${tertRgb.b};--accent-dim:rgba(${rgb.r},${rgb.g},${rgb.b},0.18);--accent-secondary-dim:rgba(${secRgb.r},${secRgb.g},${secRgb.b},0.18);--accent-tertiary-dim:rgba(${tertRgb.r},${tertRgb.g},${tertRgb.b},0.18);--accent-glow:${glowRgba};--accent-secondary-glow:${secGlow};--accent-tertiary-glow:${tertGlow};--accent-glow-lg:${glowLg};--border-accent:rgba(${rgb.r},${rgb.g},${rgb.b},0.25);--border-secondary:rgba(${secRgb.r},${secRgb.g},${secRgb.b},0.35);--border-tertiary:rgba(${tertRgb.r},${tertRgb.g},${tertRgb.b},0.35);--border-strong:rgba(${rgb.r},${rgb.g},${rgb.b},0.55);--border-custom:${border};--border-custom-rgb:${bordRgb.r},${bordRgb.g},${bordRgb.b};--border-subtle:rgba(${bordRgb.r},${bordRgb.g},${bordRgb.b},0.45);--border-panel:${border};--border-width:${bWidth};--bg-panel-custom:${surface};--bg-panel-rgb:${surfRgb.r},${surfRgb.g},${surfRgb.b};--bg-panel:rgba(${surfRgb.r},${surfRgb.g},${surfRgb.b},0.95);--bg-panel-2:rgba(${Math.min(255,surfRgb.r+7)},${Math.min(255,surfRgb.g+8)},${Math.min(255,surfRgb.b+11)},0.96);--bg-panel-3:rgba(${Math.min(255,surfRgb.r+14)},${Math.min(255,surfRgb.g+16)},${Math.min(255,surfRgb.b+22)},0.98);--bg-base:${surface};--text-primary:${textPrimary};--text-secondary:${textSecondary};--text-muted:${textMuted};--gradient-accent:linear-gradient(135deg,${accent} 0%,${secondary} 100%);--gradient-accent-h:linear-gradient(90deg,${accent} 0%,${secondary} 100%);--gradient-accent-tri:linear-gradient(90deg,${accent} 0%,${secondary} 50%,${tertiary} 100%);--font-display:${fDisplay};--font-body:${fBody};--font-input:${fInput};--font-hud:${fHud};--font-tierlist:${fTierlist};--font-weight-display:${this.fontWeightDisplay || '700'};--font-weight-body:${this.fontWeightBody || '400'};--font-weight-input:${this.fontWeightInput || '400'};--font-weight-hud:${this.fontWeightHud || '600'};--font-weight-tierlist:${this.fontWeightTierlist || '900'};`;
     },
 
     get filteredThemeKits() {
@@ -362,6 +381,7 @@ export function registerSettingsStore(Alpine) {
       if (saved.glowMode) this.glowMode = saved.glowMode;
       if (saved.surfaceColor) this.surfaceColor = saved.surfaceColor;
       if (saved.borderColor) this.borderColor = saved.borderColor;
+      if (saved.borderWidth) this.borderWidth = parseInt(saved.borderWidth, 10) || 1;
 
       if (saved.fontDisplay) this.fontDisplay = saved.fontDisplay;
       if (saved.fontBody) this.fontBody = saved.fontBody;
@@ -459,6 +479,7 @@ export function registerSettingsStore(Alpine) {
           glowMode: this.glowMode,
           surfaceColor: this.surfaceColor,
           borderColor: this.borderColor,
+          borderWidth: this.borderWidth,
           fontDisplay: this.fontDisplay,
           fontBody: this.fontBody,
           fontInput: this.fontInput,
@@ -591,6 +612,7 @@ export function registerSettingsStore(Alpine) {
       this.glowMode = DEFAULT_SETTINGS.glowMode;
       this.surfaceColor = DEFAULT_SETTINGS.surfaceColor;
       this.borderColor = DEFAULT_SETTINGS.borderColor;
+      this.borderWidth = DEFAULT_SETTINGS.borderWidth || 1;
 
       this.fontDisplay = DEFAULT_SETTINGS.fontDisplay;
       this.fontBody = DEFAULT_SETTINGS.fontBody;
@@ -1018,8 +1040,16 @@ export function registerSettingsStore(Alpine) {
 
     resetBorderColor() {
       this.borderColor = DEFAULT_SETTINGS.borderColor;
+      this.borderWidth = DEFAULT_SETTINGS.borderWidth || 1;
       this.applySettings();
-      Alpine.store('app').toast('Color de bordes restablecido.', 'info');
+      Alpine.store('app').toast('Color y grosor de bordes restablecido.', 'info');
+    },
+
+    setBorderWidth(width) {
+      const w = Math.max(1, Math.min(5, parseInt(width, 10) || 1));
+      this.borderWidth = w;
+      this.applySettings();
+      this._persistAll();
     },
 
     resetGlowColor() {
@@ -1223,6 +1253,15 @@ export function registerSettingsStore(Alpine) {
         el.style.setProperty('--border-subtle', `rgba(${bordRgb.r}, ${bordRgb.g}, ${bordRgb.b}, 0.45)`);
         el.style.setProperty('--border-subtle-rgb', `${bordRgb.r}, ${bordRgb.g}, ${bordRgb.b}`);
         el.style.setProperty('--border-panel', border);
+        el.style.setProperty('--border-width', `${this.borderWidth || 1}px`);
+
+        // Contraste Dinámico Automático de Superficie
+        const isLight = this.isLightSurface;
+        el.setAttribute('data-surface-theme', isLight ? 'light' : 'dark');
+        el.classList.toggle('surface-light', isLight);
+        el.style.setProperty('--text-primary', isLight ? '#0B0F19' : '#FFFFFF');
+        el.style.setProperty('--text-secondary', isLight ? 'rgba(11, 15, 25, 0.75)' : 'rgba(255, 255, 255, 0.70)');
+        el.style.setProperty('--text-muted', isLight ? 'rgba(11, 15, 25, 0.50)' : 'rgba(255, 255, 255, 0.38)');
 
         el.style.setProperty('--gradient-accent', `linear-gradient(135deg, ${accent} 0%, ${secondary} 100%)`);
         el.style.setProperty('--gradient-accent-h', `linear-gradient(90deg, ${accent} 0%, ${secondary} 100%)`);

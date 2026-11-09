@@ -1994,8 +1994,45 @@ export function registerTierListStore(Alpine) {
       return this.selectedCharacterIds.map(id => this.resolveCharacter(id)).filter(Boolean);
     },
 
+    get selectedDisplayItems() {
+      if (!Array.isArray(this.selectedCharacterIds) || this.selectedCharacterIds.length === 0) return [];
+      return this.selectedCharacterIds.map(id => {
+        if (this.isOperatorItem(id)) {
+          const op = this.getOperatorInfo(id);
+          return {
+            id,
+            name: op?.name || 'Operador',
+            isOperator: true,
+            symbol: op?.symbol || '?',
+            color: op?.color || '#00f0ff',
+            bg: op?.bg || 'rgba(0, 240, 255, 0.15)'
+          };
+        }
+        const char = this.resolveCharacter(id);
+        if (!char) return null;
+        return {
+          id: char.id,
+          name: char.name || 'Operativo',
+          isOperator: false,
+          char
+        };
+      }).filter(Boolean);
+    },
+
     get selectedCount() {
       return this.selectedCharacterIds.length;
+    },
+
+    get selectedCountLabel() {
+      const count = this.selectedCount;
+      const opCount = (this.selectedCharacterIds || []).filter(id => this.isOperatorItem(id)).length;
+      if (opCount === count) {
+        return count === 1 ? 'Operador' : 'Operadores';
+      }
+      if (opCount > 0) {
+        return count === 1 ? 'Elemento' : 'Elementos';
+      }
+      return count === 1 ? 'Operativo' : 'Operativos';
     },
 
     getTierCharacters(tierId) {
@@ -3605,6 +3642,9 @@ export function registerTierListStore(Alpine) {
     },
 
     getMultiselectBarStyle() {
+      if (!this.selectedCount || this.selectedCount <= 0) {
+        return 'display: none !important;';
+      }
       const settings = Alpine.store('settings');
       const rgb = settings?.rgbChannels || '0, 240, 255';
       const surface = settings?.surfaceColor || '#07090d';
@@ -3728,9 +3768,13 @@ export function registerTierListStore(Alpine) {
     },
 
     confirmDeleteSelectedCharacters() {
-      const selected = this.selectedCharacters;
-      const count = selected.length;
+      const allIds = Array.from(this.selectedCharacterIds || []);
+      const count = allIds.length;
       if (count === 0) return;
+
+      const operatorIds = allIds.filter(id => this.isOperatorItem(id));
+      const charIds = allIds.filter(id => !this.isOperatorItem(id));
+      const selected = charIds.map(id => this.resolveCharacter(id)).filter(Boolean);
 
       const guests = selected.filter(c => c.isGuest && !c.isTemplate);
       const templates = selected.filter(c => c.isTemplate);
@@ -3739,23 +3783,48 @@ export function registerTierListStore(Alpine) {
       let message = '';
       let submessage = 'Esta acción se puede deshacer con Ctrl+Z.';
 
+      if (charIds.length === 0) {
+        // Solo hay operadores / modificadores seleccionados
+        const title = operatorIds.length === 1 ? '¿Eliminar Operador?' : `¿Eliminar ${operatorIds.length} Operadores?`;
+        message = `¿Deseas eliminar los ${operatorIds.length} operadores seleccionados del tablero?`;
+        submessage = 'Se removerán permanentemente de las filas. Esta acción se puede deshacer con Ctrl+Z.';
+        this.openConfirm({
+          title,
+          message,
+          submessage,
+          confirmText: 'Eliminar',
+          confirmType: 'danger',
+          icon: 'trash-2',
+          onConfirm: () => {
+            this.deleteSelectedCharacters();
+          }
+        });
+        return;
+      }
+
       if (registered.length === 0) {
         const parts = [];
         if (templates.length > 0) parts.push(`${templates.length} de plantilla`);
         if (guests.length > 0) parts.push(`${guests.length} invitado(s)`);
-        message = `¿Deseas eliminar permanentemente los ${count} operativos seleccionados (${parts.join(', ')})?`;
+        if (operatorIds.length > 0) parts.push(`${operatorIds.length} operador(es)`);
+        message = `¿Deseas eliminar permanentemente los ${count} elementos seleccionados (${parts.join(', ')})?`;
         submessage = 'Se removerán por completo de los rangos y del banco de reserva.';
       } else if (guests.length === 0 && templates.length === 0) {
-        message = `¿Deseas retirar del tablero los ${count} operativos registrados seleccionados?`;
-        submessage = 'Regresarán al banco de reserva. Sus fichas de personaje se mantendrán intactas.';
+        if (operatorIds.length > 0) {
+          message = `¿Deseas procesar los ${count} elementos seleccionados (${operatorIds.length} operadores y ${registered.length} operativos)?`;
+          submessage = 'Los operadores se eliminarán del tablero y los operativos registrados regresarán al banco de reserva.';
+        } else {
+          message = `¿Deseas retirar del tablero los ${count} operativos registrados seleccionados?`;
+          submessage = 'Regresarán al banco de reserva. Sus fichas de personaje se mantendrán intactas.';
+        }
       } else {
-        const permanentCount = guests.length + templates.length;
-        message = `¿Deseas eliminar los ${count} operativos seleccionados?`;
-        submessage = `${permanentCount} de plantilla/invitados se eliminarán definitivamente, mientras que los ${registered.length} registrados solo regresarán al banco.`;
+        const permanentCount = guests.length + templates.length + operatorIds.length;
+        message = `¿Deseas eliminar los ${count} elementos seleccionados?`;
+        submessage = `${permanentCount} elementos (invitados/plantilla/operadores) se eliminarán definitivamente, mientras que los ${registered.length} registrados solo regresarán al banco.`;
       }
 
       this.openConfirm({
-        title: count === 1 ? '¿Eliminar Operativo?' : `¿Eliminar ${count} Operativos?`,
+        title: count === 1 ? '¿Eliminar Elemento?' : `¿Eliminar ${count} Elementos?`,
         message,
         submessage,
         confirmText: 'Eliminar',
@@ -3771,7 +3840,7 @@ export function registerTierListStore(Alpine) {
       const ids = Array.from(this.selectedCharacterIds || []);
       if (ids.length === 0) return;
 
-      this.pushUndoSnapshot(`Eliminar ${ids.length} operativos`);
+      this.pushUndoSnapshot(`Eliminar ${ids.length} elementos`);
 
       const idsSet = new Set(ids);
 
@@ -3810,12 +3879,18 @@ export function registerTierListStore(Alpine) {
 
       const totalDeletedPermanent = deletedGuests + deletedTemplates;
       const count = ids.length;
+      const opCount = ids.filter(id => this.isOperatorItem(id)).length;
+      const charCount = count - opCount;
 
       this.clearSelectedCharacters();
       this.saveState();
       this.refreshIcons();
 
-      if (totalDeletedPermanent > 0) {
+      if (opCount > 0 && charCount === 0) {
+        Alpine.store('app')?.toast?.(`${opCount} operador(es) eliminado(s) del tablero.`, 'info');
+      } else if (opCount > 0 && charCount > 0) {
+        Alpine.store('app')?.toast?.(`${opCount} operador(es) eliminado(s) y ${charCount} operativos procesados.`, 'info');
+      } else if (totalDeletedPermanent > 0) {
         Alpine.store('app')?.toast?.(`${count} operativos procesados (${totalDeletedPermanent} eliminados permanentemente).`, 'info');
       } else {
         Alpine.store('app')?.toast?.(`${count} operativos devueltos al banco de reserva.`, 'info');
@@ -4095,10 +4170,19 @@ export function registerTierListStore(Alpine) {
     },
 
     handleItemDrop(event, tierId, index) {
-      event.preventDefault();
-      event.stopPropagation();
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       const targetSide = this.dragOverTarget?.side || 'left';
       this.dragOverTarget = null;
+
+      // Debounce anti-rebote de eventos de soltado (evita duplicar inserciones en el mismo tick)
+      const now = Date.now();
+      if (this._lastTierDropTime && (now - this._lastTierDropTime < 150)) {
+        return;
+      }
+      this._lastTierDropTime = now;
 
       // 1. Si se soltó una herramienta de calificación desde la caja de herramientas
       const toolId = event.dataTransfer?.getData('application/tier-tool') || this.draggingToolId;
@@ -4136,18 +4220,28 @@ export function registerTierListStore(Alpine) {
     },
 
     handleDropOnTier(event, tierId, targetIndex = null) {
-      event.preventDefault();
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       this.dragOverTarget = null;
 
+      // Debounce anti-rebote de eventos de soltado (evita duplicar inserciones en el mismo tick)
+      const now = Date.now();
+      if (this._lastTierDropTime && (now - this._lastTierDropTime < 150)) {
+        return;
+      }
+      this._lastTierDropTime = now;
+
       // 1. Si se soltó una herramienta
-      const toolId = event.dataTransfer?.getData('application/tier-tool') || this.draggingToolId;
+      const toolId = event?.dataTransfer?.getData('application/tier-tool') || this.draggingToolId;
       if (toolId) {
         this.insertOperatorInTier(tierId, toolId, targetIndex);
         this.endDrag();
         return;
       }
 
-      const raw = event.dataTransfer?.getData('text/plain') || this.draggingCharId;
+      const raw = event?.dataTransfer?.getData('text/plain') || this.draggingCharId;
       if (!raw) {
         this.endDrag();
         return;
@@ -4383,7 +4477,10 @@ export function registerTierListStore(Alpine) {
     },
 
     handleDropOnPool(event) {
-      event.preventDefault();
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       this._poolDragTargetCount = 0;
       this.isExternalFileDragOverPool = false;
 

@@ -34,13 +34,14 @@ export const BODY_COLOR_SWATCHES = [
 ];
 
 export function registerCyberColorPicker(Alpine) {
-  Alpine.data('cyberColorPicker', ({ field, hexField, label, defaultColor = '#3b82f6', placement = 'left', value, onSelect, swatches } = {}) => ({
+  Alpine.data('cyberColorPicker', ({ field, hexField, label, defaultColor = '#3b82f6', placement = 'left', value, onSelect, swatches, liveUpdate = false } = {}) => ({
     isOpen: false,
     field,
     hexField,
     label: label || 'Selector de Color',
     defaultColor,
     placement,
+    liveUpdate: Boolean(liveUpdate),
     mode: 'hex', // 'hex' | 'rgb' | 'hsl'
     h: 217,
     s: 75,
@@ -156,6 +157,12 @@ export function registerCyberColorPicker(Alpine) {
         this.hslH = hsl.h;
         this.hslS = hsl.s;
         this.hslL = hsl.l;
+      }
+
+      if (this.liveUpdate && typeof onSelect === 'function') {
+        try {
+          onSelect(this.currentHex);
+        } catch (_) {}
       }
     },
 

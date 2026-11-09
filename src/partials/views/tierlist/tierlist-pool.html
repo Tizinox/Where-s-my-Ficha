@@ -3,7 +3,7 @@
   @dragover.prevent="$store.tierlist.handleDragOverPool($event)"
   @dragenter.prevent="$store.tierlist.handleDragEnterPool($event)"
   @dragleave.prevent="$store.tierlist.handleDragLeavePool($event)"
-  @drop.prevent="$store.tierlist.handleDropOnPool($event)">
+  @drop.prevent.stop="$store.tierlist.handleDropOnPool($event)">
 
   <!-- Overlay Visual de Dropzone para Importación en Lote de Archivos -->
   <div x-show="$store.tierlist.isExternalFileDragOverPool"
@@ -331,7 +331,7 @@
     :class="$store.tierlist.poolAlignment === 'center' ? 'justify-center' : 'justify-start'"
     :style="`gap: ${$store.tierlist.itemGap ?? 10}px;`"
     @dragover.prevent="$store.tierlist.handlePoolGridDragOver($event)"
-    @drop.prevent="$store.tierlist.handleDropOnPool($event)"
+    @drop.prevent.stop="$store.tierlist.handleDropOnPool($event)"
     @click="$store.tierlist.handlePoolClick($event)">
 
     <!-- Estado Vacío Contextual del Banco -->

@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS = {
   glowMode: 'auto', // 'auto' | 'custom'
   surfaceColor: '#0A0D14',
   borderColor: '#222A36',
+  borderWidth: 1,
   fontDisplay: 'Barlow Condensed',
   fontBody: 'Inter Tight',
   fontInput: 'JetBrains Mono',

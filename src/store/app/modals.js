@@ -327,9 +327,17 @@ export function createModalMethods() {
         if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z') && !e.shiftKey) {
           if (!isInputField) {
             e.preventDefault();
-            const charStore = window.Alpine?.store('characters');
-            if (charStore && typeof charStore.undo === 'function') {
-              charStore.undo();
+            const appStore = window.Alpine?.store('app');
+            if (appStore?.activeView === 'tierlist') {
+              const tierStore = window.Alpine?.store('tierlist');
+              if (tierStore && typeof tierStore.undo === 'function') {
+                tierStore.undo();
+              }
+            } else {
+              const charStore = window.Alpine?.store('characters');
+              if (charStore && typeof charStore.undo === 'function') {
+                charStore.undo();
+              }
             }
           }
           return;
@@ -340,9 +348,17 @@ export function createModalMethods() {
             ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'z' || e.key === 'Z'))) {
           if (!isInputField) {
             e.preventDefault();
-            const charStore = window.Alpine?.store('characters');
-            if (charStore && typeof charStore.redo === 'function') {
-              charStore.redo();
+            const appStore = window.Alpine?.store('app');
+            if (appStore?.activeView === 'tierlist') {
+              const tierStore = window.Alpine?.store('tierlist');
+              if (tierStore && typeof tierStore.redo === 'function') {
+                tierStore.redo();
+              }
+            } else {
+              const charStore = window.Alpine?.store('characters');
+              if (charStore && typeof charStore.redo === 'function') {
+                charStore.redo();
+              }
             }
           }
           return;

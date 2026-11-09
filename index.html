@@ -750,7 +750,9 @@
      ============================================================== -->
   <div id="app" x-data x-init="$store.characters.init()" :style="$store.settings.scopedThemeStyle"
     :data-density="$store.settings.density" data-active-view="dashboard" :data-active-view="$store.app.activeView"
+    :data-surface-theme="$store.settings.isLightSurface ? 'light' : 'dark'"
     :class="{
+      'surface-light': $store.settings.isLightSurface,
       'hide-steam-frames': $store.settings.hideAnimatedFrames,
       'hide-kbd-badges': $store.settings.hideKeyboardBadges,
       'no-glow-effects': $store.settings.disableGlowEffects

@@ -9,7 +9,7 @@
    ======================================================== */
 
 .tierlist-cyber-panel {
-  background: linear-gradient(135deg, rgba(14, 18, 27, 0.94) 0%, rgba(8, 10, 15, 0.96) 100%);
+  background: linear-gradient(135deg, rgba(var(--bg-panel-rgb, 14, 18, 27), 0.94) 0%, rgba(var(--bg-panel-rgb, 8, 10, 15), 0.96) 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
