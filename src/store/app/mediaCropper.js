@@ -4,6 +4,7 @@
  */
 
 import Cropper from 'cropperjs';
+import { parseMediaUrl, fetchImageAsFileFromUrl } from '../../utils/mediaUrlEngine.js';
 
 export function createCropperMethods() {
   return {
@@ -18,8 +19,156 @@ export function createCropperMethods() {
     scaleX: 1,
     scaleY: 1,
 
-    openCropper(file, targetType, targetCharId = null) {
-      if (!file) return;
+    // ── Multi-Image Selector Modal State (ArtStation, Pixiv, Are.na, etc.) ──
+    showMultiImagePicker: false,
+    multiImagePickerData: {
+      platform: '',
+      platformName: '',
+      title: '',
+      author: '',
+      images: [], // [{ url, label, isOriginal }]
+      targetType: null,
+      targetCharId: null
+    },
+    isAnalyzingMediaUrl: false,
+
+    async urlToFile(url, filename = 'image.png') {
+      if (!url || typeof url !== 'string') return null;
+      
+      // Si ya es data URL o blob local en memoria, leer directamente
+      if (url.startsWith('data:') || url.startsWith('blob:')) {
+        try {
+          const res = await fetch(url);
+          const blob = await res.blob();
+          let mime = blob.type || 'image/png';
+          if (url.startsWith('data:image/gif') || url.toLowerCase().includes('.gif')) {
+            mime = 'image/gif';
+            filename = 'image.gif';
+          } else if (url.startsWith('data:image/webp') || url.toLowerCase().includes('.webp')) {
+            mime = 'image/webp';
+            filename = 'image.webp';
+          } else if (url.startsWith('data:image/jpeg') || url.toLowerCase().includes('.jpg') || url.toLowerCase().includes('.jpeg')) {
+            mime = 'image/jpeg';
+            filename = 'image.jpg';
+          }
+          return new File([blob], filename, { type: mime });
+        } catch (err) {
+          console.error('[mediaCropper] Error convirtiendo data/blob URL a File:', err);
+          return null;
+        }
+      }
+
+      // Si es URL externa de internet, usar el motor con bypass CORS y edge proxy sin referer
+      try {
+        return await fetchImageAsFileFromUrl(url);
+      } catch (err) {
+        console.error('[mediaCropper] Error descargando imagen externa:', err);
+        return null;
+      }
+    },
+
+    /**
+     * Entrada unificada inteligente para URLs de imágenes o galerías externas.
+     * Si la publicación contiene múltiples imágenes (ArtStation, Pixiv, Are.na, Behance, etc.),
+     * abre el selector visual interactivo. Si solo tiene 1, la manda directo al Cropper.
+     */
+    async openMediaUrl(rawUrl, targetType, targetCharId = null) {
+      if (!rawUrl || typeof rawUrl !== 'string' || !rawUrl.trim()) return;
+      const url = rawUrl.trim();
+
+      this.isAnalyzingMediaUrl = true;
+      const loadingToastId = window.Alpine?.store('app')?.toast?.('Analizando enlace y resolviendo calidad...', 'info', 10000);
+
+      try {
+        const parsed = await parseMediaUrl(url);
+
+        if (!parsed || !parsed.images || parsed.images.length === 0) {
+          if (loadingToastId) {
+            window.Alpine?.store('app')?.dismissToast?.(loadingToastId);
+          }
+          window.Alpine?.store('app')?.toast?.(
+            'No se pudo extraer una imagen del enlace. Si la página tiene protección antibot (como ArtStation), haz clic derecho sobre la imagen, selecciona "Copiar dirección de imagen" y pega ese enlace directo.',
+            'warning',
+            7000
+          );
+          return;
+        }
+
+        // Si contiene más de 1 imagen / resolución para seleccionar:
+        if (parsed.images.length > 1) {
+          if (loadingToastId) {
+            window.Alpine?.store('app')?.dismissToast?.(loadingToastId);
+          }
+          this.multiImagePickerData = {
+            platform: parsed.platform,
+            platformName: parsed.platformName,
+            title: parsed.title || 'Galería de Medios',
+            author: parsed.author || '',
+            images: parsed.images,
+            targetType,
+            targetCharId,
+            originalUrl: url
+          };
+          this.showMultiImagePicker = true;
+          if (window.lucide?.createIcons) {
+            setTimeout(() => window.lucide.createIcons(), 30);
+          }
+          return;
+        }
+
+        // Si solo tiene 1 imagen (o directa):
+        const targetImgUrl = parsed.images[0].url;
+        await this.openCropper(targetImgUrl, targetType, targetCharId);
+      } catch (err) {
+        console.error('[mediaCropper] Error al analizar URL:', err);
+        window.Alpine?.store('app')?.toast?.('Error al procesar el enlace.', 'error');
+      } finally {
+        this.isAnalyzingMediaUrl = false;
+        if (loadingToastId) {
+          window.Alpine?.store('app')?.dismissToast?.(loadingToastId);
+        }
+      }
+    },
+
+    closeMultiImagePicker() {
+      this.showMultiImagePicker = false;
+      this.multiImagePickerData = {
+        platform: '',
+        platformName: '',
+        title: '',
+        author: '',
+        images: [],
+        targetType: null,
+        targetCharId: null
+      };
+    },
+
+    async selectMultiImage(imageItem) {
+      if (!imageItem || !imageItem.url) return;
+      const targetType = this.multiImagePickerData.targetType;
+      const targetCharId = this.multiImagePickerData.targetCharId;
+      const url = imageItem.url;
+
+      this.closeMultiImagePicker();
+      window.Alpine?.store('app')?.toast?.('Descargando imagen seleccionada...', 'info');
+      await this.openCropper(url, targetType, targetCharId);
+    },
+
+    async openCropper(fileOrUrl, targetType, targetCharId = null) {
+      if (!fileOrUrl) return;
+
+      let file = fileOrUrl;
+      if (typeof fileOrUrl === 'string') {
+        file = await this.urlToFile(fileOrUrl);
+        if (!file) {
+          window.Alpine?.store('app')?.toast?.(
+            'No se pudo descargar la imagen seleccionada. El servidor de origen bloqueó la descarga o el enlace ha caducado.',
+            'error',
+            5000
+          );
+          return;
+        }
+      }
 
       const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
 
@@ -73,10 +222,21 @@ export function createCropperMethods() {
               let aspectRatio = NaN;
               if (targetType === 'avatar') {
                 aspectRatio = 3 / 4; // 3:4 Vertical Retrato para Avatar
-              } else if (targetType === 'icon' || targetType === 'tierlist_guest') {
-                aspectRatio = 1; // 1:1 Cuadrado para Ícono y Token Tierlist
+              } else if (targetType === 'icon' || targetType === 'tierlist_guest' || targetType === 'tierlist_icon' || targetType === 'folder_icon' || targetType === 'custom_emoji') {
+                aspectRatio = 1; // 1:1 Cuadrado para Ícono, Token Tierlist, Emblema, Carpetas y Emoticonos
               } else if (targetType === 'banner') {
                 aspectRatio = 16 / 5; // 16:5 Banner Panorámico Horizontal
+              } else if (targetType === 'bg_dashboard' || targetType === 'bg_tierlist' || targetType === 'bg_character') {
+                if (this.cropperAspectRatioMode === 'ultrawide') {
+                  aspectRatio = 21 / 9;
+                } else if (this.cropperAspectRatioMode === 'standard') {
+                  aspectRatio = 4 / 3;
+                } else if (this.cropperAspectRatioMode === 'free') {
+                  aspectRatio = NaN;
+                } else {
+                  aspectRatio = 16 / 9;
+                  this.cropperAspectRatioMode = 'horizontal';
+                }
               } else if (targetType === 'weapon') {
                 if (this.cropperAspectRatioMode === 'vertical') {
                   aspectRatio = 3 / 4; // 3:4 Vertical Retrato para Arma
@@ -125,6 +285,8 @@ export function createCropperMethods() {
       if (!this.cropperInstance) return;
       let ratio = NaN;
       if (mode === 'horizontal') ratio = 16 / 9;
+      else if (mode === 'ultrawide') ratio = 21 / 9;
+      else if (mode === 'standard') ratio = 4 / 3;
       else if (mode === 'vertical') ratio = 3 / 4;
       else if (mode === 'tall') ratio = 9 / 16;
       else if (mode === 'square') ratio = 1;
@@ -205,6 +367,8 @@ export function createCropperMethods() {
           await charsStore.processCroppedBannerGif(this.cropperRawDataUrl, cssTransform, this.cropperTargetCharId);
         } else if (this.cropperTargetType === 'icon') {
           await charsStore.processCroppedIconGif(this.cropperRawDataUrl, cssTransform, this.cropperTargetCharId);
+        } else if (this.cropperTargetType === 'folder_icon') {
+          await charsStore.processCroppedFolderLogoGif(this.cropperRawDataUrl, cssTransform);
         } else if (this.cropperTargetType === 'weapon') {
           await charsStore.processCroppedWeaponGif(this.cropperRawDataUrl, cssTransform, this.cropperTargetCharId, chosenOrientation);
         } else if (this.cropperTargetType === 'skill') {
@@ -215,6 +379,28 @@ export function createCropperMethods() {
           const tierlistStore = window.Alpine?.store('tierlist');
           if (tierlistStore) {
             await tierlistStore.processCroppedGuestGif(this.cropperRawDataUrl, cssTransform);
+          }
+        } else if (this.cropperTargetType === 'tierlist_icon') {
+          const tierlistStore = window.Alpine?.store('tierlist');
+          if (tierlistStore) {
+            await tierlistStore.processCroppedCustomIconGif(this.cropperRawDataUrl, cssTransform);
+          }
+        } else if (this.cropperTargetType === 'bg_dashboard') {
+          const settingsStore = window.Alpine?.store('settings');
+          if (settingsStore) {
+            await settingsStore.processCroppedDashboardBgGif(this.cropperRawDataUrl, cssTransform);
+          }
+        } else if (this.cropperTargetType === 'bg_tierlist') {
+          const settingsStore = window.Alpine?.store('settings');
+          if (settingsStore) {
+            await settingsStore.processCroppedTierlistBgGif(this.cropperRawDataUrl, cssTransform);
+          }
+        } else if (this.cropperTargetType === 'bg_character') {
+          await charsStore.processCroppedCharacterBgGif(this.cropperRawDataUrl, cssTransform);
+        } else if (this.cropperTargetType === 'custom_emoji') {
+          const emojiStore = window.Alpine?.store('customEmojis');
+          if (emojiStore) {
+            await emojiStore.processCroppedEmojiGif(this.cropperRawDataUrl, cssTransform);
           }
         }
 
@@ -245,6 +431,8 @@ export function createCropperMethods() {
           await charsStore.processCroppedBanner(file, this.cropperTargetCharId);
         } else if (this.cropperTargetType === 'icon') {
           await charsStore.processCroppedIcon(file, this.cropperTargetCharId);
+        } else if (this.cropperTargetType === 'folder_icon') {
+          await charsStore.processCroppedFolderLogo(file);
         } else if (this.cropperTargetType === 'gallery') {
           await charsStore.processCroppedGallery(file);
         } else if (this.cropperTargetType === 'weapon') {
@@ -257,6 +445,28 @@ export function createCropperMethods() {
           const tierlistStore = window.Alpine?.store('tierlist');
           if (tierlistStore) {
             await tierlistStore.processCroppedGuest(file);
+          }
+        } else if (this.cropperTargetType === 'tierlist_icon') {
+          const tierlistStore = window.Alpine?.store('tierlist');
+          if (tierlistStore) {
+            await tierlistStore.processCroppedCustomIcon(file);
+          }
+        } else if (this.cropperTargetType === 'bg_dashboard') {
+          const settingsStore = window.Alpine?.store('settings');
+          if (settingsStore) {
+            await settingsStore.processCroppedDashboardBg(file);
+          }
+        } else if (this.cropperTargetType === 'bg_tierlist') {
+          const settingsStore = window.Alpine?.store('settings');
+          if (settingsStore) {
+            await settingsStore.processCroppedTierlistBg(file);
+          }
+        } else if (this.cropperTargetType === 'bg_character') {
+          await charsStore.processCroppedCharacterBg(file);
+        } else if (this.cropperTargetType === 'custom_emoji') {
+          const emojiStore = window.Alpine?.store('customEmojis');
+          if (emojiStore) {
+            await emojiStore.processCroppedEmoji(file);
           }
         }
         

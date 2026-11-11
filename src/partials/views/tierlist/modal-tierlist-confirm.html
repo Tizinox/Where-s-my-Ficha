@@ -1,6 +1,6 @@
 <!-- Modal de Confirmación Estilizado HUD para Tier List -->
 <div id="tierlist-confirm-modal"
-  class="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+  class="fixed inset-0 z-[100050] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
   x-show="$store.tierlist.confirmDialog.isOpen" x-cloak
   @keydown.escape.window="$store.tierlist.closeConfirm()"
   @keydown.enter.window="$store.tierlist.confirmDialog.isOpen && $store.tierlist.executeConfirm()"

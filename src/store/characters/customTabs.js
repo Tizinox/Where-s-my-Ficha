@@ -1054,17 +1054,7 @@ export function createCustomTabMethods() {
         return;
       }
 
-      try {
-        const file = await fetchImageAsFileFromUrl(cleanUrl);
-        window.Alpine?.store('app')?.openCropper(file, 'custom_field', `${tabId}:${fieldId}`);
-      } catch (e) {
-        found.field.value = cleanUrl;
-        found.field.imageTransform = '';
-        found.field.imageIsGif = false;
-        found.field.imageFit = 'cover';
-        this.scheduleAutoSave();
-        window.Alpine?.store('app')?.toast('Imagen vinculada por enlace.', 'success');
-      }
+      await window.Alpine?.store('app')?.openMediaUrl(cleanUrl, 'custom_field', `${tabId}:${fieldId}`);
     },
 
     // ── RETROCOMPATIBILIDAD CON BLOQUES ANTIGUOS ─────────────────────

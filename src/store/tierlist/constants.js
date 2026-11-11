@@ -6,12 +6,12 @@
 export const STORAGE_KEY = 'wimsf_tierlist_state_v1';
 
 export const DEFAULT_TIERS = [
-  { id: 'tier_s', label: 'S', color: '#ef4444', characterIds: [] },
-  { id: 'tier_a', label: 'A', color: '#f97316', characterIds: [] },
-  { id: 'tier_b', label: 'B', color: '#eab308', characterIds: [] },
-  { id: 'tier_c', label: 'C', color: '#10b981', characterIds: [] },
-  { id: 'tier_d', label: 'D', color: '#06b6d4', characterIds: [] },
-  { id: 'tier_e', label: 'E', color: '#8b5cf6', characterIds: [] },
+  { id: 'tier_s', label: 'S', color: '#ef4444', collapsed: false, characterIds: [] },
+  { id: 'tier_a', label: 'A', color: '#f97316', collapsed: false, characterIds: [] },
+  { id: 'tier_b', label: 'B', color: '#eab308', collapsed: false, characterIds: [] },
+  { id: 'tier_c', label: 'C', color: '#10b981', collapsed: false, characterIds: [] },
+  { id: 'tier_d', label: 'D', color: '#06b6d4', collapsed: false, characterIds: [] },
+  { id: 'tier_e', label: 'E', color: '#8b5cf6', collapsed: false, characterIds: [] },
 ];
 
 export const TIER_PRESET_COLORS = [

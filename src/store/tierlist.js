@@ -19,6 +19,7 @@ import {
   TIER_RATING_TOOLS
 } from './tierlist/constants.js';
 import { fetchAndParseTierMakerTemplate } from '../utils/tierlist/tierMakerImporter.js';
+import { createEmptyCharacter } from './characters/schema.js';
 
 // Re-exportar constantes para retrocompatibilidad total
 export {
@@ -107,6 +108,8 @@ export function registerTierListStore(Alpine) {
     poolFolderFilter: 'all', // 'all' | 'unassigned' | folderId — Filtro por carpeta en el banco
     activeTargetTierId: null, // string | null — ID del tier destino fijado para click continuo
     hoveredCharId: null, // string | null — ID del personaje bajo el cursor para hotkeys rápidas
+    hoveredTierId: null, // string | null — ID del tier bajo el cursor para atajos de colapso rápido
+    lastInteractedTierId: null, // string | null — ID del último tier clicado o interactuado
     dragOverTarget: null, // { tierId: string, index: number, side: 'left' | 'right' } | null
     boardQuickMenuCharId: null, // string | null — ID del personaje cuyo menú flotante en el tablero está abierto
 
@@ -129,6 +132,7 @@ export function registerTierListStore(Alpine) {
     editingGuestId: null,
     guestForm: {
       name: '',
+      role: '',
       pfpUrl: '',
       pfpPreview: '',
       avatarTransform: ''
@@ -138,9 +142,25 @@ export function registerTierListStore(Alpine) {
     isExternalFileDragOverPool: false,
     _poolDragTargetCount: 0,
     showBatchGuestsModal: false,
-    batchGuestsQueue: [], // Array de { id, file, name, previewUrl, isGif, sizeKB }
+    batchGuestsQueue: [], // Array de { id, file, name, role, previewUrl, isGif, sizeKB }
+    batchDefaultRole: '',
+    batchNamePrefix: '',
     isProcessingBatch: false,
     batchProcessingProgress: 0,
+
+    // ── Caja de Herramientas y Conectores Personalizados ───────────
+    customRatingTools: [], // Array de { id, symbol, name, desc, color, bg, border, type, category: 'custom', isCustom: true }
+    showCustomToolModal: false,
+    editingCustomToolId: null,
+    customToolForm: {
+      symbol: '',
+      name: '',
+      desc: '',
+      color: '#00f0ff',
+      type: 'both' // 'both' | 'row_operator' | 'badge'
+    },
+    toolboxCategoryFilter: 'all', // 'all' | 'relation' | 'subtier' | 'context' | 'meta' | 'custom'
+    toolboxSearchQuery: '',
 
     // ── Importador de Plantillas TierMaker ───────────────────────────
     showTierMakerModal: false,
@@ -778,10 +798,13 @@ export function registerTierListStore(Alpine) {
 
     getCustomIconStyle(list = null) {
       const l = list || this.currentList;
+      if (l && l.customIconTransform) {
+        return l.customIconTransform;
+      }
       const zoom = ((l && l.iconZoom !== undefined ? Number(l.iconZoom) : (list ? 100 : this.iconZoom)) || 100) / 100;
       const x = (l && l.iconX !== undefined ? Number(l.iconX) : (list ? 50 : this.iconX)) ?? 50;
       const y = (l && l.iconY !== undefined ? Number(l.iconY) : (list ? 50 : this.iconY)) ?? 50;
-      const fit = (l && l.iconFit) ? l.iconFit : (list ? 'contain' : (this.iconFit || 'contain'));
+      const fit = (l && l.iconFit) ? l.iconFit : (list ? 'cover' : (this.iconFit || 'cover'));
       return `object-fit: ${fit} !important; object-position: ${x}% ${y}%; transform: scale(${zoom}); transform-origin: ${x}% ${y}%;`;
     },
 
@@ -894,6 +917,11 @@ export function registerTierListStore(Alpine) {
           // Si venimos de localStorage, rellenar si no hay conflicto
           this.guestCharacters = parsed.guestCharacters;
         }
+      }
+
+      // Cargar herramientas y conectores personalizados del usuario
+      if (Array.isArray(parsed.customRatingTools)) {
+        this.customRatingTools = parsed.customRatingTools;
       }
 
       // Caso A: Formato Multi-Lista
@@ -1010,6 +1038,7 @@ export function registerTierListStore(Alpine) {
           color1: t.color1 || '#0b4f6c',
           color2: t.color2 || '#00c9a7',
           gradientDir: t.gradientDir || 'to bottom',
+          collapsed: Boolean(t.collapsed),
           characterIds: Array.isArray(t.characterIds) ? t.characterIds : []
         };
       });
@@ -1063,6 +1092,7 @@ export function registerTierListStore(Alpine) {
           itemGap: this.itemGap !== undefined ? Number(this.itemGap) : 10,
           poolAlignment: this.poolAlignment || 'left',
           guestCharacters: Array.isArray(this.guestCharacters) ? this.guestCharacters : [],
+          customRatingTools: Array.isArray(this.customRatingTools) ? this.customRatingTools : [],
           lists: (this.lists || []).map(l => ({
             id: l.id,
             title: typeof l.title === 'string' ? l.title : '',
@@ -1089,6 +1119,7 @@ export function registerTierListStore(Alpine) {
               color1: t.color1,
               color2: t.color2,
               gradientDir: t.gradientDir || 'to bottom',
+              collapsed: Boolean(t.collapsed),
               characterIds: Array.isArray(t.characterIds) ? t.characterIds : []
             }))
           }))
@@ -1304,6 +1335,9 @@ export function registerTierListStore(Alpine) {
         onConfirm
       };
       this.refreshIcons();
+      if (typeof window !== 'undefined') {
+        setTimeout(() => this.refreshIcons(), 30);
+      }
     },
 
     closeConfirm() {
@@ -1415,42 +1449,64 @@ export function registerTierListStore(Alpine) {
         Alpine.store('app')?.toast?.('Por favor selecciona un archivo de imagen o GIF válido.', 'warning');
         return;
       }
+      Alpine.store('app')?.openCropper(file, 'tierlist_icon');
+      event.target.value = '';
+    },
+
+    openIconCropper() {
+      if (!this.customIconUrl) {
+        Alpine.store('app')?.toast?.('No hay ningún emblema personalizado para encuadrar.', 'info');
+        return;
+      }
+      Alpine.store('app')?.openCropper(this.customIconUrl, 'tierlist_icon');
+    },
+
+    async processCroppedCustomIcon(file) {
+      if (!this.currentList) return;
       try {
         const reader = new FileReader();
         reader.onload = (e) => {
-          if (this.currentList) {
-            this.currentList.customIconUrl = e.target.result;
-            this.currentList.iconZoom = 100;
-            this.currentList.iconX = 50;
-            this.currentList.iconY = 50;
-            this.currentList.updatedAt = Date.now();
-            this.saveState();
-            Alpine.store('app')?.toast?.('¡Emblema personalizado cargado exitosamente!', 'success');
-          }
+          this.currentList.customIconUrl = e.target.result;
+          this.currentList.customIconTransform = '';
+          this.currentList.iconZoom = 100;
+          this.currentList.iconX = 50;
+          this.currentList.iconY = 50;
+          this.currentList.iconFit = 'cover';
+          this.currentList.updatedAt = Date.now();
+          this.saveState();
+          Alpine.store('app')?.toast?.('¡Emblema de Tier List recortado y guardado!', 'success');
         };
         reader.readAsDataURL(file);
       } catch (err) {
         console.error(err);
-        Alpine.store('app')?.toast?.('Error al leer la imagen seleccionada.', 'error');
+        Alpine.store('app')?.toast?.('Error al procesar el emblema.', 'error');
       }
     },
 
-    setCustomIconFromUrl(url) {
-      const trimmed = (url || '').trim();
-      if (!trimmed || !this.currentList) return;
-      this.currentList.customIconUrl = trimmed;
+    async processCroppedCustomIconGif(dataUrl, cssTransform) {
+      if (!this.currentList) return;
+      this.currentList.customIconUrl = dataUrl;
+      this.currentList.customIconTransform = cssTransform;
       this.currentList.iconZoom = 100;
       this.currentList.iconX = 50;
       this.currentList.iconY = 50;
+      this.currentList.iconFit = 'cover';
       this.currentList.updatedAt = Date.now();
-      this.customIconUrlInput = '';
       this.saveState();
-      Alpine.store('app')?.toast?.('Emblema actualizado desde enlace Web.', 'success');
+      Alpine.store('app')?.toast?.('¡Emblema GIF animado guardado con encuadre visual!', 'success');
+    },
+
+    async setCustomIconFromUrl(url) {
+      const trimmed = (url || '').trim();
+      if (!trimmed || !this.currentList) return;
+      this.customIconUrlInput = '';
+      await Alpine.store('app')?.openMediaUrl(trimmed, 'tierlist_icon');
     },
 
     removeCustomIcon() {
       if (!this.currentList) return;
       this.currentList.customIconUrl = null;
+      this.currentList.customIconTransform = '';
       this.currentList.iconZoom = 100;
       this.currentList.iconX = 50;
       this.currentList.iconY = 50;
@@ -1463,10 +1519,11 @@ export function registerTierListStore(Alpine) {
 
     resetIconAdjustments() {
       if (!this.currentList) return;
+      this.currentList.customIconTransform = '';
       this.currentList.iconZoom = 100;
       this.currentList.iconX = 50;
       this.currentList.iconY = 50;
-      this.currentList.iconFit = 'contain';
+      this.currentList.iconFit = 'cover';
       this.currentList.updatedAt = Date.now();
       this.saveState();
     },
@@ -1618,10 +1675,28 @@ export function registerTierListStore(Alpine) {
       }
     },
 
-    getTierLabelStyle(tier) {
+    getTierLabelStyle(tier, isCollapsed = false) {
       const raw = tier?.label || '';
       const label = raw.trim();
       const len = label.length;
+
+      if (isCollapsed) {
+        if (len <= 2) {
+          return 'font-size: 1.4rem; line-height: 1; letter-spacing: 0.04em; font-weight: 900; white-space: nowrap; text-align: center; color: #ffffff !important; text-shadow: 0 2px 8px rgba(0,0,0,0.9);';
+        }
+        if (len <= 5) {
+          return 'font-size: 1.15rem; line-height: 1; letter-spacing: 0.03em; font-weight: 900; white-space: nowrap; text-align: center; color: #ffffff !important; text-shadow: 0 2px 8px rgba(0,0,0,0.9);';
+        }
+        if (len <= 11) {
+          return 'font-size: 0.92rem; line-height: 1.1; letter-spacing: 0.02em; font-weight: 800; white-space: nowrap; text-align: center; color: #ffffff !important; text-shadow: 0 2px 8px rgba(0,0,0,0.9);';
+        }
+        if (len <= 18) {
+          return 'font-size: 0.8rem; line-height: 1.15; letter-spacing: 0.015em; font-weight: 800; white-space: nowrap; text-align: center; color: #ffffff !important; text-shadow: 0 2px 8px rgba(0,0,0,0.9);';
+        }
+        // Para textos largos (ej: "PIZZA MOZZARELLA", "EL STAND QUE PUEDE HACER HERVIR")
+        return 'font-size: 0.72rem; line-height: 1.15; letter-spacing: 0.01em; font-weight: 800; white-space: nowrap; text-align: center; color: #ffffff !important; text-shadow: 0 2px 8px rgba(0,0,0,0.9);';
+      }
+
       const words = label.split(/\s+/).filter(Boolean);
       const maxWordLen = words.length > 0 ? Math.max(...words.map(w => w.length)) : len;
 
@@ -2046,11 +2121,224 @@ export function registerTierListStore(Alpine) {
 
     // ── Funciones de Calificación, Operadores y Modificadores ─────
     getRatingTool(id) {
+      if (!id) return null;
+      const custom = (this.customRatingTools || []).find(t => t.id === id);
+      if (custom) return custom;
       return TIER_RATING_TOOLS.find(t => t.id === id) || null;
     },
 
     toolsByCategory(cat) {
+      if (cat === 'custom') {
+        return this.customRatingTools || [];
+      }
       return TIER_RATING_TOOLS.filter(t => t.category === cat && !t.isSubTool);
+    },
+
+    getRatingToolsForDisplay(cat) {
+      const q = (this.toolboxSearchQuery || '').trim().toLowerCase();
+      let list = [];
+      if (cat === 'custom') {
+        list = this.customRatingTools || [];
+      } else {
+        list = TIER_RATING_TOOLS.filter(t => t.category === cat && !t.isSubTool);
+      }
+      if (!q) return list;
+      return list.filter(t =>
+        (t.symbol && t.symbol.toLowerCase().includes(q)) ||
+        (t.name && t.name.toLowerCase().includes(q)) ||
+        (t.desc && t.desc.toLowerCase().includes(q))
+      );
+    },
+
+    setToolboxCategoryFilter(cat) {
+      this.toolboxCategoryFilter = cat;
+      this.refreshIcons();
+    },
+
+    // ── Gestión de Conectores y Modificadores Personalizados ─────────
+    openCreateCustomToolModal(preset = null) {
+      this.editingCustomToolId = null;
+      if (preset && typeof preset === 'object') {
+        this.customToolForm = {
+          symbol: preset.symbol || '',
+          name: preset.name || preset.symbol || '',
+          desc: preset.desc || '',
+          color: preset.color || '#00f0ff',
+          type: preset.type || 'both'
+        };
+      } else {
+        this.customToolForm = {
+          symbol: '',
+          name: '',
+          desc: '',
+          color: Alpine.store('settings')?.accentColor || '#00f0ff',
+          type: 'both'
+        };
+      }
+      this.showCustomToolModal = true;
+      this.refreshIcons();
+    },
+
+    openEditCustomToolModal(toolId) {
+      const tool = (this.customRatingTools || []).find(t => t.id === toolId);
+      if (!tool) return;
+      this.editingCustomToolId = toolId;
+      this.customToolForm = {
+        symbol: tool.symbol || '',
+        name: tool.name || '',
+        desc: tool.desc || '',
+        color: tool.color || '#00f0ff',
+        type: tool.type || 'both'
+      };
+      this.showCustomToolModal = true;
+      this.refreshIcons();
+    },
+
+    closeCustomToolModal() {
+      this.showCustomToolModal = false;
+      this.editingCustomToolId = null;
+    },
+
+    saveCustomRatingTool() {
+      const symbol = (this.customToolForm.symbol || '').trim();
+      if (!symbol) {
+        Alpine.store('app')?.toast?.('Por favor ingresa un símbolo o sigla corta (ej: VS, BUFF, NERF, MVP).', 'warning');
+        return;
+      }
+      const name = (this.customToolForm.name || '').trim() || symbol;
+      const desc = (this.customToolForm.desc || '').trim();
+      const color = this.customToolForm.color || '#00f0ff';
+      const type = this.customToolForm.type || 'both';
+      const bg = this._hexToRgba(color, 0.16);
+      const border = this._hexToRgba(color, 0.5);
+
+      if (this.editingCustomToolId) {
+        const found = (this.customRatingTools || []).find(t => t.id === this.editingCustomToolId);
+        if (found) {
+          found.symbol = symbol;
+          found.name = name;
+          found.desc = desc;
+          found.color = color;
+          found.bg = bg;
+          found.border = border;
+          found.type = type;
+        }
+        this.customRatingTools = [...this.customRatingTools];
+        this.saveState(true);
+        Alpine.store('app')?.toast?.(`Conector personalizado "${symbol}" actualizado con éxito.`, 'success');
+      } else {
+        const newTool = {
+          id: `custom_op_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          category: 'custom',
+          categoryLabel: 'Personalizados',
+          symbol,
+          name,
+          desc,
+          color,
+          bg,
+          border,
+          type,
+          isCustom: true
+        };
+        this.customRatingTools = [...(this.customRatingTools || []), newTool];
+        this.saveState(true);
+        Alpine.store('app')?.toast?.(`¡Conector personalizado "${symbol}" creado y añadido a tus herramientas!`, 'success');
+      }
+
+      this.closeCustomToolModal();
+      this.toolboxCategoryFilter = 'custom';
+      this.refreshIcons();
+    },
+
+    deleteCustomRatingTool(toolId, askConfirm = false) {
+      if (!toolId) return;
+      const tool = (this.customRatingTools || []).find(t => t.id === toolId);
+      if (!tool) return;
+      const symbol = tool.symbol || '';
+
+      if (askConfirm) {
+        this.openConfirm({
+          title: 'Eliminar Conector',
+          message: `¿Deseas eliminar definitivamente el conector "${symbol}"?`,
+          submessage: 'Se retirará de tu caja de herramientas y de cualquier rango donde esté colocado en el tablero.',
+          confirmText: 'Eliminar Conector',
+          confirmType: 'danger',
+          icon: 'trash-2',
+          onConfirm: () => {
+            this.deleteCustomRatingTool(toolId, false);
+          }
+        });
+        return;
+      }
+
+      this.customRatingTools = (this.customRatingTools || []).filter(t => t.id !== toolId);
+      
+      // Retirar del tablero si estaba insertado en alguna tier
+      (this.tiers || []).forEach(tier => {
+        if (Array.isArray(tier.characterIds)) {
+          tier.characterIds = tier.characterIds.filter(id => id !== `op:${toolId}`);
+        }
+      });
+      if (this.selectedToolId === toolId) {
+        this.selectedToolId = null;
+      }
+
+      this.saveState(true);
+      Alpine.store('app')?.toast?.(`Conector "${symbol}" eliminado con éxito.`, 'info');
+      this.closeCustomToolModal();
+      this.refreshIcons();
+    },
+
+    confirmClearAllBoardOperators() {
+      let totalCount = 0;
+      (this.tiers || []).forEach(tier => {
+        if (Array.isArray(tier.characterIds)) {
+          const count = tier.characterIds.filter(id => this.isOperatorItem(id)).length;
+          totalCount += count;
+        }
+      });
+
+      if (totalCount === 0) {
+        Alpine.store('app')?.toast?.('No hay conectores u operadores colocados en el tablero.', 'info');
+        return;
+      }
+
+      this.openConfirm({
+        title: 'Limpiar Conectores del Tablero',
+        message: `¿Deseas retirar los ${totalCount} conectores y operadores de todos los rangos?`,
+        submessage: 'Los operativos y personajes se mantendrán intactos en sus posiciones actuales.',
+        confirmText: 'Retirar Todos',
+        confirmType: 'warning',
+        icon: 'eraser',
+        onConfirm: () => {
+          this.clearAllBoardOperators();
+        }
+      });
+    },
+
+    clearAllBoardOperators() {
+      let totalCount = 0;
+      (this.tiers || []).forEach(tier => {
+        if (Array.isArray(tier.characterIds)) {
+          const count = tier.characterIds.filter(id => this.isOperatorItem(id)).length;
+          totalCount += count;
+        }
+      });
+
+      if (totalCount === 0) {
+        Alpine.store('app')?.toast?.('No hay operadores ni conectores en ningún rango del tablero.', 'info');
+        return;
+      }
+
+      this.pushUndoSnapshot('Limpiar todos los operadores del tablero');
+      (this.tiers || []).forEach(tier => {
+        if (Array.isArray(tier.characterIds)) {
+          tier.characterIds = tier.characterIds.filter(id => !this.isOperatorItem(id));
+        }
+      });
+      this.saveState();
+      Alpine.store('app')?.toast?.(`Se retiraron todos los ${totalCount} conectores del tablero. Los personajes permanecen intactos.`, 'success');
+      this.refreshIcons();
     },
 
     isOperatorItem(id) {
@@ -2585,6 +2873,7 @@ export function registerTierListStore(Alpine) {
       this.editingGuestId = null;
       this.guestForm = {
         name: '',
+        role: '',
         pfpUrl: '',
         pfpPreview: '',
         avatarTransform: ''
@@ -2599,6 +2888,7 @@ export function registerTierListStore(Alpine) {
       this.editingGuestId = guestId;
       this.guestForm = {
         name: guest.name || '',
+        role: guest.role || guest.basics?.role || '',
         pfpUrl: guest.basics?.avatarDataUrl || '',
         pfpPreview: guest.basics?.avatarDataUrl || '',
         avatarTransform: guest.basics?.avatarTransform || ''
@@ -2720,14 +3010,7 @@ export function registerTierListStore(Alpine) {
         }
       }
 
-      try {
-        Alpine.store('app')?.toast?.('Descargando imagen para encuadrar...', 'info');
-        const file = await fetchImageAsFileFromUrl(url);
-        window.Alpine?.store('app')?.openCropper(file, 'tierlist_guest');
-      } catch (err) {
-        console.error('Error al descargar imagen desde URL:', err);
-        Alpine.store('app')?.toast?.('No se pudo descargar la imagen desde el enlace web. Prueba subiéndola como archivo local.', 'error');
-      }
+      await window.Alpine?.store('app')?.openMediaUrl(url, 'tierlist_guest');
     },
 
     async processCroppedGuest(file) {
@@ -2759,6 +3042,7 @@ export function registerTierListStore(Alpine) {
           Alpine.store('app')?.toast?.('Por favor ingresa un nombre para el personaje.', 'warning');
           return;
         }
+        const role = (this.guestForm.role || '').trim();
         const pfp = this.guestForm.pfpPreview || (this.guestForm.pfpUrl || '').trim();
         const transform = this.guestForm.avatarTransform || '';
 
@@ -2766,7 +3050,9 @@ export function registerTierListStore(Alpine) {
           const guest = this.getGuestById(this.editingGuestId);
           if (guest) {
             guest.name = name;
+            guest.role = role;
             if (!guest.basics) guest.basics = {};
+            guest.basics.role = role;
             guest.basics.avatarDataUrl = pfp;
             guest.basics.avatarTransform = transform;
             this.guestCharacters = [...this.guestCharacters];
@@ -2786,9 +3072,12 @@ export function registerTierListStore(Alpine) {
         const guest = {
           id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
           name,
+          role,
           isGuest: true,
           isTemplate: false,
           basics: {
+            fullName: name,
+            role,
             avatarDataUrl: pfp,
             avatarTransform: transform,
             avatarShape: 'rounded',
@@ -2808,6 +3097,248 @@ export function registerTierListStore(Alpine) {
         console.error('[tierlist] Error al crear operativo sin ficha:', err);
         Alpine.store('app')?.toast?.('Error al crear el operativo. Revisa la consola.', 'error');
       }
+    },
+
+    /**
+     * Promover un operativo invitado o de plantilla a Ficha Oficial en la base de datos principal.
+     * Reemplaza de forma transparente su ID en todos los tiers conservando su posición y modificadores.
+     */
+    async promoteGuestToOfficial(guestId) {
+      if (!guestId) return null;
+      try {
+        const guest = this.getGuestById(guestId) || this.getCharacter(guestId);
+        if (!guest) {
+          Alpine.store('app')?.toast?.('No se encontró el operativo invitado a convertir.', 'warning');
+          return null;
+        }
+
+        const charactersStore = Alpine.store('characters');
+        if (!charactersStore) {
+          Alpine.store('app')?.toast?.('Error: Almacén de personajes no disponible.', 'error');
+          return null;
+        }
+
+        const guestName = (guest.name || 'Nuevo Personaje').trim();
+        const avatarUrl = guest.basics?.avatarDataUrl || guest.basics?.iconDataUrl || guest.avatarUrl || guest.pfpUrl || '';
+        const avatarTransform = guest.basics?.avatarTransform || guest.avatarTransform || '';
+        const guestRole = (guest.role || guest.basics?.role || '').trim();
+
+        // 1. Crear la nueva ficha oficial usando createEmptyCharacter
+        const newCharId = crypto.randomUUID();
+        const newChar = createEmptyCharacter({
+          name: guestName,
+          basics: {
+            fullName: guestName,
+            role: guestRole,
+            avatarDataUrl: avatarUrl,
+            avatarTransform: avatarTransform
+          }
+        });
+        newChar.id = newCharId;
+        newChar.name = guestName;
+        if (!newChar.basics) newChar.basics = {};
+        newChar.basics.fullName = guestName;
+        newChar.basics.role = guestRole;
+        newChar.basics.avatarDataUrl = avatarUrl;
+        newChar.basics.avatarTransform = avatarTransform;
+        newChar.updatedAt = Date.now();
+        newChar.createdAt = Date.now();
+
+        // 2. Persistir en el almacén de fichas oficiales
+        charactersStore.list.push(newChar);
+        if (typeof charactersStore._persist === 'function') {
+          await charactersStore._persist(newChar);
+        } else if (typeof charactersStore.saveToStorage === 'function') {
+          await charactersStore.saveToStorage();
+        }
+
+        // 3. Sustituir guestId por newCharId en todos los tiers del tablero (manteniendo posición exacta)
+        (this.tiers || []).forEach(tier => {
+          if (Array.isArray(tier.characterIds)) {
+            tier.characterIds = tier.characterIds.map(id => id === guestId ? newCharId : id);
+          }
+        });
+
+        // 4. Sustituir en listas archivadas si existen
+        (this.lists || []).forEach(l => {
+          (l.tiers || []).forEach(tier => {
+            if (Array.isArray(tier.characterIds)) {
+              tier.characterIds = tier.characterIds.map(id => id === guestId ? newCharId : id);
+            }
+          });
+          if (Array.isArray(l.poolCharacterIds)) {
+            l.poolCharacterIds = l.poolCharacterIds.map(id => id === guestId ? newCharId : id);
+          }
+        });
+
+        // 5. Sustituir en modificadores/insignias activas
+        if (this.characterModifiers && this.characterModifiers[guestId]) {
+          this.characterModifiers[newCharId] = [...this.characterModifiers[guestId]];
+          delete this.characterModifiers[guestId];
+        }
+
+        // 6. Sustituir en multiselección activa
+        if (Array.isArray(this.selectedCharacterIds)) {
+          this.selectedCharacterIds = this.selectedCharacterIds.map(id => id === guestId ? newCharId : id);
+        }
+
+        // 7. Sustituir en poolCharacterIds si estaba en banca
+        if (Array.isArray(this.poolCharacterIds)) {
+          this.poolCharacterIds = this.poolCharacterIds.map(id => id === guestId ? newCharId : id);
+        }
+
+        // 8. Remover de invitados manuales y de plantillas
+        this.guestCharacters = (this.guestCharacters || []).filter(c => c.id !== guestId);
+        if (this.currentList && Array.isArray(this.currentList.templateCharacters)) {
+          this.currentList.templateCharacters = this.currentList.templateCharacters.filter(c => c.id !== guestId);
+        }
+
+        // 9. Guardar estado reactivo de la tier list
+        await this.saveState(true);
+
+        if (this.showAddGuestModal) {
+          this.closeAddGuestModal();
+        }
+        if (this.boardQuickMenuCharId === guestId) {
+          this.boardQuickMenuCharId = null;
+        }
+
+        Alpine.store('app')?.toast?.(`¡"${guestName}" convertido en Ficha Oficial con éxito! Ahora vive en tu base de datos principal.`, 'success');
+        this.refreshIcons();
+        return newChar;
+      } catch (err) {
+        console.error('[tierlist] Error al promover invitado a oficial:', err);
+        Alpine.store('app')?.toast?.('Error al convertir el invitado en ficha oficial.', 'error');
+        return null;
+      }
+    },
+
+    /**
+     * Exporta todos los personajes invitados manuales actuales en un archivo JSON (.guestpack.json).
+     */
+    exportGuestsPack() {
+      try {
+        const guests = Array.isArray(this.guestCharacters) ? this.guestCharacters : [];
+        if (guests.length === 0) {
+          Alpine.store('app')?.toast?.('No tienes personajes invitados manuales en este momento para exportar.', 'warning');
+          return;
+        }
+
+        const packData = {
+          app: "Where's my Ficha?",
+          schema: 'superficha_guest_pack',
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          listTitle: this.currentList?.title || 'Tier List',
+          guestCount: guests.length,
+          guests: guests.map(g => ({
+            id: g.id,
+            name: g.name,
+            role: g.role || g.basics?.role || '',
+            basics: {
+              fullName: g.name,
+              role: g.role || g.basics?.role || '',
+              avatarDataUrl: g.basics?.avatarDataUrl || '',
+              avatarTransform: g.basics?.avatarTransform || '',
+              avatarShape: g.basics?.avatarShape || 'rounded'
+            }
+          }))
+        };
+
+        const jsonString = JSON.stringify(packData, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const safeTitle = (this.currentList?.title || 'tierlist')
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]/g, '_')
+          .replace(/_+/g, '_');
+        const fileName = `${safeTitle}-pack-invitados-${new Date().toISOString().slice(0, 10)}.guestpack.json`;
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        Alpine.store('app')?.toast?.(`¡Pack de ${guests.length} invitados exportado correctamente!`, 'success');
+      } catch (err) {
+        console.error('[tierlist] Error al exportar pack de invitados:', err);
+        Alpine.store('app')?.toast?.('Error al exportar el pack de invitados.', 'error');
+      }
+    },
+
+    /**
+     * Importa un paquete de invitados desde un archivo JSON (.guestpack.json).
+     */
+    async importGuestsPack(file) {
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        let incomingGuests = [];
+        if (Array.isArray(data)) {
+          incomingGuests = data;
+        } else if (Array.isArray(data.guests)) {
+          incomingGuests = data.guests;
+        } else if (Array.isArray(data.guestCharacters)) {
+          incomingGuests = data.guestCharacters;
+        } else {
+          throw new Error('Formato de archivo no reconocido como paquete de invitados.');
+        }
+
+        if (incomingGuests.length === 0) {
+          Alpine.store('app')?.toast?.('El paquete no contiene ningún operativo invitado.', 'warning');
+          return;
+        }
+
+        const baseTimestamp = Date.now();
+        const sanitizedGuests = incomingGuests.map((g, idx) => {
+          const name = (g.name || g.basics?.fullName || `Invitado ${idx + 1}`).trim();
+          const role = (g.role || g.basics?.role || '').trim();
+          const avatar = g.basics?.avatarDataUrl || g.avatarUrl || g.pfpUrl || '';
+          const transform = g.basics?.avatarTransform || g.avatarTransform || '';
+          return {
+            id: `guest_${baseTimestamp}_${Math.random().toString(36).substr(2, 6)}_${idx}`,
+            name,
+            role,
+            isGuest: true,
+            isTemplate: false,
+            basics: {
+              fullName: name,
+              role,
+              avatarDataUrl: avatar,
+              avatarTransform: transform,
+              avatarShape: g.basics?.avatarShape || 'rounded',
+              useIconForPfp: false
+            }
+          };
+        });
+
+        this.guestCharacters = [...(this.guestCharacters || []), ...sanitizedGuests];
+        await this.saveState(true);
+        this.poolTab = 'guests';
+        Alpine.store('app')?.toast?.(`¡Se importaron ${sanitizedGuests.length} invitados del paquete exitosamente!`, 'success');
+        this.refreshIcons();
+      } catch (err) {
+        console.error('[tierlist] Error al importar paquete de invitados:', err);
+        Alpine.store('app')?.toast?.(`Error al importar: ${err.message || 'archivo inválido'}`, 'error');
+      }
+    },
+
+    triggerGuestPackImport() {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.json,.guestpack.json';
+      input.onchange = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+          this.importGuestsPack(file);
+        }
+      };
+      input.click();
     },
 
     removeGuestCharacter(guestId) {
@@ -2869,7 +3400,7 @@ export function registerTierListStore(Alpine) {
           const text = await navigator.clipboard.readText();
           if (text && text.trim()) {
             this.tierMakerUrlInput = text.trim();
-            if (this.tierMakerUrlInput.includes('tiermaker.com') || this.tierMakerUrlInput.includes('tierbuddy.com')) {
+            if (this.tierMakerUrlInput.includes('tiermaker.com') || this.tierMakerUrlInput.includes('tierbuddy.com') || this.tierMakerUrlInput.includes('tiermakerpro.com')) {
               this.analyzeTierMakerUrl();
             }
           }
@@ -2884,7 +3415,7 @@ export function registerTierListStore(Alpine) {
     async analyzeTierMakerUrl() {
       const url = (this.tierMakerUrlInput || '').trim();
       if (!url) {
-        this.tierMakerError = 'Por favor ingresa o pega un enlace de TierMaker o TierBuddy.';
+        this.tierMakerError = 'Por favor ingresa o pega un enlace de TierMaker, TierBuddy o TierMaker Pro.';
         return;
       }
       this.tierMakerIsAnalyzing = true;
@@ -2895,7 +3426,9 @@ export function registerTierListStore(Alpine) {
         const result = await fetchAndParseTierMakerTemplate(url);
         if (result && result.success) {
           this.tierMakerPreview = result;
-          const platform = result.source === 'tierbuddy' ? 'TierBuddy' : 'TierMaker';
+          const platform = result.source === 'tierbuddy' 
+            ? 'TierBuddy' 
+            : (result.source === 'tiermakerpro' ? 'TierMaker Pro' : 'TierMaker');
           const tierNote = result.hasCustomTiers ? ` con ${result.customTiers.length} rangos personalizados` : '';
           Alpine.store('app')?.toast?.(`¡Plantilla de ${platform} analizada${tierNote}! Se detectaron ${result.totalCount} operativos.`, 'success');
         } else {
@@ -2915,7 +3448,8 @@ export function registerTierListStore(Alpine) {
 
       const preview = this.tierMakerPreview;
       const isTierBuddy = preview.source === 'tierbuddy' || (this.tierMakerUrlInput || '').includes('tierbuddy.com');
-      const prefix = isTierBuddy ? 'tb' : 'tm';
+      const isTierMakerPro = preview.source === 'tiermakerpro' || (this.tierMakerUrlInput || '').includes('tiermakerpro.com');
+      const prefix = isTierBuddy ? 'tb' : (isTierMakerPro ? 'tmp' : 'tm');
       const listId = `list_${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
       const title = (preview.title || 'Tier List').trim() || 'Tier List Importada';
       const shouldImportGuests = this.tierMakerOptions?.importTemplateGuests !== false;
@@ -3007,11 +3541,61 @@ export function registerTierListStore(Alpine) {
         color1: color,
         color2: '#00c9a7',
         gradientDir: 'to bottom',
+        collapsed: false,
         characterIds: []
       });
       this.saveState();
       Alpine.store('app')?.toast?.(`Nivel "${label}" añadido a la Tier List.`, 'success');
       this.refreshIcons();
+    },
+
+    // ── Colapso y Plegado de Rangos (Achicar / Expandir) ─────────────
+    isTierCollapsed(tierId) {
+      const tier = (this.tiers || []).find(t => t.id === tierId);
+      return Boolean(tier?.collapsed);
+    },
+
+    toggleTierCollapse(tierId) {
+      const tier = (this.tiers || []).find(t => t.id === tierId);
+      if (!tier) return;
+      tier.collapsed = !tier.collapsed;
+      this.saveState();
+      this.refreshIcons();
+    },
+
+    setTierCollapse(tierId, collapsed) {
+      const tier = (this.tiers || []).find(t => t.id === tierId);
+      if (!tier) return;
+      tier.collapsed = Boolean(collapsed);
+      this.saveState();
+      this.refreshIcons();
+    },
+
+    get areAllTiersCollapsed() {
+      if (!this.tiers || this.tiers.length === 0) return false;
+      return this.tiers.every(t => Boolean(t.collapsed));
+    },
+
+    collapseAllTiers(collapsed = true) {
+      if (!this.tiers) return;
+      this.tiers.forEach(t => {
+        t.collapsed = Boolean(collapsed);
+      });
+      this.saveState();
+      this.refreshIcons();
+    },
+
+    toggleCollapseAllTiers() {
+      const target = !this.areAllTiersCollapsed;
+      this.collapseAllTiers(target);
+    },
+
+    getCharacterAvatar(char) {
+      if (!char) return null;
+      if (char.basics?.useIconForPfp) {
+        return char.basics?.iconDataUrl || char.basics?.avatarDataUrl || null;
+      }
+      return char.basics?.avatarDataUrl || char.basics?.iconDataUrl || null;
     },
 
     removeTier(tierId) {
@@ -4547,6 +5131,7 @@ export function registerTierListStore(Alpine) {
           id: `batch_item_${Date.now()}_${Math.random().toString(36).substr(2, 6)}_${idx}`,
           file: file,
           name: autoName,
+          role: this.batchDefaultRole || '',
           previewUrl: URL.createObjectURL(file),
           isGif: isGif,
           sizeKB: Math.round(file.size / 1024)
@@ -4554,10 +5139,38 @@ export function registerTierListStore(Alpine) {
       });
 
       this.batchGuestsQueue = items;
+      this.batchDefaultRole = '';
+      this.batchNamePrefix = '';
       this.isProcessingBatch = false;
       this.batchProcessingProgress = 0;
       this.showBatchGuestsModal = true;
       this.refreshIcons();
+    },
+
+    /**
+     * Aplica un rol o etiqueta común a todos los operativos en la cola de importación en lote.
+     */
+    applyBatchRoleToAll(customRole) {
+      const role = (customRole !== undefined ? customRole : this.batchDefaultRole || '').trim();
+      if (!this.batchGuestsQueue || this.batchGuestsQueue.length === 0) return;
+      this.batchGuestsQueue.forEach(item => {
+        item.role = role;
+      });
+      Alpine.store('app')?.toast?.(`Rol "${role || 'ninguno'}" asignado a los ${this.batchGuestsQueue.length} operativos.`, 'info');
+    },
+
+    /**
+     * Añade un prefijo a los nombres de todos los operativos en la cola de importación en lote.
+     */
+    applyBatchPrefixToAll(customPrefix) {
+      const prefix = (customPrefix !== undefined ? customPrefix : this.batchNamePrefix || '').trim();
+      if (!prefix || !this.batchGuestsQueue || this.batchGuestsQueue.length === 0) return;
+      this.batchGuestsQueue.forEach(item => {
+        if (!item.name.startsWith(prefix)) {
+          item.name = `${prefix}${item.name}`;
+        }
+      });
+      Alpine.store('app')?.toast?.(`Prefijo "${prefix}" añadido a los nombres del lote.`, 'info');
     },
 
     handleBatchFileInputChange(event) {
@@ -4623,12 +5236,16 @@ export function registerTierListStore(Alpine) {
           }
 
           const guestName = (item.name || '').trim() || this.extractCharacterNameFromFileName(item.file?.name) || `Invitado ${i + 1}`;
+          const itemRole = (item.role || this.batchDefaultRole || '').trim();
           newGuests.push({
             id: `guest_${Date.now()}_${Math.random().toString(36).substr(2, 6)}_${i}`,
             name: guestName,
+            role: itemRole,
             isGuest: true,
             isTemplate: false,
             basics: {
+              fullName: guestName,
+              role: itemRole,
               avatarDataUrl: dataUrl,
               avatarTransform: '',
               avatarShape: 'rounded',
@@ -4770,6 +5387,33 @@ export function registerTierListStore(Alpine) {
         event.preventDefault();
         this.toggleZenMode();
         return;
+      }
+
+      // ── Atajos de Colapso / Despliegue de Tiers (Alt + C, Shift + C, Ctrl + Alt + C o tecla C) ──
+      // 1. Colapsar / Expandir TODOS los tiers: Ctrl + Alt + C o Ctrl + Shift + C
+      if ((event.ctrlKey || event.metaKey) && (event.altKey || event.shiftKey) && (event.key === 'c' || event.key === 'C')) {
+        event.preventDefault();
+        this.toggleCollapseAllTiers();
+        return;
+      }
+
+      // 2. Colapsar / Expandir el tier bajo el puntero o interactuado: Alt + C o Shift + C
+      if ((event.altKey || event.shiftKey) && (event.key === 'c' || event.key === 'C') && !event.ctrlKey && !event.metaKey) {
+        const targetTierId = this.hoveredTierId || this.lastInteractedTierId || this.activeTargetTierId;
+        if (targetTierId) {
+          event.preventDefault();
+          this.toggleTierCollapse(targetTierId);
+          return;
+        }
+      }
+
+      // 3. Tecla 'C' directa cuando el puntero está sobre un tier y NO hay personajes seleccionados
+      if ((event.key === 'c' || event.key === 'C') && !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey) {
+        if (this.hoveredTierId && this.selectedCharacterIds.length === 0 && !this.hoveredCharId) {
+          event.preventDefault();
+          this.toggleTierCollapse(this.hoveredTierId);
+          return;
+        }
       }
 
       // Determine target character(s)

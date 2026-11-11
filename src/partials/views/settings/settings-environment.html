@@ -170,12 +170,21 @@
                           </label>
                         </div>
 
-                        <div class="relative">
-                          <input type="text" x-model="$store.settings.dashboardBgUrl"
-                            @input="$store.settings.saveDashboardBgSettings()"
-                            placeholder="O pega URL directa de imagen (https://...)"
-                            class="form-input text-xs w-full py-2 pl-8 pr-3 bg-black/60 border border-white/15 text-parchment-cream font-mono rounded-xl focus:outline-none focus:border-cyan-400 placeholder:text-slate-500">
-                          <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <div class="flex items-center gap-2">
+                          <div class="relative flex-1">
+                            <input type="text" x-model="$store.settings.dashboardBgUrl"
+                              @keydown.enter.prevent="$store.app.openMediaUrl($store.settings.dashboardBgUrl, 'bg_dashboard')"
+                              @input="$store.settings.saveDashboardBgSettings()"
+                              placeholder="O pega URL (Pinterest, ArtStation, Pixiv, Are.na, etc.)"
+                              class="form-input text-xs w-full py-2 pl-8 pr-3 bg-black/60 border border-white/15 text-parchment-cream font-mono rounded-xl focus:outline-none focus:border-cyan-400 placeholder:text-slate-500">
+                            <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                          </div>
+                          <button type="button"
+                            @click="$store.app.openMediaUrl($store.settings.dashboardBgUrl, 'bg_dashboard')"
+                            class="px-3 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400/40 text-cyan-200 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm hover:scale-[1.02] shrink-0"
+                            title="Procesar enlace y encuadrar imagen">
+                            Cargar
+                          </button>
                         </div>
                       </div>
                     </template>
@@ -214,67 +223,38 @@
                     <span>El fondo se adaptará automáticamente a la imagen del personaje que selecciones en el panel.</span>
                   </div>
 
-                  <!-- ──── LIENZO INTERACTIVO 2D y PRUEBA DE CONTRASTE ──── -->
-                  <div x-data="bgPanController('dashboard')" class="space-y-3 pt-2 border-t border-white/10">
+                  <!-- ──── LIENZO Y PRUEBA DE CONTRASTE CON ENCUADRE VISUAL LIBRE (CROPPER) ──── -->
+                  <div x-data="{ showMockup: true }" class="space-y-3 pt-2 border-t border-white/10">
 
-                    <!-- Cabecera de Control del Lienzo -->
-                    <div class="flex items-center justify-between text-xs font-mono font-bold text-ink-slate">
-                      <div class="flex items-center gap-2">
-                        <span class="flex items-center gap-1.5 truncate text-cyan-300">
-                          <i data-lucide="move" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
-                          <span>Lienzo 2D</span>
-                        </span>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold"
-                          x-text="`X:${getX()}% · Y:${getY()}% · ${getZoom()}%`"></span>
-                      </div>
+                    <!-- Cabecera de Control del Encuadre y Visualización -->
+                    <div class="flex items-center justify-between text-xs font-mono font-bold text-ink-slate flex-wrap gap-2">
+                      <button type="button" @click="$store.settings.openCropperForDashboard()"
+                        class="py-1.5 px-3 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400/50 text-cyan-200 hover:text-white text-[11px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.2)] hover:scale-[1.02] active:scale-[0.98]">
+                        <i data-lucide="crop" class="w-3.5 h-3.5 text-cyan-300"></i>
+                        <span>Encuadrar / Editar Imagen</span>
+                      </button>
 
                       <div class="flex items-center gap-2 shrink-0">
                         <!-- Alternar Siluetas HUD -->
                         <button type="button" @click="showMockup = !showMockup"
-                          class="px-2 py-0.5 rounded-md border text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
+                          class="px-2 py-1 rounded-md border text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
                           :class="showMockup ? 'text-cyan-300 bg-cyan-500/20 border-cyan-400/40 shadow-[0_0_8px_rgba(6,182,212,0.25)]' : 'text-slate-400 bg-black/60 border-white/10 hover:text-white'"
                           :title="showMockup ? 'Ocultar siluetas para ver fondo limpio' : 'Mostrar siluetas HUD para probar contraste'">
                           <i :data-lucide="showMockup ? 'eye' : 'eye-off'" class="w-3 h-3"></i>
-                          <span class="hidden sm:inline" x-text="showMockup ? 'Siluetas' : 'Limpio'"></span>
+                          <span x-text="showMockup ? 'Siluetas' : 'Limpio'"></span>
                         </button>
 
-                        <!-- Matriz 3x3 -->
-                        <div class="flex items-center" title="Anclaje Rápido 3x3: haz clic para anclar el encuadre">
-                          <div class="grid grid-cols-3 gap-0.5 p-1 rounded-md bg-black/80 border border-white/10 shadow-inner">
-                            <template x-for="row in [0, 50, 100]">
-                              <template x-for="col in [0, 50, 100]">
-                                <button type="button"
-                                  @click.stop="setAnchor(col, row)"
-                                  class="w-2.5 h-2.5 rounded-[2px] transition-all cursor-pointer"
-                                  :class="isAnchorActive(col, row)
-                                    ? 'bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.9)] scale-110'
-                                    : 'bg-white/15 hover:bg-white/40'"
-                                  :title="`Anclar a (${col}%, ${row}%)`">
-                                </button>
-                              </template>
-                            </template>
-                          </div>
-                        </div>
-
                         <!-- Restablecer -->
-                        <button type="button" @click="resetFrame()"
-                          class="text-[11px] text-cyan-300 hover:text-white hover:underline cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap transition-colors"
-                          title="Restablecer posición (50%, 50%) y zoom (100%)">
-                          <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                        <button type="button" @click="$store.settings.resetDashboardBgFrame()"
+                          class="p-1 rounded-md text-cyan-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                          title="Restablecer encuadre">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </button>
                       </div>
                     </div>
 
-                    <!-- Lienzo de Vista Previa Drag y Pan -->
-                    <div class="relative w-full h-48 rounded-xl overflow-hidden border border-cyan-500/30 bg-black/70 shadow-inner select-none transition-colors group"
-                      :class="isDragging ? 'cursor-grabbing border-cyan-400 shadow-[0_0_16px_rgba(6,182,212,0.3)]' : 'cursor-grab hover:border-cyan-400/60'"
-                      @pointerdown="onPointerDown($event)"
-                      @pointermove="onPointerMove($event)"
-                      @pointerup="onPointerUp($event)"
-                      @pointercancel="onPointerUp($event)"
-                      @wheel.prevent="onWheel($event)"
-                      @mouseenter="isHovered = true"
-                      @mouseleave="isHovered = false">
+                    <!-- Lienzo de Vista Previa de Contraste -->
+                    <div class="relative w-full h-48 rounded-xl overflow-hidden border border-cyan-500/30 bg-black/70 shadow-inner select-none transition-colors group">
 
                       <!-- Fondo en Modo Trama HUD -->
                       <template x-if="$store.settings.dashboardBgMode === 'pattern'">
@@ -287,8 +267,7 @@
                       <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
                         <div class="w-full h-full relative overflow-hidden pointer-events-none">
                           <img :src="$store.settings.dashboardBgUrl"
-                            class="w-full h-full object-cover"
-                            :class="isDragging ? 'duration-0' : 'transition-all duration-150'"
+                            class="w-full h-full object-cover transition-all duration-150"
                             :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo panel" />
                           <div class="absolute inset-0 bg-[#0a0c0e]"
                             :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
@@ -308,24 +287,12 @@
                         <div class="w-full h-full relative overflow-hidden pointer-events-none">
                           <img
                             :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl || ''"
-                            class="w-full h-full object-cover"
-                            :class="isDragging ? 'duration-0' : 'transition-all duration-150'"
+                            class="w-full h-full object-cover transition-all duration-150"
                             :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo dinámico" />
                           <div class="absolute inset-0 bg-[#0a0c0e]"
                             :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
                         </div>
                       </template>
-
-                      <!-- Retícula HUD de Guías -->
-                      <div class="absolute inset-0 pointer-events-none transition-opacity duration-200"
-                        :class="isHovered || isDragging ? 'opacity-100' : 'opacity-0'">
-                        <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] border-t border-dashed border-cyan-400/30"></div>
-                        <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] border-l border-dashed border-cyan-400/30"></div>
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-cyan-400/40 flex items-center justify-center">
-                          <div class="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.9)]"
-                            :class="isDragging ? 'scale-125' : ''"></div>
-                        </div>
-                      </div>
 
                       <!-- Siluetas HUD de Contraste Real (Dashboard Mockup) -->
                       <div x-show="showMockup"
@@ -394,93 +361,37 @@
                           <span>Panel Principal (Vista Limpia)</span>
                         </div>
                       </div>
-
-                      <!-- Hint de Arrastre -->
-                      <div class="absolute bottom-2 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-200"
-                        :class="isHovered && !isDragging ? 'opacity-90' : 'opacity-0'">
-                        <div class="px-2.5 py-1 rounded-full bg-black/85 backdrop-blur-md border border-cyan-400/30 text-[10px] font-mono text-cyan-300 flex items-center gap-1.5 shadow-lg">
-                          <i data-lucide="hand" class="w-3 h-3 text-cyan-400"></i>
-                          <span>Arrastra para mover · Rueda para zoom</span>
-                        </div>
-                      </div>
                     </div>
 
-                    <!-- ──── CONTROLES SLIDERS MODERNOS (BLOQUE POSICIÓN Y ZOOM) ──── -->
-                    <div class="space-y-3 pt-2">
-                      <!-- Grid Encuadre X e Y en paralelo -->
-                      <div class="grid grid-cols-2 gap-3">
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1 text-[11px]">
-                              <i data-lucide="move-horizontal" class="w-3 h-3 text-cyan-400"></i>
-                              <span>Eje X</span>
-                            </span>
-                            <span class="text-cyan-400 font-bold font-mono text-[11px]" x-text="`${$store.settings.dashboardBgPosX ?? 50}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="1" x-model="$store.settings.dashboardBgPosX"
-                            @input="$store.settings.saveDashboardBgSettings()"
-                            class="hud-range-slider hud-range-cyan">
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1 text-[11px]">
-                              <i data-lucide="move-vertical" class="w-3 h-3 text-cyan-400"></i>
-                              <span>Eje Y</span>
-                            </span>
-                            <span class="text-cyan-400 font-bold font-mono text-[11px]" x-text="`${$store.settings.dashboardBgPosY ?? 50}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="1" x-model="$store.settings.dashboardBgPosY"
-                            @input="$store.settings.saveDashboardBgSettings()"
-                            class="hud-range-slider hud-range-cyan">
-                        </div>
-                      </div>
-
-                      <!-- Zoom / Escala -->
+                    <!-- ──── CONTROLES SLIDERS (ÚNICAMENTE OSCURECIMIENTO, DESENFOQUE Y FILTROS) ──── -->
+                    <div class="space-y-3 pt-1">
+                      <!-- Oscurecimiento (Scrim Overlay) -->
                       <div class="flex flex-col gap-1">
                         <div class="flex justify-between items-center text-xs font-mono text-slate-300">
                           <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-cyan-400"></i>
-                            <span>Zoom / Escala</span>
+                            <i data-lucide="shield" class="w-3.5 h-3.5 text-cyan-400"></i>
+                            <span>Oscurecimiento (Scrim)</span>
                           </span>
-                          <span class="text-cyan-400 font-bold font-mono text-[11px]" x-text="`${$store.settings.dashboardBgZoom ?? 100}%`"></span>
+                          <span class="text-cyan-400 font-bold font-mono text-[11px]" x-text="`${$store.settings.dashboardBgOpacity}%`"></span>
                         </div>
-                        <input type="range" min="100" max="250" step="5" x-model="$store.settings.dashboardBgZoom"
+                        <input type="range" min="0" max="100" step="5" x-model="$store.settings.dashboardBgOpacity"
                           @input="$store.settings.saveDashboardBgSettings()"
                           class="hud-range-slider hud-range-cyan">
                       </div>
 
-                      <!-- ──── CONTROLES SLIDERS (BLOQUE ATMÓSFERA Y FILTROS) ──── -->
-                      <div class="pt-2 border-t border-white/10 space-y-3">
-                        <!-- Oscurecimiento (Scrim Overlay) -->
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1.5 text-[11px]">
-                              <i data-lucide="shield" class="w-3.5 h-3.5 text-cyan-400"></i>
-                              <span>Oscurecimiento (Scrim)</span>
-                            </span>
-                            <span class="text-cyan-400 font-bold font-mono text-[11px]" x-text="`${$store.settings.dashboardBgOpacity}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="5" x-model="$store.settings.dashboardBgOpacity"
-                            @input="$store.settings.saveDashboardBgSettings()"
-                            class="hud-range-slider hud-range-cyan">
+                      <!-- Desenfoque (Backdrop Blur) -->
+                      <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
+                          <span class="flex items-center gap-1.5 text-[11px]">
+                            <i data-lucide="droplet" class="w-3.5 h-3.5 text-cyan-400"></i>
+                            <span>Desenfoque (Blur)</span>
+                          </span>
+                          <span class="text-cyan-400 font-bold font-mono text-[11px]" x-text="`${$store.settings.dashboardBgBlur} px`"></span>
                         </div>
-
-                        <!-- Desenfoque (Backdrop Blur) -->
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1.5 text-[11px]">
-                              <i data-lucide="droplet" class="w-3.5 h-3.5 text-cyan-400"></i>
-                              <span>Desenfoque (Blur)</span>
-                            </span>
-                            <span class="text-cyan-400 font-bold font-mono text-[11px]" x-text="`${$store.settings.dashboardBgBlur} px`"></span>
-                          </div>
-                          <input type="range" min="0" max="30" step="1" x-model="$store.settings.dashboardBgBlur"
-                            @input="$store.settings.saveDashboardBgSettings()"
-                            class="hud-range-slider hud-range-cyan">
-                        </div>
+                        <input type="range" min="0" max="30" step="1" x-model="$store.settings.dashboardBgBlur"
+                          @input="$store.settings.saveDashboardBgSettings()"
+                          class="hud-range-slider hud-range-cyan">
                       </div>
-
                     </div>
                   </div>
 
@@ -608,12 +519,21 @@
                           </label>
                         </div>
 
-                        <div class="relative">
-                          <input type="text" x-model="$store.settings.tierlistBgUrl"
-                            @input="$store.settings.saveTierlistBgSettings()"
-                            placeholder="O pega URL directa de imagen (https://...)"
-                            class="form-input text-xs w-full py-2 pl-8 pr-3 bg-black/60 border border-white/15 text-parchment-cream font-mono rounded-xl focus:outline-none focus:border-purple-400 placeholder:text-slate-500">
-                          <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <div class="flex items-center gap-2">
+                          <div class="relative flex-1">
+                            <input type="text" x-model="$store.settings.tierlistBgUrl"
+                              @keydown.enter.prevent="$store.app.openMediaUrl($store.settings.tierlistBgUrl, 'bg_tierlist')"
+                              @input="$store.settings.saveTierlistBgSettings()"
+                              placeholder="O pega URL (Pinterest, ArtStation, Pixiv, Are.na, etc.)"
+                              class="form-input text-xs w-full py-2 pl-8 pr-3 bg-black/60 border border-white/15 text-parchment-cream font-mono rounded-xl focus:outline-none focus:border-purple-400 placeholder:text-slate-500">
+                            <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                          </div>
+                          <button type="button"
+                            @click="$store.app.openMediaUrl($store.settings.tierlistBgUrl, 'bg_tierlist')"
+                            class="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/40 text-purple-200 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm hover:scale-[1.02] shrink-0"
+                            title="Procesar enlace y encuadrar imagen">
+                            Cargar
+                          </button>
                         </div>
                       </div>
                     </template>
@@ -652,67 +572,38 @@
                     <span>Sincronizado: Utiliza automáticamente el fondo y encuadre configurados en el Panel Principal.</span>
                   </div>
 
-                  <!-- ──── LIENZO INTERACTIVO 2D y PRUEBA DE CONTRASTE ──── -->
-                  <div x-data="bgPanController('tierlist')" class="space-y-3 pt-2 border-t border-white/10">
+                  <!-- ──── LIENZO Y PRUEBA DE CONTRASTE CON ENCUADRE VISUAL LIBRE (CROPPER) ──── -->
+                  <div x-data="{ showMockup: true }" class="space-y-3 pt-2 border-t border-white/10">
 
-                    <!-- Cabecera de Control del Lienzo -->
-                    <div class="flex items-center justify-between text-xs font-mono font-bold text-ink-slate">
-                      <div class="flex items-center gap-2">
-                        <span class="flex items-center gap-1.5 truncate text-purple-300">
-                          <i data-lucide="move" class="w-3.5 h-3.5 text-purple-400 shrink-0"></i>
-                          <span>Lienzo 2D</span>
-                        </span>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-400/30 text-purple-300 font-bold"
-                          x-text="`X:${getX()}% · Y:${getY()}% · ${getZoom()}%`"></span>
-                      </div>
+                    <!-- Cabecera de Control del Encuadre y Visualización -->
+                    <div class="flex items-center justify-between text-xs font-mono font-bold text-ink-slate flex-wrap gap-2">
+                      <button type="button" @click="$store.settings.openCropperForTierlist()"
+                        class="py-1.5 px-3 rounded-lg bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/50 text-purple-200 hover:text-white text-[11px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-[0_0_10px_rgba(168,85,247,0.2)] hover:scale-[1.02] active:scale-[0.98]">
+                        <i data-lucide="crop" class="w-3.5 h-3.5 text-purple-300"></i>
+                        <span>Encuadrar / Editar Imagen</span>
+                      </button>
 
                       <div class="flex items-center gap-2 shrink-0">
                         <!-- Alternar Siluetas HUD -->
                         <button type="button" @click="showMockup = !showMockup"
-                          class="px-2 py-0.5 rounded-md border text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
+                          class="px-2 py-1 rounded-md border text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
                           :class="showMockup ? 'text-purple-300 bg-purple-500/20 border-purple-400/40 shadow-[0_0_8px_rgba(168,85,247,0.25)]' : 'text-slate-400 bg-black/60 border-white/10 hover:text-white'"
                           :title="showMockup ? 'Ocultar siluetas para ver fondo limpio' : 'Mostrar siluetas HUD para probar contraste'">
                           <i :data-lucide="showMockup ? 'eye' : 'eye-off'" class="w-3 h-3"></i>
-                          <span class="hidden sm:inline" x-text="showMockup ? 'Siluetas' : 'Limpio'"></span>
+                          <span x-text="showMockup ? 'Siluetas' : 'Limpio'"></span>
                         </button>
 
-                        <!-- Matriz 3x3 -->
-                        <div class="flex items-center" title="Anclaje Rápido 3x3: haz clic para anclar el encuadre">
-                          <div class="grid grid-cols-3 gap-0.5 p-1 rounded-md bg-black/80 border border-white/10 shadow-inner">
-                            <template x-for="row in [0, 50, 100]">
-                              <template x-for="col in [0, 50, 100]">
-                                <button type="button"
-                                  @click.stop="setAnchor(col, row)"
-                                  class="w-2.5 h-2.5 rounded-[2px] transition-all cursor-pointer"
-                                  :class="isAnchorActive(col, row)
-                                    ? 'bg-purple-400 shadow-[0_0_6px_rgba(168,85,247,0.9)] scale-110'
-                                    : 'bg-white/15 hover:bg-white/40'"
-                                  :title="`Anclar a (${col}%, ${row}%)`">
-                                </button>
-                              </template>
-                            </template>
-                          </div>
-                        </div>
-
                         <!-- Restablecer -->
-                        <button type="button" @click="resetFrame()"
-                          class="text-[11px] text-purple-300 hover:text-white hover:underline cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap transition-colors"
-                          title="Restablecer posición (50%, 50%) y zoom (100%)">
-                          <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                        <button type="button" @click="$store.settings.resetTierlistBgFrame()"
+                          class="p-1 rounded-md text-purple-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                          title="Restablecer encuadre">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </button>
                       </div>
                     </div>
 
-                    <!-- Lienzo de Vista Previa Drag y Pan -->
-                    <div class="relative w-full h-48 rounded-xl overflow-hidden border border-purple-500/30 bg-black/70 shadow-inner select-none transition-colors group"
-                      :class="isDragging ? 'cursor-grabbing border-purple-400 shadow-[0_0_16px_rgba(168,85,247,0.3)]' : 'cursor-grab hover:border-purple-400/60'"
-                      @pointerdown="onPointerDown($event)"
-                      @pointermove="onPointerMove($event)"
-                      @pointerup="onPointerUp($event)"
-                      @pointercancel="onPointerUp($event)"
-                      @wheel.prevent="onWheel($event)"
-                      @mouseenter="isHovered = true"
-                      @mouseleave="isHovered = false">
+                    <!-- Lienzo de Vista Previa de Contraste -->
+                    <div class="relative w-full h-48 rounded-xl overflow-hidden border border-purple-500/30 bg-black/70 shadow-inner select-none transition-colors group">
 
                       <!-- Fondo en Modo Trama HUD -->
                       <template x-if="$store.settings.tierlistBgMode === 'pattern'">
@@ -725,8 +616,7 @@
                       <template x-if="$store.settings.tierlistBgMode === 'custom' && $store.settings.tierlistBgUrl">
                         <div class="w-full h-full relative overflow-hidden pointer-events-none">
                           <img :src="$store.settings.tierlistBgUrl"
-                            class="w-full h-full object-cover"
-                            :class="isDragging ? 'duration-0' : 'transition-all duration-150'"
+                            class="w-full h-full object-cover transition-all duration-150"
                             :style="$store.settings.getTierlistBgStyle()" alt="Preview fondo tierlist" />
                           <div class="absolute inset-0 bg-[#07090d]"
                             :style="`opacity: ${($store.settings.tierlistBgOpacity ?? 60) / 100};`"></div>
@@ -747,8 +637,7 @@
                           <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
                             <div class="w-full h-full relative">
                               <img :src="$store.settings.dashboardBgUrl"
-                                class="w-full h-full object-cover"
-                                :class="isDragging ? 'duration-0' : 'transition-all duration-150'"
+                                class="w-full h-full object-cover transition-all duration-150"
                                 :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo sync" />
                               <div class="absolute inset-0 bg-[#07090d]"
                                 :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
@@ -757,8 +646,7 @@
                           <template x-if="$store.settings.dashboardBgMode === 'dynamic' && ($store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl)">
                             <div class="w-full h-full relative">
                               <img :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl"
-                                class="w-full h-full object-cover"
-                                :class="isDragging ? 'duration-0' : 'transition-all duration-150'"
+                                class="w-full h-full object-cover transition-all duration-150"
                                 :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo sync dynamic" />
                               <div class="absolute inset-0 bg-[#07090d]"
                                 :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
@@ -766,17 +654,6 @@
                           </template>
                         </div>
                       </template>
-
-                      <!-- Retícula HUD de Guías -->
-                      <div class="absolute inset-0 pointer-events-none transition-opacity duration-200"
-                        :class="isHovered || isDragging ? 'opacity-100' : 'opacity-0'">
-                        <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] border-t border-dashed border-purple-400/30"></div>
-                        <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] border-l border-dashed border-purple-400/30"></div>
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-purple-400/40 flex items-center justify-center">
-                          <div class="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.9)]"
-                            :class="isDragging ? 'scale-125' : ''"></div>
-                        </div>
-                      </div>
 
                       <!-- Siluetas HUD de Contraste Real (Tier List Mockup) -->
                       <div x-show="showMockup"
@@ -846,108 +723,52 @@
                           <span>Tablero Tier List (Vista Limpia)</span>
                         </div>
                       </div>
-
-                      <!-- Hint de Arrastre -->
-                      <div class="absolute bottom-2 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-200"
-                        :class="isHovered && !isDragging ? 'opacity-90' : 'opacity-0'">
-                        <div class="px-2.5 py-1 rounded-full bg-black/85 backdrop-blur-md border border-purple-400/30 text-[10px] font-mono text-purple-300 flex items-center gap-1.5 shadow-lg">
-                          <i data-lucide="hand" class="w-3 h-3 text-purple-400"></i>
-                          <span>Arrastra para mover · Rueda para zoom</span>
-                        </div>
-                      </div>
                     </div>
 
-                    <!-- ──── CONTROLES SLIDERS MODERNOS (BLOQUE POSICIÓN Y ZOOM) ──── -->
-                    <div class="space-y-3 pt-2">
-                      <!-- Grid Encuadre X e Y en paralelo -->
-                      <div class="grid grid-cols-2 gap-3">
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1 text-[11px]">
-                              <i data-lucide="move-horizontal" class="w-3 h-3 text-purple-400"></i>
-                              <span>Eje X</span>
-                            </span>
-                            <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.settings.tierlistBgPosX ?? 50}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="1" x-model="$store.settings.tierlistBgPosX"
-                            @input="$store.settings.saveTierlistBgSettings()"
-                            class="hud-range-slider hud-range-purple">
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1 text-[11px]">
-                              <i data-lucide="move-vertical" class="w-3 h-3 text-purple-400"></i>
-                              <span>Eje Y</span>
-                            </span>
-                            <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.settings.tierlistBgPosY ?? 50}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="1" x-model="$store.settings.tierlistBgPosY"
-                            @input="$store.settings.saveTierlistBgSettings()"
-                            class="hud-range-slider hud-range-purple">
-                        </div>
-                      </div>
-
-                      <!-- Zoom / Escala -->
+                    <!-- ──── CONTROLES SLIDERS (ÚNICAMENTE OSCURECIMIENTO, DESENFOQUE Y FILTROS) ──── -->
+                    <div class="space-y-3 pt-1">
+                      <!-- Oscurecimiento (Scrim Overlay) -->
                       <div class="flex flex-col gap-1">
                         <div class="flex justify-between items-center text-xs font-mono text-slate-300">
                           <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-purple-400"></i>
-                            <span>Zoom / Escala</span>
+                            <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i>
+                            <span>Oscurecimiento (Scrim)</span>
                           </span>
-                          <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.settings.tierlistBgZoom ?? 100}%`"></span>
+                          <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.settings.tierlistBgOpacity}%`"></span>
                         </div>
-                        <input type="range" min="100" max="250" step="5" x-model="$store.settings.tierlistBgZoom"
+                        <input type="range" min="0" max="100" step="5" x-model="$store.settings.tierlistBgOpacity"
                           @input="$store.settings.saveTierlistBgSettings()"
                           class="hud-range-slider hud-range-purple">
                       </div>
 
-                      <!-- ──── CONTROLES SLIDERS (BLOQUE ATMÓSFERA Y FILTROS) ──── -->
-                      <div class="pt-2 border-t border-white/10 space-y-3">
-                        <!-- Oscurecimiento (Scrim Overlay) -->
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1.5 text-[11px]">
-                              <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i>
-                              <span>Oscurecimiento (Scrim)</span>
-                            </span>
-                            <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.settings.tierlistBgOpacity}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="5" x-model="$store.settings.tierlistBgOpacity"
-                            @input="$store.settings.saveTierlistBgSettings()"
-                            class="hud-range-slider hud-range-purple">
+                      <!-- Desenfoque (Backdrop Blur) -->
+                      <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
+                          <span class="flex items-center gap-1.5 text-[11px]">
+                            <i data-lucide="droplet" class="w-3.5 h-3.5 text-purple-400"></i>
+                            <span>Desenfoque (Blur)</span>
+                          </span>
+                          <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.settings.tierlistBgBlur} px`"></span>
                         </div>
-
-                        <!-- Desenfoque (Backdrop Blur) -->
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1.5 text-[11px]">
-                              <i data-lucide="droplet" class="w-3.5 h-3.5 text-purple-400"></i>
-                              <span>Desenfoque (Blur)</span>
-                            </span>
-                            <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.settings.tierlistBgBlur} px`"></span>
-                          </div>
-                          <input type="range" min="0" max="30" step="1" x-model="$store.settings.tierlistBgBlur"
-                            @input="$store.settings.saveTierlistBgSettings()"
-                            class="hud-range-slider hud-range-purple">
-                        </div>
-
-                        <!-- Opacidad de Filas / Espacio de Categorías -->
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1.5 text-[11px]">
-                              <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-400"></i>
-                              <span>Opacidad de Filas de Rango</span>
-                            </span>
-                            <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.tierlist.rowOpacity ?? 40}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="5"
-                            :value="$store.tierlist.rowOpacity ?? 40"
-                            @input="$store.tierlist.setRowOpacity($el.value)"
-                            class="hud-range-slider hud-range-purple">
-                        </div>
+                        <input type="range" min="0" max="30" step="1" x-model="$store.settings.tierlistBgBlur"
+                          @input="$store.settings.saveTierlistBgSettings()"
+                          class="hud-range-slider hud-range-purple">
                       </div>
 
+                      <!-- Opacidad de Filas / Espacio de Categorías -->
+                      <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
+                          <span class="flex items-center gap-1.5 text-[11px]">
+                            <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-400"></i>
+                            <span>Opacidad de Filas de Rango</span>
+                          </span>
+                          <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.tierlist.rowOpacity ?? 40}%`"></span>
+                        </div>
+                        <input type="range" min="0" max="100" step="5"
+                          :value="$store.tierlist.rowOpacity ?? 40"
+                          @input="$store.tierlist.setRowOpacity($el.value)"
+                          class="hud-range-slider hud-range-purple">
+                      </div>
                     </div>
                   </div>
 
@@ -1081,12 +902,21 @@
                           </label>
                         </div>
 
-                        <div class="relative">
-                          <input type="text" :value="$store.characters.active?.presentation?.background?.image || ''"
-                            @input="$store.characters.setBackgroundUrl($el.value)"
-                            placeholder="O pega URL directa de imagen (https://...)"
-                            class="form-input text-xs w-full py-2 pl-8 pr-3 bg-black/60 border border-white/15 text-parchment-cream font-mono rounded-xl focus:outline-none focus:border-emerald-400 placeholder:text-slate-500">
-                          <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <div class="flex items-center gap-2">
+                          <div class="relative flex-1">
+                            <input type="text" :value="$store.characters.active?.presentation?.background?.image || ''"
+                              @keydown.enter.prevent="$store.app.openMediaUrl($el.value, 'bg_character')"
+                              @input="$store.characters.setBackgroundUrl($el.value)"
+                              placeholder="O pega URL (Pinterest, ArtStation, Pixiv, Are.na, etc.)"
+                              class="form-input text-xs w-full py-2 pl-8 pr-3 bg-black/60 border border-white/15 text-parchment-cream font-mono rounded-xl focus:outline-none focus:border-emerald-400 placeholder:text-slate-500">
+                            <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                          </div>
+                          <button type="button"
+                            @click="$store.app.openMediaUrl($store.characters.active?.presentation?.background?.image, 'bg_character')"
+                            class="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm hover:scale-[1.02] shrink-0"
+                            title="Procesar enlace y encuadrar imagen">
+                            Cargar
+                          </button>
                         </div>
                       </div>
                     </template>
@@ -1125,67 +955,38 @@
                     <span>Sincronizado: Esta ficha hereda el fondo configurado en el Panel Principal.</span>
                   </div>
 
-                  <!-- ──── LIENZO INTERACTIVO 2D y PRUEBA DE CONTRASTE ──── -->
-                  <div x-data="bgPanController('character')" class="space-y-3 pt-2 border-t border-white/10">
+                  <!-- ──── LIENZO Y PRUEBA DE CONTRASTE CON ENCUADRE VISUAL LIBRE (CROPPER) ──── -->
+                  <div x-data="{ showMockup: true }" class="space-y-3 pt-2 border-t border-white/10">
 
-                    <!-- Cabecera de Control del Lienzo -->
-                    <div class="flex items-center justify-between text-xs font-mono font-bold text-ink-slate">
-                      <div class="flex items-center gap-2">
-                        <span class="flex items-center gap-1.5 truncate text-emerald-300">
-                          <i data-lucide="move" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
-                          <span>Lienzo 2D</span>
-                        </span>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-400/30 text-emerald-300 font-bold"
-                          x-text="`X:${getX()}% · Y:${getY()}% · ${getZoom()}%`"></span>
-                      </div>
+                    <!-- Cabecera de Control del Encuadre y Visualización -->
+                    <div class="flex items-center justify-between text-xs font-mono font-bold text-ink-slate flex-wrap gap-2">
+                      <button type="button" @click="$store.characters.openCropperForCharacterBg()"
+                        class="py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/50 text-emerald-200 hover:text-white text-[11px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:scale-[1.02] active:scale-[0.98]">
+                        <i data-lucide="crop" class="w-3.5 h-3.5 text-emerald-300"></i>
+                        <span>Encuadrar / Editar Imagen</span>
+                      </button>
 
                       <div class="flex items-center gap-2 shrink-0">
                         <!-- Alternar Siluetas HUD -->
                         <button type="button" @click="showMockup = !showMockup"
-                          class="px-2 py-0.5 rounded-md border text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
+                          class="px-2 py-1 rounded-md border text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
                           :class="showMockup ? 'text-emerald-300 bg-emerald-500/20 border-emerald-400/40 shadow-[0_0_8px_rgba(16,185,129,0.25)]' : 'text-slate-400 bg-black/60 border-white/10 hover:text-white'"
                           :title="showMockup ? 'Ocultar siluetas para ver fondo limpio' : 'Mostrar siluetas HUD para probar contraste'">
                           <i :data-lucide="showMockup ? 'eye' : 'eye-off'" class="w-3 h-3"></i>
-                          <span class="hidden sm:inline" x-text="showMockup ? 'Siluetas' : 'Limpio'"></span>
+                          <span x-text="showMockup ? 'Siluetas' : 'Limpio'"></span>
                         </button>
 
-                        <!-- Matriz 3x3 -->
-                        <div class="flex items-center" title="Anclaje Rápido 3x3: haz clic para anclar el encuadre">
-                          <div class="grid grid-cols-3 gap-0.5 p-1 rounded-md bg-black/80 border border-white/10 shadow-inner">
-                            <template x-for="row in [0, 50, 100]">
-                              <template x-for="col in [0, 50, 100]">
-                                <button type="button"
-                                  @click.stop="setAnchor(col, row)"
-                                  class="w-2.5 h-2.5 rounded-[2px] transition-all cursor-pointer"
-                                  :class="isAnchorActive(col, row)
-                                    ? 'bg-emerald-400 shadow-[0_0_6px_rgba(16,185,129,0.9)] scale-110'
-                                    : 'bg-white/15 hover:bg-white/40'"
-                                  :title="`Anclar a (${col}%, ${row}%)`">
-                                </button>
-                              </template>
-                            </template>
-                          </div>
-                        </div>
-
                         <!-- Restablecer -->
-                        <button type="button" @click="resetFrame()"
-                          class="text-[11px] text-emerald-300 hover:text-white hover:underline cursor-pointer flex items-center gap-1 shrink-0 whitespace-nowrap transition-colors"
-                          title="Restablecer posición (50%, 50%) y zoom (100%)">
-                          <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                        <button type="button" @click="$store.characters.resetBackgroundFrame()"
+                          class="p-1 rounded-md text-emerald-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                          title="Restablecer encuadre">
+                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                         </button>
                       </div>
                     </div>
 
-                    <!-- Lienzo de Vista Previa Drag y Pan -->
-                    <div class="relative w-full h-48 rounded-xl overflow-hidden border border-emerald-500/30 bg-black/70 shadow-inner select-none transition-colors group"
-                      :class="isDragging ? 'cursor-grabbing border-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.3)]' : 'cursor-grab hover:border-emerald-400/60'"
-                      @pointerdown="onPointerDown($event)"
-                      @pointermove="onPointerMove($event)"
-                      @pointerup="onPointerUp($event)"
-                      @pointercancel="onPointerUp($event)"
-                      @wheel.prevent="onWheel($event)"
-                      @mouseenter="isHovered = true"
-                      @mouseleave="isHovered = false">
+                    <!-- Lienzo de Vista Previa de Contraste -->
+                    <div class="relative w-full h-48 rounded-xl overflow-hidden border border-emerald-500/30 bg-black/70 shadow-inner select-none transition-colors group">
 
                       <!-- Fondo en Modo Trama HUD -->
                       <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'pattern'">
@@ -1198,8 +999,7 @@
                       <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom' && $store.characters.active?.presentation?.background?.image">
                         <div class="w-full h-full relative overflow-hidden pointer-events-none">
                           <img :src="$store.characters.active.presentation.background.image"
-                            class="w-full h-full object-cover"
-                            :class="isDragging ? 'duration-0' : 'transition-all duration-150'"
+                            class="w-full h-full object-cover transition-all duration-150"
                             :style="$store.characters.getBackgroundStyle()" alt="Preview fondo ficha" />
                           <div class="absolute inset-0 bg-[#080a0d]"
                             :style="`opacity: ${($store.characters.active?.presentation?.background?.scrim ?? 20) / 100};`"></div>
@@ -1220,8 +1020,7 @@
                           <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
                             <div class="w-full h-full relative">
                               <img :src="$store.settings.dashboardBgUrl"
-                                class="w-full h-full object-cover"
-                                :class="isDragging ? 'duration-0' : 'transition-all duration-150'"
+                                class="w-full h-full object-cover transition-all duration-150"
                                 :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo sync" />
                               <div class="absolute inset-0 bg-[#080a0d]"
                                 :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
@@ -1230,8 +1029,7 @@
                           <template x-if="$store.settings.dashboardBgMode === 'dynamic' && ($store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl)">
                             <div class="w-full h-full relative">
                               <img :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl"
-                                class="w-full h-full object-cover"
-                                :class="isDragging ? 'duration-0' : 'transition-all duration-150'"
+                                class="w-full h-full object-cover transition-all duration-150"
                                 :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo sync dynamic" />
                               <div class="absolute inset-0 bg-[#080a0d]"
                                 :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
@@ -1239,17 +1037,6 @@
                           </template>
                         </div>
                       </template>
-
-                      <!-- Retícula HUD de Guías -->
-                      <div class="absolute inset-0 pointer-events-none transition-opacity duration-200"
-                        :class="isHovered || isDragging ? 'opacity-100' : 'opacity-0'">
-                        <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] border-t border-dashed border-emerald-400/30"></div>
-                        <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[1px] border-l border-dashed border-emerald-400/30"></div>
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full border border-emerald-400/40 flex items-center justify-center">
-                          <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.9)]"
-                            :class="isDragging ? 'scale-125' : ''"></div>
-                        </div>
-                      </div>
 
                       <!-- Siluetas HUD de Contraste Real (Character Sheet Mockup) -->
                       <div x-show="showMockup"
@@ -1316,119 +1103,57 @@
                           <span>Ficha de Personaje (Vista Limpia)</span>
                         </div>
                       </div>
-
-                      <!-- Hint de Arrastre -->
-                      <div class="absolute bottom-2 inset-x-0 flex justify-center pointer-events-none transition-opacity duration-200"
-                        :class="isHovered && !isDragging ? 'opacity-90' : 'opacity-0'">
-                        <div class="px-2.5 py-1 rounded-full bg-black/85 backdrop-blur-md border border-emerald-400/30 text-[10px] font-mono text-emerald-300 flex items-center gap-1.5 shadow-lg">
-                          <i data-lucide="hand" class="w-3 h-3 text-emerald-400"></i>
-                          <span>Arrastra para mover · Rueda para zoom</span>
-                        </div>
-                      </div>
                     </div>
 
-                    <!-- ──── CONTROLES SLIDERS MODERNOS (BLOQUE POSICIÓN Y ZOOM) ──── -->
-                    <div class="space-y-3 pt-2">
-                      <!-- Grid Encuadre X e Y en paralelo -->
-                      <div class="grid grid-cols-2 gap-3">
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1 text-[11px]">
-                              <i data-lucide="move-horizontal" class="w-3 h-3 text-emerald-400"></i>
-                              <span>Eje X</span>
-                            </span>
-                            <span class="text-emerald-300 font-bold font-mono text-[11px]"
-                              x-text="`${$store.characters.active?.presentation?.background?.posX ?? 50}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="1"
-                            :value="$store.characters.active?.presentation?.background?.posX ?? 50"
-                            @input="$store.characters.updateBackgroundPosX($el.value)"
-                            class="hud-range-slider hud-range-emerald">
-                        </div>
-
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1 text-[11px]">
-                              <i data-lucide="move-vertical" class="w-3 h-3 text-emerald-400"></i>
-                              <span>Eje Y</span>
-                            </span>
-                            <span class="text-emerald-300 font-bold font-mono text-[11px]"
-                              x-text="`${$store.characters.active?.presentation?.background?.posY ?? 50}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="1"
-                            :value="$store.characters.active?.presentation?.background?.posY ?? 50"
-                            @input="$store.characters.updateBackgroundPosY($el.value)"
-                            class="hud-range-slider hud-range-emerald">
-                        </div>
-                      </div>
-
-                      <!-- Zoom / Escala -->
+                    <!-- ──── CONTROLES SLIDERS (ÚNICAMENTE OSCURECIMIENTO, DESENFOQUE Y OPACIDAD) ──── -->
+                    <div class="space-y-3 pt-1">
+                      <!-- Oscurecimiento (Scrim Overlay) -->
                       <div class="flex flex-col gap-1">
                         <div class="flex justify-between items-center text-xs font-mono text-slate-300">
                           <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-emerald-400"></i>
-                            <span>Zoom / Escala</span>
+                            <i data-lucide="shield" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>Oscurecimiento (Scrim)</span>
                           </span>
                           <span class="text-emerald-300 font-bold font-mono text-[11px]"
-                            x-text="`${$store.characters.active?.presentation?.background?.zoom ?? 100}%`"></span>
+                            x-text="`${$store.characters.active?.presentation?.background?.scrim ?? 20}%`"></span>
                         </div>
-                        <input type="range" min="100" max="250" step="5"
-                          :value="$store.characters.active?.presentation?.background?.zoom ?? 100"
-                          @input="$store.characters.updateBackgroundZoom($el.value)"
+                        <input type="range" min="0" max="100" step="5"
+                          :value="$store.characters.active?.presentation?.background?.scrim ?? 20"
+                          @input="$store.characters.updateBackgroundScrim($el.value)"
                           class="hud-range-slider hud-range-emerald">
                       </div>
 
-                      <!-- ──── CONTROLES SLIDERS (BLOQUE ATMÓSFERA Y FILTROS) ──── -->
-                      <div class="pt-2 border-t border-white/10 space-y-3">
-                        <!-- Oscurecimiento (Scrim Overlay) -->
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1.5 text-[11px]">
-                              <i data-lucide="shield" class="w-3.5 h-3.5 text-emerald-400"></i>
-                              <span>Oscurecimiento (Scrim)</span>
-                            </span>
-                            <span class="text-emerald-300 font-bold font-mono text-[11px]"
-                              x-text="`${$store.characters.active?.presentation?.background?.scrim ?? 20}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="5"
-                            :value="$store.characters.active?.presentation?.background?.scrim ?? 20"
-                            @input="$store.characters.updateBackgroundScrim($el.value)"
-                            class="hud-range-slider hud-range-emerald">
+                      <!-- Desenfoque (Backdrop Blur) -->
+                      <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
+                          <span class="flex items-center gap-1.5 text-[11px]">
+                            <i data-lucide="droplet" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>Desenfoque (Blur)</span>
+                          </span>
+                          <span class="text-emerald-300 font-bold font-mono text-[11px]"
+                            x-text="`${$store.characters.active?.presentation?.background?.blur || 0} px`"></span>
                         </div>
-
-                        <!-- Desenfoque (Backdrop Blur) -->
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1.5 text-[11px]">
-                              <i data-lucide="droplet" class="w-3.5 h-3.5 text-emerald-400"></i>
-                              <span>Desenfoque (Blur)</span>
-                            </span>
-                            <span class="text-emerald-300 font-bold font-mono text-[11px]"
-                              x-text="`${$store.characters.active?.presentation?.background?.blur || 0} px`"></span>
-                          </div>
-                          <input type="range" min="0" max="30" step="1"
-                            :value="$store.characters.active?.presentation?.background?.blur || 0"
-                            @input="$store.characters.updateBackgroundBlur($el.value)"
-                            class="hud-range-slider hud-range-emerald">
-                        </div>
-
-                        <!-- Opacidad General de la Capa de Fondo -->
-                        <div class="flex flex-col gap-1">
-                          <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                            <span class="flex items-center gap-1.5 text-[11px]">
-                              <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-400"></i>
-                              <span>Opacidad de Capa de Fondo</span>
-                            </span>
-                            <span class="text-emerald-300 font-bold font-mono text-[11px]"
-                              x-text="`${$store.characters.active?.presentation?.background?.opacity ?? 50}%`"></span>
-                          </div>
-                          <input type="range" min="0" max="100" step="5"
-                            :value="$store.characters.active?.presentation?.background?.opacity ?? 50"
-                            @input="$store.characters.updateBackgroundOpacity($el.value)"
-                            class="hud-range-slider hud-range-emerald">
-                        </div>
+                        <input type="range" min="0" max="30" step="1"
+                          :value="$store.characters.active?.presentation?.background?.blur || 0"
+                          @input="$store.characters.updateBackgroundBlur($el.value)"
+                          class="hud-range-slider hud-range-emerald">
                       </div>
 
+                      <!-- Opacidad General de la Capa de Fondo -->
+                      <div class="flex flex-col gap-1">
+                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
+                          <span class="flex items-center gap-1.5 text-[11px]">
+                            <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>Opacidad de Capa de Fondo</span>
+                          </span>
+                          <span class="text-emerald-300 font-bold font-mono text-[11px]"
+                            x-text="`${$store.characters.active?.presentation?.background?.opacity ?? 50}%`"></span>
+                        </div>
+                        <input type="range" min="0" max="100" step="5"
+                          :value="$store.characters.active?.presentation?.background?.opacity ?? 50"
+                          @input="$store.characters.updateBackgroundOpacity($el.value)"
+                          class="hud-range-slider hud-range-emerald">
+                      </div>
                     </div>
                   </div>
 

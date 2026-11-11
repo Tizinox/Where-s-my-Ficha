@@ -305,17 +305,7 @@ export function createSubmodelMethods() {
     async loadSkillImageFromUrl(url, skillId) {
       if (!url || !url.trim()) return;
       const cleanUrl = url.trim();
-      window.Alpine?.store('app')?.toast('Descargando imagen de la habilidad...', 'info');
-      try {
-        const file = await fetchImageAsFileFromUrl(cleanUrl);
-        window.Alpine?.store('app')?.openCropper(file, 'skill', skillId);
-      } catch (err) {
-        console.error(`Error al cargar imagen de habilidad desde URL (${cleanUrl}):`, err);
-        window.Alpine?.store('app')?.toast(
-          'No se pudo descargar la imagen. Si el sitio requiere inicio de sesión, guarda la imagen en tu dispositivo y súbela como archivo.',
-          'error'
-        );
-      }
+      await window.Alpine?.store('app')?.openMediaUrl(cleanUrl, 'skill', skillId);
     },
 
     toggleSkillImageFit(skillId) {
@@ -673,17 +663,7 @@ export function createSubmodelMethods() {
     async loadWeaponImageFromUrl(url, weaponId) {
       if (!url || !url.trim()) return;
       const cleanUrl = url.trim();
-      window.Alpine?.store('app')?.toast('Descargando imagen del arma...', 'info');
-      try {
-        const file = await fetchImageAsFileFromUrl(cleanUrl);
-        window.Alpine?.store('app')?.openCropper(file, 'weapon', weaponId);
-      } catch (err) {
-        console.error(`Error al cargar imagen de arma desde URL (${cleanUrl}):`, err);
-        window.Alpine?.store('app')?.toast(
-          'No se pudo descargar la imagen. Si el sitio requiere inicio de sesión, guarda la imagen en tu dispositivo y súbela como archivo.',
-          'error'
-        );
-      }
+      await window.Alpine?.store('app')?.openMediaUrl(cleanUrl, 'weapon', weaponId);
     },
 
     removeWeaponImage(weaponId) {

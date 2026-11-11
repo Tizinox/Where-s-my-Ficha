@@ -18,6 +18,7 @@ export function createFolderMethods() {
       name: '',
       icon: 'folder',
       customLogo: null,
+      customLogoTransform: '',
       logoTransform: { zoom: 100, x: 50, y: 50 },
       color: '#00F0FF'
     },
@@ -72,7 +73,10 @@ export function createFolderMethods() {
 
     getFolderLogoStyle(item) {
       if (!item) return '';
-      const t = item.logoTransform || item.customLogoTransform || { zoom: 100, x: 50, y: 50 };
+      if (item.customLogoTransform) {
+        return item.customLogoTransform;
+      }
+      const t = item.logoTransform || { zoom: 100, x: 50, y: 50 };
       const zoom = (typeof t.zoom === 'number' ? t.zoom : 100) / 100;
       const x = typeof t.x === 'number' ? t.x : 50;
       const y = typeof t.y === 'number' ? t.y : 50;
@@ -80,6 +84,7 @@ export function createFolderMethods() {
     },
 
     resetFolderLogoTransform() {
+      this.folderForm.customLogoTransform = '';
       this.folderForm.logoTransform = { zoom: 100, x: 50, y: 50 };
     },
 
@@ -87,6 +92,51 @@ export function createFolderMethods() {
       const current = this.folderForm.logoTransform?.zoom || 100;
       const next = Math.max(50, Math.min(300, current + delta));
       this.folderForm.logoTransform.zoom = next;
+    },
+
+    openFolderLogoCropper() {
+      if (!this.folderForm.customLogo) {
+        window.Alpine?.store('app')?.toast('Primero debes subir un logo o GIF.', 'info');
+        return;
+      }
+      window.Alpine?.store('app')?.openCropper(this.folderForm.customLogo, 'folder_icon');
+    },
+
+    async processCroppedFolderLogo(file) {
+      try {
+        let dataUrl;
+        try {
+          dataUrl = await compressImage(file, { maxWidth: 350, maxHeight: 350, quality: 0.9 });
+        } catch {
+          dataUrl = await new Promise((resolve) => {
+            const r = new FileReader();
+            r.onload = (e) => resolve(e.target.result);
+            r.readAsDataURL(file);
+          });
+        }
+        this.folderForm.customLogo = dataUrl;
+        this.folderForm.customLogoTransform = '';
+        this.folderForm.logoTransform = { zoom: 100, x: 50, y: 50 };
+        window.Alpine?.store('app')?.toast('Logo de carpeta recortado y encuadrado ✓', 'success');
+        setTimeout(() => {
+          const el = document.getElementById('folder-name-input');
+          if (el && !this.folderForm.name?.trim()) el.focus();
+        }, 150);
+      } catch (err) {
+        console.error(err);
+        window.Alpine?.store('app')?.toast('Error al procesar el logo.', 'error');
+      }
+    },
+
+    async processCroppedFolderLogoGif(dataUrl, cssTransform) {
+      this.folderForm.customLogo = dataUrl;
+      this.folderForm.customLogoTransform = cssTransform;
+      this.folderForm.logoTransform = { zoom: 100, x: 50, y: 50 };
+      window.Alpine?.store('app')?.toast('Logo GIF de carpeta guardado con encuadre visual ✓', 'success');
+      setTimeout(() => {
+        const el = document.getElementById('folder-name-input');
+        if (el && !this.folderForm.name?.trim()) el.focus();
+      }, 150);
     },
 
     async saveFolders() {
@@ -108,6 +158,7 @@ export function createFolderMethods() {
         name: '',
         icon: 'folder',
         customLogo: null,
+        customLogoTransform: '',
         logoTransform: { zoom: 100, x: 50, y: 50 },
         color: defaultColor
       };
@@ -122,6 +173,7 @@ export function createFolderMethods() {
         name: folder.name || '',
         icon: folder.icon || 'folder',
         customLogo: folder.customLogo || null,
+        customLogoTransform: folder.customLogoTransform || '',
         logoTransform: folder.logoTransform ? JSON.parse(JSON.stringify(folder.logoTransform)) : { zoom: 100, x: 50, y: 50 },
         color: folder.color || '#00F0FF'
       };
@@ -132,47 +184,20 @@ export function createFolderMethods() {
       this.folderModalOpen = false;
     },
 
-    async uploadFolderLogo(event) {
+    uploadFolderLogo(event) {
       const file = event?.target?.files?.[0];
       if (!file) return;
       if (!file.type.startsWith('image/')) {
         window.Alpine?.store('app')?.toast('Por favor selecciona un archivo de imagen o GIF válido.', 'warning');
         return;
       }
-      const isGif = file.type === 'image/gif' || file.name.toLowerCase().endsWith('.gif');
-      try {
-        if (isGif) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            this.folderForm.customLogo = e.target.result;
-            this.folderForm.logoTransform = { zoom: 100, x: 50, y: 50 };
-            window.Alpine?.store('app')?.toast('Logo GIF animado cargado ✓', 'success');
-          };
-          reader.readAsDataURL(file);
-        } else {
-          try {
-            const compressed = await compressImage(file, { maxWidth: 300, maxHeight: 300, quality: 0.9 });
-            this.folderForm.customLogo = compressed;
-            this.folderForm.logoTransform = { zoom: 100, x: 50, y: 50 };
-            window.Alpine?.store('app')?.toast('Logo de carpeta cargado ✓', 'success');
-          } catch {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              this.folderForm.customLogo = e.target.result;
-              this.folderForm.logoTransform = { zoom: 100, x: 50, y: 50 };
-              window.Alpine?.store('app')?.toast('Logo de carpeta cargado ✓', 'success');
-            };
-            reader.readAsDataURL(file);
-          }
-        }
-      } catch (err) {
-        window.Alpine?.store('app')?.toast('Error al procesar la imagen.', 'error');
-      }
+      window.Alpine?.store('app')?.openCropper(file, 'folder_icon');
       if (event.target) event.target.value = '';
     },
 
     removeFolderLogo() {
       this.folderForm.customLogo = null;
+      this.folderForm.customLogoTransform = '';
       this.folderForm.logoTransform = { zoom: 100, x: 50, y: 50 };
     },
 
@@ -190,6 +215,7 @@ export function createFolderMethods() {
           name,
           icon: this.folderForm.icon || 'folder',
           customLogo: this.folderForm.customLogo || null,
+          customLogoTransform: this.folderForm.customLogoTransform || '',
           logoTransform: this.folderForm.logoTransform ? JSON.parse(JSON.stringify(this.folderForm.logoTransform)) : { zoom: 100, x: 50, y: 50 },
           color: this.folderForm.color || defaultColor,
           createdAt: Date.now(),
@@ -205,6 +231,7 @@ export function createFolderMethods() {
           folder.name = name;
           folder.icon = this.folderForm.icon || 'folder';
           folder.customLogo = this.folderForm.customLogo || null;
+          folder.customLogoTransform = this.folderForm.customLogoTransform || '';
           folder.logoTransform = this.folderForm.logoTransform ? JSON.parse(JSON.stringify(this.folderForm.logoTransform)) : { zoom: 100, x: 50, y: 50 };
           folder.color = this.folderForm.color || '#00F0FF';
           await this.saveFolders();

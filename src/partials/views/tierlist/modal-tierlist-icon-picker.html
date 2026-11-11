@@ -1,12 +1,14 @@
 <!-- Modal Selector de Ícono / Emblema Personalizado para la Tier List -->
 <div id="tierlist-icon-picker-modal"
   class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
-  x-show="$store.tierlist.showIconPickerModal" x-cloak @keydown.escape.window="$store.tierlist.closeIconPicker()"
+  x-show="$store.tierlist.showIconPickerModal" x-cloak
+  @keydown.escape.window="if (!$store.app.showCropper) $store.tierlist.closeIconPicker()"
+  @click.self="if (!$store.app.showCropper) $store.tierlist.closeIconPicker()"
   role="dialog" aria-modal="true">
 
   <div
-    class="relative w-full max-w-2xl bg-[#0b0e17] border border-amber-500/40 rounded-2xl shadow-[0_0_30px_rgba(251,191,36,0.18)] shadow-2xl overflow-hidden flex flex-col text-parchment-cream max-h-[88vh]"
-    @click.outside="$store.tierlist.closeIconPicker()">
+    class="relative w-full max-w-2xl bg-[#0b0e17] border border-amber-500/40 rounded-2xl shadow-[0_0_30px_rgba(251,191,36,0.18)] shadow-2xl overflow-hidden flex flex-col text-parchment-cream max-h-[88vh] z-10"
+    @click.stop>
 
     <!-- Modal Header -->
     <div
@@ -94,7 +96,7 @@
             <div class="flex items-center gap-1.5">
               <input type="text" x-model="$store.tierlist.customIconUrlInput"
                 @keydown.enter.prevent="$store.tierlist.setCustomIconFromUrl($store.tierlist.customIconUrlInput)"
-                placeholder="https://ejemplo.com/emblema.gif"
+                placeholder="Pega enlace de Pinterest, ArtStation, Pixiv, Are.na o imagen directa"
                 class="flex-1 px-3 py-1.5 rounded-lg bg-black/80 border border-white/20 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-400 transition-colors" />
               <button type="button" @click="$store.tierlist.setCustomIconFromUrl($store.tierlist.customIconUrlInput)"
                 class="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/40 text-amber-200 border border-amber-400/40 text-xs font-mono font-bold cursor-pointer transition-all">
@@ -104,115 +106,73 @@
           </div>
         </div>
 
-        <!-- Si YA hay imagen cargada: Panel de Ajuste y Encuadre en Vivo -->
+        <!-- Si YA hay imagen cargada: Panel de Encuadre Visual Libre (Cropper) -->
         <template x-if="$store.tierlist.customIconUrl">
-          <div class="p-4 rounded-2xl bg-black/60 border border-amber-400/30 space-y-4">
-            <div class="flex items-center justify-between border-b border-white/10 pb-2">
+          <div class="p-4 rounded-2xl bg-black/60 border border-amber-400/35 space-y-4 shadow-xl">
+            <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
               <span
                 class="text-xs font-mono font-bold text-amber-300 uppercase tracking-wider flex items-center gap-2">
-                <i data-lucide="sliders" class="w-4 h-4"></i>
-                Ajustes de Encuadre y Zoom
+                <i data-lucide="crop" class="w-4 h-4 text-amber-400"></i>
+                Encuadre y Geometría Visual del Emblema
               </span>
-              <div class="flex items-center gap-2">
-                <button type="button" @click="$store.tierlist.resetIconAdjustments()"
-                  class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-[11px] font-mono cursor-pointer transition-colors"
-                  title="Restablecer posición y zoom">
-                  Centrar
-                </button>
-                <button type="button" @click="$store.tierlist.removeCustomIcon()"
-                  class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] font-mono cursor-pointer transition-colors"
-                  title="Quitar esta imagen personalizada y volver a los íconos de catálogo">
-                  Quitar Imagen
-                </button>
-              </div>
+              <button type="button" @click="$store.tierlist.removeCustomIcon()"
+                class="px-2.5 py-1 rounded-lg bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/40 text-[11px] font-mono cursor-pointer transition-colors flex items-center gap-1.5"
+                title="Quitar esta imagen personalizada y volver a los íconos de catálogo">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                <span>Quitar Imagen</span>
+              </button>
             </div>
 
             <div class="flex flex-col sm:flex-row items-center gap-5">
-              <!-- Preview en vivo -->
+              <!-- Preview en vivo del Emblema con su encuadre/transform -->
               <div class="shrink-0 flex flex-col items-center gap-1.5">
                 <div
                   class="relative w-24 h-24 rounded-2xl border-2 border-amber-400 bg-[#090d16] overflow-hidden flex items-center justify-center shadow-xl shadow-amber-950/50">
                   <img :src="$store.tierlist.customIconUrl" class="w-full h-full pointer-events-none"
                     :style="$store.tierlist.getCustomIconStyle()" alt="Encuadre" />
                 </div>
-                <span class="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold">Vista
-                  Previa</span>
+                <span class="text-[9px] font-mono uppercase tracking-widest text-emerald-400 font-bold flex items-center gap-1">
+                  <i data-lucide="check-circle" class="w-3 h-3"></i> Activo
+                </span>
               </div>
 
-              <!-- Sliders de Control -->
+              <!-- Acciones de Encuadre Libre: Botón principal de Cropper y Carga -->
               <div class="flex-1 w-full space-y-3">
-                <!-- Modo de Ajuste: Contener vs Rellenar -->
-                <div class="space-y-1.5">
-                  <div class="flex justify-between text-xs font-mono">
-                    <span class="text-slate-300 font-bold flex items-center gap-1.5">
-                      <i data-lucide="aspect-ratio" class="w-3.5 h-3.5 text-amber-400"></i>
-                      Ajuste de Encuadre:
-                    </span>
-                    <span class="text-amber-400 font-bold" x-text="$store.tierlist.iconFit === 'cover' ? 'Rellenar cuadrado (Zoom)' : 'Contener completa (Armas / Íconos)'"></span>
-                  </div>
-                  <div class="grid grid-cols-2 gap-2 p-1 rounded-xl bg-black/80 border border-white/10 text-xs font-mono">
-                    <button type="button" @click="$store.tierlist.iconFit = 'contain'"
-                      class="py-1.5 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                      :class="$store.tierlist.iconFit !== 'cover' ? 'bg-amber-500/25 text-amber-300 border border-amber-400/50 shadow-sm' : 'text-slate-400 hover:text-white'">
-                      <i data-lucide="minimize-2" class="w-3.5 h-3.5"></i>
-                      <span>Completa (Contener)</span>
-                    </button>
-                    <button type="button" @click="$store.tierlist.iconFit = 'cover'"
-                      class="py-1.5 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-                      :class="$store.tierlist.iconFit === 'cover' ? 'bg-amber-500/25 text-amber-300 border border-amber-400/50 shadow-sm' : 'text-slate-400 hover:text-white'">
-                      <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
-                      <span>Rellenar (Cover)</span>
-                    </button>
-                  </div>
+                <div class="space-y-1">
+                  <h4 class="text-xs font-mono font-bold text-white uppercase tracking-wider">
+                    Control de Encuadre Visual Libre
+                  </h4>
+                  <p class="text-[11px] font-mono text-slate-300 leading-relaxed">
+                    Ajusta tu imagen o GIF con total libertad: arrastra para mover, rota en 90°, espeja horizontal o verticalmente y ajusta el zoom visual.
+                  </p>
                 </div>
 
-                <!-- Control de Zoom / Escala -->
-                <div class="space-y-1">
-                  <div class="flex justify-between text-xs font-mono">
-                    <span class="text-slate-300 font-bold flex items-center gap-1.5">
-                      <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-amber-400"></i>
-                      Zoom / Escala:
-                    </span>
-                    <span class="text-amber-400 font-bold" x-text="`${$store.tierlist.iconZoom}%`"></span>
-                  </div>
-                  <input type="range" min="20" max="300" step="5" :value="$store.tierlist.iconZoom"
-                    @input="$store.tierlist.iconZoom = $el.value; $store.tierlist.saveState()"
-                    class="w-full accent-amber-400 cursor-pointer h-1.5 bg-black/80 rounded-lg" />
-                  <div class="flex justify-between text-[9px] font-mono text-slate-500">
-                    <span>20% (Alejar)</span>
-                    <span>100% (Normal)</span>
-                    <span>300% (Acercar)</span>
-                  </div>
-                </div>
+                <div class="flex items-center gap-2.5 flex-wrap pt-1">
+                  <button type="button" @click="$store.tierlist.openIconCropper()"
+                    class="py-2 px-3.5 rounded-xl bg-amber-500/25 hover:bg-amber-500/40 text-amber-200 border border-amber-400/60 text-xs font-mono font-bold flex items-center gap-2 transition-all cursor-pointer shadow-[0_0_15px_rgba(251,191,36,0.25)] hover:scale-[1.02] active:scale-[0.98]">
+                    <i data-lucide="crop" class="w-4 h-4 text-amber-300"></i>
+                    <span>Encuadrar / Editar con Cropper</span>
+                  </button>
 
-                <!-- Control de Posición Horizontal (Eje X) -->
-                <div class="space-y-1">
-                  <div class="flex justify-between text-xs font-mono">
-                    <span class="text-slate-300 font-bold flex items-center gap-1.5">
-                      <i data-lucide="move-horizontal" class="w-3.5 h-3.5 text-cyan-400"></i>
-                      Posición Horizontal (Eje X):
-                    </span>
-                    <span class="text-cyan-400 font-bold" x-text="`${$store.tierlist.iconX}%`"></span>
-                  </div>
-                  <input type="range" min="0" max="100" step="1" :value="$store.tierlist.iconX"
-                    @input="$store.tierlist.iconX = $el.value; $store.tierlist.saveState()"
-                    class="w-full accent-cyan-400 cursor-pointer h-1.5 bg-black/80 rounded-lg" />
-                </div>
-
-                <!-- Control de Posición Vertical (Eje Y) -->
-                <div class="space-y-1">
-                  <div class="flex justify-between text-xs font-mono">
-                    <span class="text-slate-300 font-bold flex items-center gap-1.5">
-                      <i data-lucide="move-vertical" class="w-3.5 h-3.5 text-purple-400"></i>
-                      Posición Vertical (Eje Y):
-                    </span>
-                    <span class="text-purple-400 font-bold" x-text="`${$store.tierlist.iconY}%`"></span>
-                  </div>
-                  <input type="range" min="0" max="100" step="1" :value="$store.tierlist.iconY"
-                    @input="$store.tierlist.iconY = $el.value; $store.tierlist.saveState()"
-                    class="w-full accent-purple-400 cursor-pointer h-1.5 bg-black/80 rounded-lg" />
+                  <label
+                    class="py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 border border-white/20 text-xs font-mono font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    title="Subir otro archivo">
+                    <i data-lucide="upload" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span>Cambiar Imagen</span>
+                    <input type="file" accept="image/*,.gif,.webp" class="hidden"
+                      @change="$store.tierlist.handleCustomIconUpload($event)" />
+                  </label>
                 </div>
               </div>
+            </div>
+
+            <!-- Pistas informativas Cyberpunk HUD -->
+            <div class="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] font-mono text-slate-400">
+              <span class="flex items-center gap-1">
+                <i data-lucide="sparkles" class="w-3 h-3 text-amber-400"></i>
+                <span>Compatible con PNG, JPG, WebP y GIFs animados con fotogramas intactos</span>
+              </span>
+              <span class="text-amber-400/90 font-bold">Proporción 1:1</span>
             </div>
           </div>
         </template>

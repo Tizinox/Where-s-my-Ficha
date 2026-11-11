@@ -97,6 +97,19 @@ export function registerCustomEmojisStore(Alpine) {
     isProcessingFile: false,
     editingEmojiId: null,
 
+    // Favoritos y Recientes
+    favoriteIds: [],
+    recentIds: [],
+
+    // Subida múltiple / Lote
+    isBatchProcessing: false,
+    batchProgress: { current: 0, total: 0 },
+    batchTargetCategory: 'General',
+
+    // Modo Gestión / Selección en Masa
+    isBatchSelectMode: false,
+    selectedEmojiIds: [],
+
     // Estado del selector / picker flotante
     isPickerOpen: false,
     pickerQuery: '',
@@ -109,6 +122,7 @@ export function registerCustomEmojisStore(Alpine) {
     init() {
       this.loadEmojis();
       this.loadEmojisFromIndexedDB();
+      this.loadFavoritesAndRecents();
 
       // Rastrear el último input o textarea enfocado para inserción directa
       document.addEventListener('focusin', (e) => {
@@ -158,6 +172,38 @@ export function registerCustomEmojisStore(Alpine) {
       } catch (e) {
         console.warn('[customEmojis] Error leyendo de IndexedDB:', e);
       }
+    },
+
+    loadFavoritesAndRecents() {
+      try {
+        this.favoriteIds = ls.getJSON('superficha_custom_emojis_favorites', []);
+        this.recentIds = ls.getJSON('superficha_custom_emojis_recents', []);
+      } catch (e) {
+        this.favoriteIds = [];
+        this.recentIds = [];
+      }
+    },
+
+    toggleFavorite(emojiId) {
+      if (!emojiId) return;
+      if (this.favoriteIds.includes(emojiId)) {
+        this.favoriteIds = this.favoriteIds.filter(id => id !== emojiId);
+        Alpine.store('app')?.toast('Eliminado de favoritos', 'info');
+      } else {
+        this.favoriteIds.push(emojiId);
+        Alpine.store('app')?.toast('Añadido a favoritos ⭐', 'success');
+      }
+      ls.setJSON('superficha_custom_emojis_favorites', this.favoriteIds);
+    },
+
+    isFavorite(emojiId) {
+      return this.favoriteIds.includes(emojiId);
+    },
+
+    recordRecent(emojiId) {
+      if (!emojiId) return;
+      this.recentIds = [emojiId, ...this.recentIds.filter(id => id !== emojiId)].slice(0, 16);
+      ls.setJSON('superficha_custom_emojis_recents', this.recentIds);
     },
 
     /**
@@ -228,6 +274,16 @@ export function registerCustomEmojisStore(Alpine) {
 
     // ── Getters Reactivos ──────────────────────────────────────
 
+    get favoriteEmojis() {
+      return this.list.filter(e => this.favoriteIds.includes(e.id));
+    },
+
+    get recentEmojis() {
+      return this.recentIds
+        .map(id => this.list.find(e => e.id === id))
+        .filter(Boolean);
+    },
+
     get categories() {
       const set = new Set();
       for (const e of this.list) {
@@ -242,29 +298,39 @@ export function registerCustomEmojisStore(Alpine) {
       const q = (this.query || '').trim().toLowerCase();
       const cat = this.selectedCategory;
 
-      return this.list.filter(e => {
-        if (cat !== 'all' && e.category !== cat) return false;
-        if (!q) return true;
-        return (
-          e.shortcode.toLowerCase().includes(q) ||
-          (e.name && e.name.toLowerCase().includes(q)) ||
-          (e.category && e.category.toLowerCase().includes(q))
-        );
-      });
+      let source = this.list;
+      if (cat === 'favorites') {
+        source = this.favoriteEmojis;
+      } else if (cat !== 'all') {
+        source = this.list.filter(e => e.category === cat);
+      }
+
+      if (!q) return source;
+      return source.filter(e =>
+        e.shortcode.toLowerCase().includes(q) ||
+        (e.name && e.name.toLowerCase().includes(q)) ||
+        (e.category && e.category.toLowerCase().includes(q))
+      );
     },
 
     get filteredPickerList() {
       const q = (this.pickerQuery || '').trim().toLowerCase();
       const cat = this.pickerCategory;
 
-      return this.list.filter(e => {
-        if (cat !== 'all' && e.category !== cat) return false;
-        if (!q) return true;
-        return (
-          e.shortcode.toLowerCase().includes(q) ||
-          (e.name && e.name.toLowerCase().includes(q))
-        );
-      });
+      let source = this.list;
+      if (cat === 'favorites') {
+        source = this.favoriteEmojis;
+      } else if (cat === 'recents') {
+        source = this.recentEmojis;
+      } else if (cat !== 'all') {
+        source = this.list.filter(e => e.category === cat);
+      }
+
+      if (!q) return source;
+      return source.filter(e =>
+        e.shortcode.toLowerCase().includes(q) ||
+        (e.name && e.name.toLowerCase().includes(q))
+      );
     },
 
     get totalCount() {
@@ -635,6 +701,7 @@ export function registerCustomEmojisStore(Alpine) {
 
     selectEmoji(emoji) {
       if (!emoji || !emoji.shortcode) return;
+      this.recordRecent(emoji.id);
       const textToInsert = `:${emoji.shortcode}:`;
 
       const input = this.lastActiveInput;
@@ -677,6 +744,200 @@ export function registerCustomEmojisStore(Alpine) {
       // Si no hay input activo o no se puede enfocar, copiar al portapapeles
       this.copyShortcode(emoji);
       this.closePicker();
+    },
+
+    // ── Encuadre y Recorte Visual 1:1 (Cropper) ────────────────
+    async openCropperForCurrentEmoji() {
+      const src = (this.formPreview || this.formUrl || '').trim();
+      if (!src) {
+        Alpine.store('app')?.toast('Primero debes subir una imagen o pegar una URL.', 'info');
+        return;
+      }
+      if (src.startsWith('http://') || src.startsWith('https://')) {
+        await window.Alpine?.store('app')?.openMediaUrl(src, 'custom_emoji');
+        return;
+      }
+      window.Alpine?.store('app')?.openCropper(src, 'custom_emoji');
+    },
+
+    async processCroppedEmoji(file) {
+      try {
+        const dataUrl = await processEmojiImage(file);
+        this.formPreview = dataUrl;
+        this.formUrl = dataUrl;
+        Alpine.store('app')?.toast('Emoticono encuadrado y recortado 1:1 ✓', 'success');
+      } catch (err) {
+        console.error('[customEmojis] Error en recorte:', err);
+        Alpine.store('app')?.toast('Error al encuadrar el emoticono.', 'error');
+      }
+    },
+
+    async processCroppedEmojiGif(dataUrl, cssTransform) {
+      this.formPreview = dataUrl;
+      this.formUrl = dataUrl;
+      Alpine.store('app')?.toast('GIF animado encuadrado 1:1 ✓', 'success');
+    },
+
+    // ── Subida Múltiple / Lote (Batch Drag & Drop) ──────────────
+    async handleBatchUpload(eventOrFiles, targetCategory = 'General') {
+      let files = [];
+      if (eventOrFiles?.target?.files) {
+        files = Array.from(eventOrFiles.target.files);
+      } else if (Array.isArray(eventOrFiles)) {
+        files = eventOrFiles;
+      } else if (eventOrFiles instanceof FileList) {
+        files = Array.from(eventOrFiles);
+      }
+
+      if (!files || files.length === 0) return;
+
+      const imageFiles = files.filter(f => f.type.startsWith('image/') || /\.(png|jpe?g|gif|webp|svg|apng)$/i.test(f.name));
+      if (imageFiles.length === 0) {
+        Alpine.store('app')?.toast('No se encontraron archivos de imagen válidos.', 'warning');
+        if (eventOrFiles?.target) eventOrFiles.target.value = '';
+        return;
+      }
+
+      const remainingCapacity = Math.max(0, MAX_CUSTOM_EMOJIS - this.list.length);
+      if (remainingCapacity <= 0) {
+        Alpine.store('app')?.toast(`Capacidad máxima alcanzada (${MAX_CUSTOM_EMOJIS} emojis). Elimina alguno para importar más.`, 'warning');
+        if (eventOrFiles?.target) eventOrFiles.target.value = '';
+        return;
+      }
+
+      const filesToProcess = imageFiles.slice(0, remainingCapacity);
+      if (imageFiles.length > remainingCapacity) {
+        Alpine.store('app')?.toast(`Se procesarán ${remainingCapacity} de ${imageFiles.length} imágenes por límite de capacidad.`, 'info');
+      }
+
+      this.isBatchProcessing = true;
+      this.batchProgress = { current: 0, total: filesToProcess.length };
+
+      let successCount = 0;
+      const cat = (targetCategory || this.batchTargetCategory || 'General').trim() || 'General';
+
+      try {
+        for (let i = 0; i < filesToProcess.length; i++) {
+          const file = filesToProcess[i];
+          this.batchProgress.current = i + 1;
+
+          if (file.size > MAX_EMOJI_FILE_SIZE) {
+            console.warn(`[customEmojis] Saltando ${file.name} por superar 2MB`);
+            continue;
+          }
+
+          try {
+            const dataUrl = await processEmojiImage(file);
+            const rawBase = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+            const baseCode = this.sanitizeShortcode(rawBase) || 'emoji';
+            let code = baseCode;
+            let counter = 2;
+            while (this.list.some(e => e.shortcode.toLowerCase() === code.toLowerCase())) {
+              code = `${baseCode}_${counter++}`;
+            }
+
+            const cleanName = rawBase.replace(/[-_]+/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+            this.list.unshift({
+              id: crypto.randomUUID(),
+              shortcode: code,
+              name: cleanName,
+              url: dataUrl,
+              category: cat,
+              createdAt: Date.now()
+            });
+            successCount++;
+          } catch (fileErr) {
+            console.warn(`[customEmojis] Error en archivo ${file.name}:`, fileErr);
+          }
+        }
+
+        this.saveEmojis();
+        Alpine.store('app')?.toast(`¡Lote completado! +${successCount} nuevos emojis en "${cat}" ✓`, 'success');
+        window.globalTextFormatter?.formatPreviewElements?.();
+      } catch (err) {
+        console.error('[customEmojis] Error en subida por lote:', err);
+        Alpine.store('app')?.toast('Ocurrió un error al procesar el lote.', 'error');
+      } finally {
+        this.isBatchProcessing = false;
+        this.batchProgress = { current: 0, total: 0 };
+        if (eventOrFiles?.target) eventOrFiles.target.value = '';
+      }
+    },
+
+    // ── Gestión en Masa (Selección Múltiple y Acciones) ─────────
+    toggleBatchMode() {
+      this.isBatchSelectMode = !this.isBatchSelectMode;
+      if (!this.isBatchSelectMode) {
+        this.selectedEmojiIds = [];
+      }
+    },
+
+    toggleSelectEmoji(id) {
+      if (!id) return;
+      if (this.selectedEmojiIds.includes(id)) {
+        this.selectedEmojiIds = this.selectedEmojiIds.filter(x => x !== id);
+      } else {
+        this.selectedEmojiIds.push(id);
+      }
+    },
+
+    isEmojiSelected(id) {
+      return this.selectedEmojiIds.includes(id);
+    },
+
+    selectAllFiltered() {
+      const ids = this.filteredList.map(e => e.id);
+      this.selectedEmojiIds = Array.from(new Set([...this.selectedEmojiIds, ...ids]));
+    },
+
+    clearSelection() {
+      this.selectedEmojiIds = [];
+    },
+
+    deleteSelectedEmojis() {
+      const count = this.selectedEmojiIds.length;
+      if (count === 0) return;
+
+      const idsToDelete = new Set(this.selectedEmojiIds);
+      this.list = this.list.filter(e => !idsToDelete.has(e.id));
+      this.favoriteIds = this.favoriteIds.filter(id => !idsToDelete.has(id));
+      this.recentIds = this.recentIds.filter(id => !idsToDelete.has(id));
+
+      if (idsToDelete.has(this.editingEmojiId)) {
+        this.resetForm();
+      }
+
+      this.saveEmojis();
+      ls.setJSON('superficha_custom_emojis_favorites', this.favoriteIds);
+      ls.setJSON('superficha_custom_emojis_recents', this.recentIds);
+
+      this.selectedEmojiIds = [];
+      this.isBatchSelectMode = false;
+      Alpine.store('app')?.toast(`Se eliminaron ${count} emoticonos ✓`, 'info');
+      window.globalTextFormatter?.formatPreviewElements?.();
+    },
+
+    moveSelectedToCategory(newCat) {
+      const cat = (newCat || '').trim();
+      if (!cat) {
+        Alpine.store('app')?.toast('Escribe o selecciona una categoría de destino.', 'warning');
+        return;
+      }
+      const count = this.selectedEmojiIds.length;
+      if (count === 0) return;
+
+      const idsToMove = new Set(this.selectedEmojiIds);
+      for (const e of this.list) {
+        if (idsToMove.has(e.id)) {
+          e.category = cat;
+          e.updatedAt = Date.now();
+        }
+      }
+
+      this.saveEmojis();
+      this.selectedEmojiIds = [];
+      Alpine.store('app')?.toast(`Se movieron ${count} emoticonos a "${cat}" ✓`, 'success');
     }
   });
 }

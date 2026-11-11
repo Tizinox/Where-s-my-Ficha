@@ -93,16 +93,6 @@
         x-text="`${$store.tierlist.lists.length}`"></span>
     </button>
 
-    <!-- 1B. Botón: Modo Zen / Vista Limpia -->
-    <button type="button" @click="$store.tierlist.toggleZenMode()"
-      class="px-3 sm:px-3.5 py-2 rounded-xl border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02] group"
-      :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.15); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '60; color: ' + ($store.settings.accentColor || '#00f0ff') + '; box-shadow: 0 0 15px rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.18);'"
-      title="Modo Zen / Vista Limpia: Oculta menús y banco para presentación, capturas y streaming (Tecla Z o Esc)">
-      <i data-lucide="eye" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
-      <span class="font-black">Modo Zen</span>
-      <span class="text-[9px] px-1 py-0.2 rounded bg-black/40 font-mono hidden sm:inline" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')">Z</span>
-    </button>
-
     <!-- 2. Menú Desplegable: Apariencia Visual -->
     <div class="relative" x-data="{ openAppearance: false }">
       <button type="button" @click="openAppearance = !openAppearance"
@@ -408,6 +398,17 @@
         <div class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold px-2 py-1 border-b border-white/10 my-1">
           Acciones y Respaldo
         </div>
+
+        <!-- Modo Zen / Vista Limpia -->
+        <button type="button" @click="$store.tierlist.toggleZenMode(); openMore = false"
+          class="w-full text-left px-3 py-2 rounded-xl flex items-center justify-between gap-2 text-slate-300 hover:text-cyan-300 hover:bg-cyan-500/10 transition-colors cursor-pointer font-mono"
+          title="Modo Zen / Vista Limpia: Oculta menús y banco para presentación, capturas y streaming (Tecla Z o Esc)">
+          <div class="flex items-center gap-2.5">
+            <i data-lucide="eye" class="w-4 h-4 text-cyan-400"></i>
+            <span>Modo Zen</span>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-black/40 border border-white/10 font-mono text-slate-400 font-bold">Z</span>
+        </button>
 
         <button type="button" @click="$store.tierlist.exportTierListAsJson(); openMore = false"
           class="w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 text-slate-300 hover:text-purple-300 hover:bg-purple-500/15 transition-colors cursor-pointer font-mono"

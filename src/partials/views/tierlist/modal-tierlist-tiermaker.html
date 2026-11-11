@@ -27,7 +27,7 @@
             </h3>
           </div>
           <p class="text-xs font-mono text-slate-400 mt-0.5">
-            Convierte cualquier plantilla o lista de TierMaker y TierBuddy en una Tier List interactiva
+            Convierte cualquier plantilla o lista de TierMaker, TierBuddy y TierMaker Pro en una Tier List interactiva
           </p>
         </div>
       </div>
@@ -49,7 +49,7 @@
             Enlace de la Plantilla
           </label>
           <span class="text-[11px] font-mono text-slate-400">
-            Ej: <span class="text-slate-300">tiermaker.com/create/... o tierbuddy.com/list/...</span>
+            Ej: <span class="text-slate-300">tiermaker.com/create/..., tierbuddy.com/list/... o tiermakerpro.com/templates/...</span>
           </span>
         </div>
 
@@ -60,7 +60,7 @@
             </div>
             <input type="url" x-model="$store.tierlist.tierMakerUrlInput"
               @keydown.enter.prevent="$store.tierlist.analyzeTierMakerUrl()"
-              placeholder="https://tiermaker.com/create/... o https://tierbuddy.com/list/..."
+              placeholder="https://tiermaker.com/create/..., https://tierbuddy.com/... o https://tiermakerpro.com/templates/..."
               :disabled="$store.tierlist.tierMakerIsAnalyzing"
               class="w-full h-11 pl-10 pr-24 rounded-xl bg-black/80 border border-white/20 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/40 transition-all shadow-inner disabled:opacity-50" />
 
@@ -98,7 +98,7 @@
 
         <p class="text-[11px] font-mono text-slate-400 leading-normal flex items-center gap-1.5 flex-wrap">
           <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
-          <span>Admite plantillas directas de <code class="px-1.5 py-0.5 rounded bg-black/50 text-amber-300 border border-amber-400/20">tiermaker.com</code> y rankings de <code class="px-1.5 py-0.5 rounded bg-black/50 text-cyan-300 border border-cyan-400/20">tierbuddy.com/list/...</code>.</span>
+          <span>Admite plantillas directas de <code class="px-1.5 py-0.5 rounded bg-black/50 text-amber-300 border border-amber-400/20">tiermaker.com</code>, <code class="px-1.5 py-0.5 rounded bg-black/50 text-rose-300 border border-rose-400/20">tiermakerpro.com</code> y rankings de <code class="px-1.5 py-0.5 rounded bg-black/50 text-cyan-300 border border-cyan-400/20">tierbuddy.com</code>.</span>
         </p>
       </div>
 
@@ -112,7 +112,7 @@
             <div class="p-4 rounded-xl bg-black/50 border border-white/10 space-y-2">
               <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center justify-center text-xs font-mono font-bold">1</div>
               <h5 class="text-xs font-mono font-bold text-white">Copia el enlace</h5>
-              <p class="text-[11px] font-mono text-slate-400 leading-relaxed">Entra a cualquier plantilla en tiermaker.com o tierbuddy.com y copia su URL del navegador.</p>
+              <p class="text-[11px] font-mono text-slate-400 leading-relaxed">Entra a cualquier plantilla en tiermaker.com, tiermakerpro.com o tierbuddy.com y copia su URL del navegador.</p>
             </div>
             <div class="p-4 rounded-xl bg-black/50 border border-white/10 space-y-2">
               <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center justify-center text-xs font-mono font-bold">2</div>

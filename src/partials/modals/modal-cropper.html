@@ -14,7 +14,7 @@
         <div class="flex items-center gap-2">
           <i data-lucide="crop" class="w-5 h-5 text-accent-gold"></i>
           <h2 id="cropper-title" class="font-title text-xl text-parchment-peach"
-            x-text="$store.app.cropperTargetType === 'banner' ? 'Ajustar y Recortar Banner (16:5)' : ($store.app.cropperTargetType === 'icon' ? 'Ajustar y Recortar Ícono (1:1)' : ($store.app.cropperTargetType === 'tierlist_guest' ? 'Encuadrar y Ajustar Operativo (1:1)' : ($store.app.cropperTargetType === 'weapon' ? 'Ajustar Imagen de Arma / Artefacto' : ($store.app.cropperTargetType === 'skill' ? 'Ajustar y Recortar Habilidad (16:9)' : 'Ajustar Imagen (3:4)'))))">
+            x-text="$store.app.cropperTargetType === 'banner' ? 'Ajustar y Recortar Banner (16:5)' : ($store.app.cropperTargetType === 'icon' ? 'Ajustar y Recortar Ícono (1:1)' : ($store.app.cropperTargetType === 'custom_emoji' ? 'Ajustar y Recortar Emoticono (1:1)' : ($store.app.cropperTargetType === 'tierlist_guest' ? 'Encuadrar y Ajustar Operativo (1:1)' : ($store.app.cropperTargetType === 'tierlist_icon' ? 'Ajustar Emblema de Tier List (1:1)' : ($store.app.cropperTargetType === 'folder_icon' ? 'Ajustar Logo de Carpeta (1:1)' : ($store.app.cropperTargetType === 'bg_dashboard' ? 'Ajustar Fondo del Panel Principal' : ($store.app.cropperTargetType === 'bg_tierlist' ? 'Ajustar Fondo de Tier List' : ($store.app.cropperTargetType === 'bg_character' ? 'Ajustar Fondo de Ficha de Personaje' : ($store.app.cropperTargetType === 'weapon' ? 'Ajustar Imagen de Arma / Artefacto' : ($store.app.cropperTargetType === 'skill' ? 'Ajustar y Recortar Habilidad (16:9)' : 'Ajustar Imagen (3:4)'))))))))))">
           </h2>
         </div>
         <button class="header-btn-ghost p-1.5 rounded-lg" @click="$store.app.cancelCropper()">
@@ -22,8 +22,8 @@
         </button>
       </div>
 
-      <!-- Selector de Proporción / Orientación cuando es Arma o Artefacto -->
-      <div x-show="$store.app.cropperTargetType === 'weapon'"
+      <!-- Selector de Proporción / Orientación cuando es Arma o Artefacto O Fondos de Pantalla -->
+      <div x-show="$store.app.cropperTargetType === 'weapon' || $store.app.cropperTargetType === 'bg_dashboard' || $store.app.cropperTargetType === 'bg_tierlist' || $store.app.cropperTargetType === 'bg_character'"
         class="bg-black/75 border-b border-parchment-brown/20 px-4 py-2 flex items-center justify-between flex-wrap gap-2 text-xs shrink-0">
         <span class="text-ink-slate font-mono text-[11px] flex items-center gap-1.5 font-semibold">
           <svg class="w-3.5 h-3.5 text-accent-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -35,23 +35,32 @@
           <button type="button" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer border"
             :class="$store.app.cropperAspectRatioMode === 'horizontal' ? 'bg-accent-gold text-black border-accent-gold shadow-md shadow-accent-gold/20' : 'bg-parchment-brown/15 text-parchment-cream border-parchment-brown/30 hover:bg-parchment-brown/30'"
             @click="$store.app.setCropperAspectRatio('horizontal')">
-            16:9 Horizontal
+            16:9 Panorámico
           </button>
           <button type="button" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer border"
-            :class="$store.app.cropperAspectRatioMode === 'vertical' ? 'bg-accent-gold text-black border-accent-gold shadow-md shadow-accent-gold/20' : 'bg-parchment-brown/15 text-parchment-cream border-parchment-brown/30 hover:bg-parchment-brown/30'"
-            @click="$store.app.setCropperAspectRatio('vertical')">
-            3:4 Vertical
+            :class="$store.app.cropperAspectRatioMode === 'ultrawide' ? 'bg-accent-gold text-black border-accent-gold shadow-md shadow-accent-gold/20' : 'bg-parchment-brown/15 text-parchment-cream border-parchment-brown/30 hover:bg-parchment-brown/30'"
+            @click="$store.app.setCropperAspectRatio('ultrawide')">
+            21:9 Ultra-Wide
           </button>
-          <button type="button" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer border"
-            :class="$store.app.cropperAspectRatioMode === 'tall' ? 'bg-accent-gold text-black border-accent-gold shadow-md shadow-accent-gold/20' : 'bg-parchment-brown/15 text-parchment-cream border-parchment-brown/30 hover:bg-parchment-brown/30'"
-            @click="$store.app.setCropperAspectRatio('tall')">
-            9:16 Alargado
-          </button>
-          <button type="button" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer border"
-            :class="$store.app.cropperAspectRatioMode === 'square' ? 'bg-accent-gold text-black border-accent-gold shadow-md shadow-accent-gold/20' : 'bg-parchment-brown/15 text-parchment-cream border-parchment-brown/30 hover:bg-parchment-brown/30'"
-            @click="$store.app.setCropperAspectRatio('square')">
-            1:1 Cuadrado
-          </button>
+          <template x-if="$store.app.cropperTargetType === 'weapon'">
+            <div class="inline-flex gap-1.5">
+              <button type="button" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer border"
+                :class="$store.app.cropperAspectRatioMode === 'vertical' ? 'bg-accent-gold text-black border-accent-gold shadow-md shadow-accent-gold/20' : 'bg-parchment-brown/15 text-parchment-cream border-parchment-brown/30 hover:bg-parchment-brown/30'"
+                @click="$store.app.setCropperAspectRatio('vertical')">
+                3:4 Vertical
+              </button>
+              <button type="button" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer border"
+                :class="$store.app.cropperAspectRatioMode === 'tall' ? 'bg-accent-gold text-black border-accent-gold shadow-md shadow-accent-gold/20' : 'bg-parchment-brown/15 text-parchment-cream border-parchment-brown/30 hover:bg-parchment-brown/30'"
+                @click="$store.app.setCropperAspectRatio('tall')">
+                9:16 Alargado
+              </button>
+              <button type="button" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer border"
+                :class="$store.app.cropperAspectRatioMode === 'square' ? 'bg-accent-gold text-black border-accent-gold shadow-md shadow-accent-gold/20' : 'bg-parchment-brown/15 text-parchment-cream border-parchment-brown/30 hover:bg-parchment-brown/30'"
+                @click="$store.app.setCropperAspectRatio('square')">
+                1:1 Cuadrado
+              </button>
+            </div>
+          </template>
           <button type="button" class="px-2.5 py-1 rounded text-xs font-mono font-bold transition-all cursor-pointer border"
             :class="$store.app.cropperAspectRatioMode === 'free' ? 'bg-accent-gold text-black border-accent-gold shadow-md shadow-accent-gold/20' : 'bg-parchment-brown/15 text-parchment-cream border-parchment-brown/30 hover:bg-parchment-brown/30'"
             @click="$store.app.setCropperAspectRatio('free')">
@@ -110,9 +119,10 @@
 
         <!-- Acciones -->
         <div class="flex items-center gap-2 ml-auto">
-          <button class="header-btn-ghost" @click="$store.app.cancelCropper()">Cancelar</button>
-          <button class="header-btn-accent" @click="$store.app.applyCropper()">
-            <i data-lucide="check" class="w-4 h-4"></i> Guardar
+          <button class="header-btn-ghost cursor-pointer" @click="$store.app.cancelCropper()">Cancelar</button>
+          <button class="header-btn-accent cursor-pointer" @click="$store.app.applyCropper()">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span x-text="$store.app.cropperTargetType === 'folder_icon' ? 'Aplicar a Carpeta' : ($store.app.cropperTargetType === 'custom_emoji' ? 'Aplicar a Emoticono' : ($store.app.cropperTargetType === 'tierlist_icon' ? 'Aplicar Emblema' : ($store.app.cropperTargetType?.startsWith('bg_') ? 'Aplicar Fondo' : 'Aplicar Recorte')))"></span>
           </button>
         </div>
       </div>

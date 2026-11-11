@@ -1487,6 +1487,7 @@ export function registerSettingsStore(Alpine) {
       if (!parsed || typeof parsed !== 'object') return;
       if (parsed.dashboardBgMode) this.dashboardBgMode = parsed.dashboardBgMode;
       if (parsed.dashboardBgUrl !== undefined) this.dashboardBgUrl = parsed.dashboardBgUrl;
+      if (parsed.dashboardBgTransform !== undefined) this.dashboardBgTransform = parsed.dashboardBgTransform;
       if (parsed.dashboardBgBlur !== undefined) this.dashboardBgBlur = Number(parsed.dashboardBgBlur);
       if (parsed.dashboardBgOpacity !== undefined) this.dashboardBgOpacity = Number(parsed.dashboardBgOpacity);
       if (parsed.dashboardBgZoom !== undefined) this.dashboardBgZoom = Number(parsed.dashboardBgZoom);
@@ -1513,6 +1514,7 @@ export function registerSettingsStore(Alpine) {
       const toSave = {
         dashboardBgMode: this.dashboardBgMode,
         dashboardBgUrl: this.dashboardBgUrl,
+        dashboardBgTransform: this.dashboardBgTransform || '',
         dashboardBgBlur: this.dashboardBgBlur,
         dashboardBgOpacity: this.dashboardBgOpacity,
         dashboardBgZoom: this.dashboardBgZoom ?? 100,
@@ -1543,6 +1545,9 @@ export function registerSettingsStore(Alpine) {
 
     getDashboardBgStyle() {
       const blur = this.dashboardBgBlur || 0;
+      if (this.dashboardBgTransform) {
+        return `${this.dashboardBgTransform} filter: blur(${blur}px);`;
+      }
       const zoom = Math.max(1, (this.dashboardBgZoom ?? 100) / 100);
       const x = Math.max(0, Math.min(100, this.dashboardBgPosX ?? 50));
       const y = Math.max(0, Math.min(100, this.dashboardBgPosY ?? 50));
@@ -1550,6 +1555,7 @@ export function registerSettingsStore(Alpine) {
     },
 
     resetDashboardBgFrame() {
+      this.dashboardBgTransform = '';
       this.dashboardBgZoom = 100;
       this.dashboardBgPosX = 50;
       this.dashboardBgPosY = 50;
@@ -1557,40 +1563,53 @@ export function registerSettingsStore(Alpine) {
       Alpine.store('app')?.toast?.('Encuadre de fondo restablecido a valores centrales.', 'info');
     },
 
-    async uploadDashboardBgImage(event) {
+    openCropperForDashboard() {
+      if (!this.dashboardBgUrl) {
+        Alpine.store('app')?.toast('Primero debes subir una imagen o GIF.', 'info');
+        return;
+      }
+      Alpine.store('app').openCropper(this.dashboardBgUrl, 'bg_dashboard');
+    },
+
+    async processCroppedDashboardBg(file) {
+      try {
+        const { dataUrl, compressedKB } = await compressImageWithStats(file, 1920, 1080);
+        this.dashboardBgUrl = dataUrl;
+        this.dashboardBgTransform = '';
+        this.dashboardBgMode = 'custom';
+        this.dashboardBgPosX = 50;
+        this.dashboardBgPosY = 50;
+        this.dashboardBgZoom = 100;
+        this.saveDashboardBgSettings();
+        Alpine.store('app').toast(`Fondo del Panel ajustado y guardado (${compressedKB}KB WebP).`, 'success');
+      } catch (e) {
+        console.error(e);
+        Alpine.store('app').toast('Error al procesar fondo del panel.', 'error');
+      }
+    },
+
+    async processCroppedDashboardBgGif(dataUrl, cssTransform) {
+      this.dashboardBgUrl = dataUrl;
+      this.dashboardBgTransform = cssTransform;
+      this.dashboardBgMode = 'custom';
+      this.saveDashboardBgSettings();
+      Alpine.store('app').toast('Fondo GIF del Panel configurado con encuadre visual.', 'success');
+    },
+
+    uploadDashboardBgImage(event) {
       const file = event.target.files?.[0];
       if (!file) return;
       if (!file.type.startsWith('image/')) {
         Alpine.store('app').toast('Selecciona un archivo de imagen o GIF válido.', 'warning');
         return;
       }
-      try {
-        const isGif = file.type === 'image/gif';
-        if (isGif) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            this.dashboardBgUrl = e.target.result;
-            this.dashboardBgMode = 'custom';
-            this.saveDashboardBgSettings();
-            Alpine.store('app').toast('Fondo GIF del Panel Principal configurado.', 'success');
-          };
-          reader.readAsDataURL(file);
-        } else {
-          const { dataUrl, compressedKB } = await compressImageWithStats(file, 1920, 1080);
-          this.dashboardBgUrl = dataUrl;
-          this.dashboardBgMode = 'custom';
-          this.saveDashboardBgSettings();
-          Alpine.store('app').toast(`Fondo del Panel configurado (${compressedKB}KB WebP).`, 'success');
-        }
-      } catch (e) {
-        console.error(e);
-        Alpine.store('app').toast('Error al procesar la imagen de fondo.', 'error');
-      }
+      Alpine.store('app').openCropper(file, 'bg_dashboard');
       event.target.value = '';
     },
 
     removeDashboardBgImage() {
       this.dashboardBgUrl = '';
+      this.dashboardBgTransform = '';
       if (this.dashboardBgMode === 'custom') {
         this.dashboardBgMode = 'pattern';
       }
@@ -1620,6 +1639,7 @@ export function registerSettingsStore(Alpine) {
       if (!parsed || typeof parsed !== 'object') return;
       if (parsed.tierlistBgMode) this.tierlistBgMode = parsed.tierlistBgMode;
       if (parsed.tierlistBgUrl !== undefined) this.tierlistBgUrl = parsed.tierlistBgUrl;
+      if (parsed.tierlistBgTransform !== undefined) this.tierlistBgTransform = parsed.tierlistBgTransform;
       if (parsed.tierlistBgBlur !== undefined) this.tierlistBgBlur = Number(parsed.tierlistBgBlur);
       if (parsed.tierlistBgOpacity !== undefined) this.tierlistBgOpacity = Number(parsed.tierlistBgOpacity);
       if (parsed.tierlistBgZoom !== undefined) this.tierlistBgZoom = Number(parsed.tierlistBgZoom);
@@ -1646,6 +1666,7 @@ export function registerSettingsStore(Alpine) {
       const toSave = {
         tierlistBgMode: this.tierlistBgMode,
         tierlistBgUrl: this.tierlistBgUrl,
+        tierlistBgTransform: this.tierlistBgTransform || '',
         tierlistBgBlur: this.tierlistBgBlur,
         tierlistBgOpacity: this.tierlistBgOpacity,
         tierlistBgZoom: this.tierlistBgZoom ?? 100,
@@ -1676,6 +1697,9 @@ export function registerSettingsStore(Alpine) {
 
     getTierlistBgStyle() {
       const blur = this.tierlistBgBlur || 0;
+      if (this.tierlistBgTransform) {
+        return `${this.tierlistBgTransform} filter: blur(${blur}px);`;
+      }
       const zoom = Math.max(1, (this.tierlistBgZoom ?? 100) / 100);
       const x = Math.max(0, Math.min(100, this.tierlistBgPosX ?? 50));
       const y = Math.max(0, Math.min(100, this.tierlistBgPosY ?? 50));
@@ -1683,6 +1707,7 @@ export function registerSettingsStore(Alpine) {
     },
 
     resetTierlistBgFrame() {
+      this.tierlistBgTransform = '';
       this.tierlistBgZoom = 100;
       this.tierlistBgPosX = 50;
       this.tierlistBgPosY = 50;
@@ -1690,40 +1715,53 @@ export function registerSettingsStore(Alpine) {
       Alpine.store('app')?.toast?.('Encuadre de fondo de Tier List restablecido a valores centrales.', 'info');
     },
 
-    async uploadTierlistBgImage(event) {
+    openCropperForTierlist() {
+      if (!this.tierlistBgUrl) {
+        Alpine.store('app')?.toast('Primero debes subir una imagen o GIF.', 'info');
+        return;
+      }
+      Alpine.store('app').openCropper(this.tierlistBgUrl, 'bg_tierlist');
+    },
+
+    async processCroppedTierlistBg(file) {
+      try {
+        const { dataUrl, compressedKB } = await compressImageWithStats(file, 1920, 1080);
+        this.tierlistBgUrl = dataUrl;
+        this.tierlistBgTransform = '';
+        this.tierlistBgMode = 'custom';
+        this.tierlistBgPosX = 50;
+        this.tierlistBgPosY = 50;
+        this.tierlistBgZoom = 100;
+        this.saveTierlistBgSettings();
+        Alpine.store('app').toast(`Fondo de Tier List ajustado y guardado (${compressedKB}KB WebP).`, 'success');
+      } catch (e) {
+        console.error(e);
+        Alpine.store('app').toast('Error al procesar fondo de tier list.', 'error');
+      }
+    },
+
+    async processCroppedTierlistBgGif(dataUrl, cssTransform) {
+      this.tierlistBgUrl = dataUrl;
+      this.tierlistBgTransform = cssTransform;
+      this.tierlistBgMode = 'custom';
+      this.saveTierlistBgSettings();
+      Alpine.store('app').toast('Fondo GIF de Tier List configurado con encuadre visual.', 'success');
+    },
+
+    uploadTierlistBgImage(event) {
       const file = event.target.files?.[0];
       if (!file) return;
       if (!file.type.startsWith('image/')) {
         Alpine.store('app')?.toast?.('Selecciona un archivo de imagen o GIF válido.', 'warning');
         return;
       }
-      try {
-        const isGif = file.type === 'image/gif';
-        if (isGif) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            this.tierlistBgUrl = e.target.result;
-            this.tierlistBgMode = 'custom';
-            this.saveTierlistBgSettings();
-            Alpine.store('app')?.toast?.('Fondo GIF de Tier List configurado.', 'success');
-          };
-          reader.readAsDataURL(file);
-        } else {
-          const { dataUrl, compressedKB } = await compressImageWithStats(file, 1920, 1080);
-          this.tierlistBgUrl = dataUrl;
-          this.tierlistBgMode = 'custom';
-          this.saveTierlistBgSettings();
-          Alpine.store('app')?.toast?.(`Fondo de Tier List configurado (${compressedKB}KB WebP).`, 'success');
-        }
-      } catch (e) {
-        console.error(e);
-        Alpine.store('app')?.toast?.('Error al procesar la imagen de fondo.', 'error');
-      }
+      Alpine.store('app').openCropper(file, 'bg_tierlist');
       event.target.value = '';
     },
 
     removeTierlistBgImage() {
       this.tierlistBgUrl = '';
+      this.tierlistBgTransform = '';
       if (this.tierlistBgMode === 'custom') {
         this.tierlistBgMode = 'pattern';
       }

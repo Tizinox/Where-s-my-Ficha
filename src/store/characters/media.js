@@ -165,19 +165,7 @@ export function createMediaMethods() {
       if (!url || !url.trim()) return;
       const cleanUrl = url.trim();
       const idToFind = targetCharId || this.activeId;
-      
-      window.Alpine?.store('app')?.toast('Descargando y procesando imagen...', 'info');
-      
-      try {
-        const file = await fetchImageAsFileFromUrl(cleanUrl);
-        window.Alpine?.store('app')?.openCropper(file, assetType, idToFind);
-      } catch (err) {
-        console.error(`Error al cargar imagen desde URL (${cleanUrl}):`, err);
-        window.Alpine?.store('app')?.toast(
-          'No se pudo descargar la imagen. Si el sitio requiere inicio de sesión, guarda la imagen en tu dispositivo y súbela con el botón de archivo.',
-          'error'
-        );
-      }
+      await window.Alpine?.store('app')?.openMediaUrl(cleanUrl, assetType, idToFind);
     },
 
     removeAsset(assetType = 'avatar', targetCharId = null) {
@@ -396,56 +384,60 @@ export function createMediaMethods() {
     },
 
     // ── Helper: Fondos Dinámicos (Level 3) ──────────────────────
-    async uploadBackgroundImage(event) {
+    uploadBackgroundImage(event) {
       const file = event.target.files?.[0];
-      if (!file || !this.active) return;
+      if (!file) return;
       if (!file.type.startsWith('image/')) {
         window.Alpine?.store('app')?.toast('Selecciona una imagen o GIF válido.', 'warning');
         return;
       }
+      window.Alpine?.store('app')?.openCropper(file, 'bg_character');
+      event.target.value = '';
+    },
 
-      const MAX_SIZE_MB = 50;
-      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        window.Alpine?.store('app')?.toast(`El archivo supera el límite de ${MAX_SIZE_MB}MB.`, 'error');
+    openCropperForCharacterBg() {
+      const img = this.active?.presentation?.background?.image || this.active?.visualSettings?.backgroundUrl;
+      if (!img) {
+        window.Alpine?.store('app')?.toast('Primero debes subir una imagen o GIF.', 'info');
         return;
       }
+      window.Alpine?.store('app')?.openCropper(img, 'bg_character');
+    },
 
-      if (!this.active.presentation) {
-        this.active.presentation = { background: { image: '', blur: 0, opacity: 50, zoom: 100, posX: 50, posY: 50, scrim: 20, mode: 'custom' } };
-      } else if (!this.active.presentation.background) {
-        this.active.presentation.background = { image: '', blur: 0, opacity: 50, zoom: 100, posX: 50, posY: 50, scrim: 20, mode: 'custom' };
-      }
-      if (!this.active.visualSettings) {
-        this.active.visualSettings = {};
-      }
-
-      const isGif = file.type === 'image/gif';
+    async processCroppedCharacterBg(file) {
+      if (!this.active) return;
       try {
-        if (isGif) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            const url = e.target.result;
-            this.active.presentation.background.image = url;
-            this.active.presentation.background.mode = 'custom';
-            this.active.visualSettings.backgroundUrl = url;
-            this.active.visualSettings.backgroundMode = 'custom';
-            this.scheduleAutoSave();
-            window.Alpine?.store('app')?.toast('Fondo GIF animado cargado.', 'info');
-          };
-          reader.readAsDataURL(file);
-        } else {
-          const { dataUrl, compressedKB } = await compressImageWithStats(file, 1920, 1080);
-          this.active.presentation.background.image = dataUrl;
-          this.active.presentation.background.mode = 'custom';
-          this.active.visualSettings.backgroundUrl = dataUrl;
-          this.active.visualSettings.backgroundMode = 'custom';
-          this.scheduleAutoSave();
-          window.Alpine?.store('app')?.toast(`Fondo estático comprimido a ${compressedKB}KB (WebP)`, 'success');
-        }
+        const { dataUrl, compressedKB } = await compressImageWithStats(file, 1920, 1080);
+        if (!this.active.presentation) this.active.presentation = {};
+        if (!this.active.presentation.background) this.active.presentation.background = {};
+        this.active.presentation.background.image = dataUrl;
+        this.active.presentation.background.transform = '';
+        this.active.presentation.background.mode = 'custom';
+        this.active.presentation.background.posX = 50;
+        this.active.presentation.background.posY = 50;
+        this.active.presentation.background.zoom = 100;
+        if (!this.active.visualSettings) this.active.visualSettings = {};
+        this.active.visualSettings.backgroundUrl = dataUrl;
+        this.active.visualSettings.backgroundMode = 'custom';
+        this.scheduleAutoSave();
+        window.Alpine?.store('app')?.toast(`Fondo de ficha ajustado y guardado (${compressedKB}KB WebP)`, 'success');
       } catch (e) {
         window.Alpine?.store('app')?.toast('Error al procesar la imagen de fondo.', 'error');
       }
-      event.target.value = '';
+    },
+
+    async processCroppedCharacterBgGif(dataUrl, cssTransform) {
+      if (!this.active) return;
+      if (!this.active.presentation) this.active.presentation = {};
+      if (!this.active.presentation.background) this.active.presentation.background = {};
+      this.active.presentation.background.image = dataUrl;
+      this.active.presentation.background.transform = cssTransform;
+      this.active.presentation.background.mode = 'custom';
+      if (!this.active.visualSettings) this.active.visualSettings = {};
+      this.active.visualSettings.backgroundUrl = dataUrl;
+      this.active.visualSettings.backgroundMode = 'custom';
+      this.scheduleAutoSave();
+      window.Alpine?.store('app')?.toast('Fondo GIF de ficha configurado con encuadre visual.', 'success');
     },
 
     removeBackgroundImage() {
@@ -453,6 +445,7 @@ export function createMediaMethods() {
       if (!this.active.presentation) this.active.presentation = {};
       if (!this.active.presentation.background) this.active.presentation.background = {};
       this.active.presentation.background.image = '';
+      this.active.presentation.background.transform = '';
       if (!this.active.visualSettings) this.active.visualSettings = {};
       this.active.visualSettings.backgroundUrl = '';
       if (this.active.presentation.background.mode === 'custom') {
@@ -557,6 +550,7 @@ export function createMediaMethods() {
       if (!this.active) return;
       if (!this.active.presentation) this.active.presentation = {};
       if (!this.active.presentation.background) this.active.presentation.background = {};
+      this.active.presentation.background.transform = '';
       this.active.presentation.background.zoom = 100;
       this.active.presentation.background.posX = 50;
       this.active.presentation.background.posY = 50;
@@ -571,6 +565,9 @@ export function createMediaMethods() {
     getBackgroundStyle() {
       const bg = this.active?.presentation?.background || {};
       const blur = bg.blur || 0;
+      if (bg.transform) {
+        return `${bg.transform} filter: blur(${blur}px);`;
+      }
       const zoom = Math.max(1, (bg.zoom ?? 100) / 100);
       const x = Math.max(0, Math.min(100, bg.posX ?? 50));
       const y = Math.max(0, Math.min(100, bg.posY ?? 50));

@@ -10,8 +10,9 @@
 
 import { DEFAULT_TIERS } from '../../store/tierlist/constants.js';
 import { fetchAndParseTierBuddyTemplate } from './tierBuddyImporter.js';
+import { fetchAndParseTierMakerProTemplate } from './tierMakerProImporter.js';
 
-export { fetchAndParseTierBuddyTemplate };
+export { fetchAndParseTierBuddyTemplate, fetchAndParseTierMakerProTemplate };
 
 /**
  * Extrae el slug identificador de una URL de TierMaker o texto pegado.
@@ -236,13 +237,18 @@ export function extractTiersFromContent(content) {
  * @returns {Promise<{ success: boolean, title: string, customTiers: Array, defaultTiers: Array, hasCustomTiers: boolean, tiers: Array, items: Array, totalCount: number, error?: string }>}
  */
 export async function fetchAndParseTierMakerTemplate(inputUrl) {
-  if (typeof inputUrl === 'string' && inputUrl.includes('tierbuddy.com')) {
-    return await fetchAndParseTierBuddyTemplate(inputUrl);
+  if (typeof inputUrl === 'string') {
+    if (inputUrl.includes('tierbuddy.com')) {
+      return await fetchAndParseTierBuddyTemplate(inputUrl);
+    }
+    if (inputUrl.includes('tiermakerpro.com')) {
+      return await fetchAndParseTierMakerProTemplate(inputUrl);
+    }
   }
 
   const slug = extractTierMakerSlug(inputUrl);
   if (!slug) {
-    throw new Error('Por favor ingresa un enlace o slug válido de TierMaker (tiermaker.com) o TierBuddy (tierbuddy.com).');
+    throw new Error('Por favor ingresa un enlace o slug válido de TierMaker (tiermaker.com), TierBuddy (tierbuddy.com) o TierMaker Pro (tiermakerpro.com).');
   }
 
   const targetUrl = `https://tiermaker.com/create/${slug}`;
@@ -350,7 +356,8 @@ export async function fetchAndParseTierMakerTemplate(inputUrl) {
     const seen = new Set();
     for (const u of matches) {
       const l = u.toLowerCase();
-      if (l.includes('logo') || l.includes('search-icon') || l.includes('random') || l.includes('banner') || l.includes('avatar') || l.includes('favicon')) {
+      // Excluir elementos UI, logos y fotos de perfil de usuarios de TierMaker
+      if (l.includes('logo') || l.includes('search-icon') || l.includes('random') || l.includes('banner') || l.includes('favicon') || l.includes('google-avatar') || l.includes('/user-avatar') || l.includes('default-avatar')) {
         continue;
       }
       if (seen.has(u)) continue;
@@ -404,6 +411,10 @@ export async function fetchAndParseTierMakerTemplate(inputUrl) {
       avatarDataUrl: proxyUrl
     };
   });
+
+  if (!items.length) {
+    throw new Error('No se detectaron personajes o imágenes válidas en la plantilla de TierMaker. Verifica que el enlace corresponda a una plantilla pública activa.');
+  }
 
   return {
     success: true,
