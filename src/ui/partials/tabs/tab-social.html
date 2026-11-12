@@ -1,0 +1,519 @@
+<!-- =========================================================
+           PESTAÑA 4: SOCIAL (3 BLOQUES REESTRUCTURADOS)
+           ========================================================= -->
+          <div x-show="$store.app.currentTab === 'social'" class="space-y-6" data-tab-section="social">
+            <div class="form-card space-y-6">
+              <!-- Encabezado Principal de la Pestaña -->
+              <div class="flex items-center justify-between border-b border-parchment-brown/20 pb-3">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="category-header-icon-box w-9 h-9 rounded-xl bg-accent-cyan/15 border border-accent-cyan/40 flex items-center justify-center text-accent-cyan shrink-0"
+                    style="box-shadow: 0 0 12px var(--accent-glow);">
+                    <i data-lucide="users-round" class="w-4.5 h-4.5"></i>
+                  </div>
+                  <div>
+                    <h3 class="category-header-title">Entorno Social, Vínculos y Redes de Poder</h3>
+                    <p class="category-header-desc">Estatus, identidades públicas, alianzas, deudas, rivales y
+                      reputación política del personaje.</p>
+                  </div>
+                </div>
+                <span
+                  class="text-[11px] font-mono text-ink-slate/80 uppercase tracking-widest px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/5 hidden sm:inline-block">Estatus
+                  y Redes de Influencia</span>
+              </div>
+
+              <!-- MODO EDICIÓN -->
+              <div x-show="$store.app.editMode" class="space-y-6">
+
+                <!-- ──── MÓDULO 1: IDENTIDAD PÚBLICA, FACHADA y ESTATUS SOCIOECONÓMICO ──── -->
+                <div class="p-4 rounded-xl border border-accent-gold/25 bg-black/40 space-y-4">
+                  <div class="flex items-center gap-2 border-b border-white/10 pb-2">
+                    <i data-lucide="crown" class="w-4 h-4 text-accent-gold"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-gold">Identidad Pública,
+                      Fachada y Estatus</h4>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label class="form-label flex items-center gap-1.5">
+                        <i data-lucide="flag" class="w-3.5 h-3.5 text-accent-gold"></i> Afiliación / Facción Principal
+                      </label>
+                      <input type="text" class="form-input" x-model="$store.characters.active.social.faction"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder="" />
+                    </div>
+
+                    <div>
+                      <label class="form-label flex items-center gap-1.5">
+                        <i data-lucide="award" class="w-3.5 h-3.5 text-accent-gold"></i> Estatus Social y Reputación
+                      </label>
+                      <input type="text" class="form-input" x-model="$store.characters.active.social.reputation"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder="" />
+                    </div>
+
+                    <div>
+                      <label class="form-label flex items-center gap-1.5">
+                        <i data-lucide="coins" class="w-3.5 h-3.5 text-amber-400"></i> Estilo de Vida y Nivel
+                        Socioeconómico
+                      </label>
+                      <input type="text" class="form-input" x-model="$store.characters.active.social.lifestyleStandard"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder="" />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="form-label flex items-center gap-1.5">
+                        <i data-lucide="venetian-mask" class="w-3.5 h-3.5 text-purple-400"></i> Máscara Social /
+                        Identidad Pública vs. Real
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="2"
+                        x-model="$store.characters.active.social.socialMask"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+
+                    <div>
+                      <label class="form-label flex items-center gap-1.5">
+                        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-accent-cyan"></i> Origen y Residencia Actual
+                      </label>
+                      <input type="text" class="form-input text-xs"
+                        x-model="$store.characters.active.social.originResidencia"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder="" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 2: COMUNICACIÓN, PERSUASIÓN y RUMORES ──── -->
+                <div class="p-4 rounded-xl border border-accent-cyan/25 bg-black/40 space-y-4">
+                  <div class="flex items-center gap-2 border-b border-white/10 pb-2">
+                    <i data-lucide="message-square" class="w-4 h-4 text-accent-cyan"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-cyan">Comunicación,
+                      Persuasión y Percepción Pública</h4>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-1">
+                      <label class="form-label flex items-center gap-1.5">
+                        <i data-lucide="message-circle" class="w-3.5 h-3.5 text-accent-cyan"></i> Estilo de Comunicación
+                        y Persuasión
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.social.communicationStyle"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+
+                    <div class="md:col-span-1">
+                      <label class="form-label flex items-center gap-1.5">
+                        <i data-lucide="megaphone" class="w-3.5 h-3.5 text-amber-400"></i> Rumores y Percepción
+                        Pública
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.social.rumorsPublicView"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+
+                    <div class="md:col-span-1">
+                      <label class="form-label flex items-center gap-1.5">
+                        <i data-lucide="languages" class="w-3.5 h-3.5 text-emerald-400"></i> Idiomas y Dialectos
+                        Dominados
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.social.languages"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 3: VÍNCULOS, DEUDAS, RIVALES y DEPENDIENTES ──── -->
+                <div class="p-4 rounded-xl border border-purple-500/25 bg-black/40 space-y-4">
+                  <div class="flex items-center gap-2 border-b border-white/10 pb-2">
+                    <i data-lucide="git-fork" class="w-4 h-4 text-purple-400"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">Deudas, Rivalidades
+                      y Personas a Cargo</h4>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label class="form-label flex items-center gap-1.5 text-amber-300">
+                        <i data-lucide="scale" class="w-3.5 h-3.5"></i> Deudas y Favores Pendientes
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.social.debtsFavors"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+
+                    <div>
+                      <label class="form-label flex items-center gap-1.5 text-rose-400">
+                        <i data-lucide="swords" class="w-3.5 h-3.5"></i> Enemigos y Rivales Declarados
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.social.rivalsEnemies"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+
+                    <div>
+                      <label class="form-label flex items-center gap-1.5 text-emerald-400">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Dependientes y Personas a Cargo
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.social.dependents"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Matriz Dinámica de Relaciones con PNJs y Personajes -->
+                  <div class="pt-3 border-t border-white/10 space-y-3">
+                    <div class="flex items-center justify-between">
+                      <label class="form-label flex items-center gap-1.5 mb-0 text-accent-gold">
+                        <i data-lucide="users" class="w-3.5 h-3.5"></i> Matriz de Relaciones Personales (PNJs y
+                        Personajes)
+                      </label>
+                      <button type="button" class="header-btn-secondary text-xs py-1 px-2.5"
+                        @click="$store.characters.addRelation()">
+                        <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Añadir Relación
+                      </button>
+                    </div>
+
+                    <!-- Empty state -->
+                    <div
+                      x-show="(!$store.characters.active?.social.relations || $store.characters.active?.social.relations.length === 0)"
+                      class="text-center py-4 text-ink-slate text-xs italic bg-black/20 rounded-lg border border-dashed border-parchment-brown/25">
+                      No se han añadido relaciones individuales todavía. Haz clic en "Añadir Relación" para registrar
+                      aliados, rivales o familiares.
+                    </div>
+
+                    <!-- Lista de Tarjetas de Relaciones -->
+                    <div class="space-y-3" x-show="($store.characters.active?.social.relations || []).length > 0">
+                      <template x-for="(rel, index) in $store.characters.active?.social.relations || []" :key="rel.id">
+                        <div class="p-3.5 rounded-xl border border-parchment-brown/30 bg-black/50 space-y-3">
+                          <div class="flex items-center justify-between border-b border-parchment-brown/20 pb-1.5">
+                            <span class="text-xs font-mono font-bold text-accent-gold flex items-center gap-1.5">
+                              <i data-lucide="user-round" class="w-3.5 h-3.5"></i>
+                              <span x-text="'Relación #' + (index + 1) + (rel.name ? ': ' + rel.name : '')"></span>
+                            </span>
+                            <button type="button"
+                              class="text-ink-slate hover:text-accent-ruby p-1 transition-colors cursor-pointer"
+                              @click="$store.characters.removeRelation(rel.id)" title="Eliminar relación">
+                              <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                          </div>
+
+                          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                              <label class="form-label text-xs">Nombre del Personaje / PNJ</label>
+                              <input type="text" class="form-input text-xs" x-model="rel.name"
+                                @input="$store.characters.scheduleAutoSave()" placeholder="" />
+                            </div>
+
+                            <div>
+                              <label class="form-label text-xs">Tipo de Vínculo</label>
+                              <div class="space-y-1">
+                                <select class="form-select text-xs"
+                                  :value="['Aliado', 'Enemigo', 'Mentor', 'Rival', 'Familia', 'Interés Romántico', 'Neutral', 'Sirviente / Subordinado', 'Protegido / Dependiente'].includes(rel.bondType) ? rel.bondType : 'Otro'"
+                                  @change="
+                                    if ($event.target.value !== 'Otro') {
+                                      rel.bondType = $event.target.value;
+                                    } else if (['Aliado', 'Enemigo', 'Mentor', 'Rival', 'Familia', 'Interés Romántico', 'Neutral', 'Sirviente / Subordinado', 'Protegido / Dependiente'].includes(rel.bondType)) {
+                                      rel.bondType = '';
+                                    }
+                                    $store.characters.scheduleAutoSave();
+                                  ">
+                                  <option value="Aliado">Aliado</option>
+                                  <option value="Enemigo">Enemigo</option>
+                                  <option value="Mentor">Mentor</option>
+                                  <option value="Rival">Rival</option>
+                                  <option value="Familia">Familia</option>
+                                  <option value="Interés Romántico">Interés Romántico</option>
+                                  <option value="Protegido / Dependiente">Protegido / Dependiente</option>
+                                  <option value="Sirviente / Subordinado">Sirviente / Subordinado</option>
+                                  <option value="Neutral">Neutral</option>
+                                  <option value="Otro">Personalizado / Otro...</option>
+                                </select>
+                                <div
+                                  x-show="!['Aliado', 'Enemigo', 'Mentor', 'Rival', 'Familia', 'Interés Romántico', 'Neutral', 'Sirviente / Subordinado', 'Protegido / Dependiente'].includes(rel.bondType)">
+                                  <input type="text" class="form-input text-xs" x-model="rel.bondType"
+                                    @input="$store.characters.scheduleAutoSave()"
+                                    placeholder="" />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div>
+                              <label class="form-label text-xs">Estado / Dinámica Actual</label>
+                              <input type="text" class="form-input text-xs" x-model="rel.status"
+                                @input="$store.characters.scheduleAutoSave()"
+                                placeholder="" />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label class="form-label text-xs">Notas y Breve Historia Compartida</label>
+                            <textarea class="form-textarea text-xs min-h-[60px]" x-model="rel.description"
+                              @input="$store.characters.scheduleAutoSave()"
+                              placeholder=""></textarea>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 4: FACCIONES, INFLUENCIA y CONTACTOS ──── -->
+                <div class="p-4 rounded-xl border border-accent-ruby/25 bg-black/40 space-y-4">
+                  <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="shield" class="w-4 h-4 text-accent-ruby"></i>
+                      <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-ruby">Facciones,
+                        Reputación Política y Contactos</h4>
+                    </div>
+                    <button type="button" class="header-btn-secondary text-xs py-0.5 px-2.5"
+                      @click="$store.characters.addFactionRelation()">
+                      <i data-lucide="plus" class="w-3 h-3"></i> Añadir Facción
+                    </button>
+                  </div>
+
+                  <!-- Lista de Facciones -->
+                  <div class="space-y-2">
+                    <template x-for="fac in $store.characters.active?.social.factions || []" :key="fac.id">
+                      <div class="p-2 rounded-xl bg-black/40 border border-parchment-brown/25 space-y-2">
+                        <div class="flex items-center gap-2">
+                          <input type="text" class="form-input text-xs flex-1" x-model="fac.name"
+                            @input="$store.characters.scheduleAutoSave()"
+                            placeholder="" />
+                          <select class="form-select text-xs w-36 sm:w-44"
+                            :value="['Venerado', 'Respetado', 'Neutral', 'Desconfiado', 'Hostil', 'Buscado / Proscrito'].includes(fac.affinity) ? fac.affinity : 'Personalizado'"
+                            @change="
+                              if ($event.target.value !== 'Personalizado') {
+                                fac.affinity = $event.target.value;
+                              } else if (['Venerado', 'Respetado', 'Neutral', 'Desconfiado', 'Hostil', 'Buscado / Proscrito'].includes(fac.affinity)) {
+                                fac.affinity = '';
+                              }
+                              $store.characters.scheduleAutoSave();
+                            ">
+                            <option value="Venerado">Venerado</option>
+                            <option value="Respetado">Respetado</option>
+                            <option value="Neutral">Neutral</option>
+                            <option value="Desconfiado">Desconfiado</option>
+                            <option value="Hostil">Hostil</option>
+                            <option value="Buscado / Proscrito">Buscado / Proscrito</option>
+                            <option value="Personalizado">Personalizado...</option>
+                          </select>
+                          <button type="button" class="text-ink-slate hover:text-accent-ruby p-1 transition-colors"
+                            @click="$store.characters.removeFactionRelation(fac.id)" title="Eliminar facción">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                          </button>
+                        </div>
+                        <div
+                          x-show="!['Venerado', 'Respetado', 'Neutral', 'Desconfiado', 'Hostil', 'Buscado / Proscrito'].includes(fac.affinity)">
+                          <input type="text" class="form-input text-xs" x-model="fac.affinity"
+                            @input="$store.characters.scheduleAutoSave()"
+                            placeholder="" />
+                        </div>
+                      </div>
+                    </template>
+                    <div
+                      x-show="!$store.characters.active?.social.factions || $store.characters.active?.social.factions.length === 0"
+                      class="text-xs text-ink-slate italic py-1">
+                      No se han añadido facciones secundarias.
+                    </div>
+                  </div>
+
+                  <!-- Red de Contactos e Influencia -->
+                  <div class="pt-2 border-t border-white/10">
+                    <label class="form-label flex items-center gap-1.5">
+                      <i data-lucide="network" class="w-3.5 h-3.5 text-accent-gold"></i> Red de Contactos, Informantes
+                      y Tráfico de Influencia
+                    </label>
+                    <textarea class="form-textarea min-h-[80px]"
+                      x-model="$store.characters.active.social.networkInfluence"
+                      @input="$store.characters.scheduleAutoSave()"
+                      placeholder=""></textarea>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- MODO LECTURA / VISTA PREVIA -->
+              <div x-show="!$store.app.editMode" class="space-y-6">
+
+                <!-- ──── MÓDULO 1: IDENTIDAD PÚBLICA y FACHADA (LECTURA) ──── -->
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 border-b border-parchment-brown/20 pb-1.5">
+                    <i data-lucide="crown" class="w-4 h-4 text-accent-gold"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-gold">Identidad Pública,
+                      Fachada y Estatus</h4>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="read-card">
+                      <span class="read-label"><i data-lucide="flag" class="w-3.5 h-3.5"></i> Facción Principal</span>
+                      <p class="read-value font-semibold text-accent-gold"
+                        x-html="$store.app.formatRichText($store.characters.active?.social.faction || 'Independiente')"></p>
+                    </div>
+                    <div class="read-card">
+                      <span class="read-label"><i data-lucide="award" class="w-3.5 h-3.5"></i> Estatus y
+                        Reputación</span>
+                      <p class="read-value"
+                        x-html="$store.app.formatRichText($store.characters.active?.social.reputation || 'Sin estatus declarado')"></p>
+                    </div>
+                    <div class="read-card">
+                      <span class="read-label"><i data-lucide="coins" class="w-3.5 h-3.5 text-amber-400"></i> Estilo de
+                        Vida y Estándar</span>
+                      <p class="read-value"
+                        x-html="$store.app.formatRichText($store.characters.active?.social.lifestyleStandard || 'Sin detallar')"></p>
+                    </div>
+                    <div class="read-card sm:col-span-2">
+                      <span class="read-label text-purple-400"><i data-lucide="venetian-mask" class="w-3.5 h-3.5"></i>
+                        Máscara Social / Identidad Pública vs. Real</span>
+                      <p class="read-value italic"
+                        x-html="$store.app.formatRichText($store.characters.active?.social.socialMask || 'Sin máscara declarada')"></p>
+                    </div>
+                    <div class="read-card">
+                      <span class="read-label"><i data-lucide="map-pin" class="w-3.5 h-3.5 text-accent-cyan"></i> Origen
+                        y Residencia</span>
+                      <p class="read-value"
+                        x-html="$store.app.formatRichText($store.characters.active?.social.originResidencia || 'Sin detallar')"></p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 2: COMUNICACIÓN y PERCEPCIÓN (LECTURA) ──── -->
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 border-b border-parchment-brown/20 pb-1.5">
+                    <i data-lucide="message-square" class="w-4 h-4 text-accent-cyan"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-cyan">Comunicación,
+                      Persuasión y Percepción</h4>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="read-card">
+                      <span class="read-label"><i data-lucide="message-circle" class="w-3.5 h-3.5"></i> Estilo de
+                        Comunicación</span>
+                      <p class="read-value text-xs"
+                        x-html="$store.app.formatRichText($store.characters.active?.social.communicationStyle || 'Sin detallar')"></p>
+                    </div>
+                    <div class="read-card">
+                      <span class="read-label text-amber-400"><i data-lucide="megaphone" class="w-3.5 h-3.5"></i>
+                        Rumores y Percepción</span>
+                      <p class="read-value text-xs"
+                        x-html="$store.app.formatRichText($store.characters.active?.social.rumorsPublicView || 'Sin rumores conocidos')"></p>
+                    </div>
+                    <div class="read-card">
+                      <span class="read-label text-emerald-400"><i data-lucide="languages" class="w-3.5 h-3.5"></i>
+                        Idiomas y Dialectos</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.social.languages || 'Común')"></p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 3: DEUDAS, RIVALES y MATRIZ DE VÍNCULOS (LECTURA) ──── -->
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 border-b border-parchment-brown/20 pb-1.5">
+                    <i data-lucide="git-fork" class="w-4 h-4 text-purple-400"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">Deudas,
+                      Rivalidades, Dependientes y Relaciones</h4>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                    x-show="$store.characters.active?.social.debtsFavors?.trim() || $store.characters.active?.social.rivalsEnemies?.trim() || $store.characters.active?.social.dependents?.trim()">
+                    <div class="read-card border-l-4 border-l-amber-500"
+                      x-show="$store.characters.active?.social.debtsFavors?.trim()">
+                      <span class="read-label text-amber-300"><i data-lucide="scale" class="w-3.5 h-3.5"></i> Deudas
+                        y Favores</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.social.debtsFavors)"></p>
+                    </div>
+                    <div class="read-card border-l-4 border-l-rose-500"
+                      x-show="$store.characters.active?.social.rivalsEnemies?.trim()">
+                      <span class="read-label text-rose-400"><i data-lucide="swords" class="w-3.5 h-3.5"></i> Enemigos
+                        y Rivales</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.social.rivalsEnemies)"></p>
+                    </div>
+                    <div class="read-card border-l-4 border-l-emerald-500"
+                      x-show="$store.characters.active?.social.dependents?.trim()">
+                      <span class="read-label text-emerald-400"><i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                        Dependientes y Personas a Cargo</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.social.dependents)"></p>
+                    </div>
+                  </div>
+
+                  <!-- Cards de Relaciones -->
+                  <div
+                    x-show="$store.characters.active?.social.relations &amp;&amp; $store.characters.active?.social.relations.length > 0"
+                    class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <template x-for="rel in $store.characters.active?.social.relations || []" :key="rel.id">
+                      <div class="read-card p-4 space-y-2 border-l-4 border-l-accent-gold">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                          <h4 class="font-title text-lg text-accent-gold" x-text="rel.name || 'Sin nombre'"></h4>
+                          <span
+                            class="text-xs px-2.5 py-0.5 rounded-full font-semibold border inline-flex items-center gap-1"
+                            :class="{
+                              'bg-accent-forest/20 text-accent-forest border-accent-forest/40': rel.bondType === 'Aliado' || rel.bondType === 'Protegido / Dependiente',
+                              'bg-accent-ruby/20 text-accent-ruby border-accent-ruby/40': rel.bondType === 'Enemigo',
+                              'bg-ink-teal/20 text-ink-teal border-ink-teal/40': rel.bondType === 'Mentor',
+                              'bg-accent-copper/20 text-accent-copper border-accent-copper/40': rel.bondType === 'Rival',
+                              'bg-purple-500/20 text-purple-300 border-purple-500/40': rel.bondType === 'Familia',
+                              'bg-pink-500/20 text-pink-300 border-pink-500/40': rel.bondType === 'Interés Romántico',
+                              'bg-amber-500/20 text-accent-gold border-amber-500/40': rel.bondType === 'Sirviente / Subordinado',
+                              'bg-parchment-brown/20 text-ink-sage border-parchment-brown/40': !['Aliado','Enemigo','Mentor','Rival','Familia','Interés Romántico','Sirviente / Subordinado','Protegido / Dependiente'].includes(rel.bondType)
+                            }" x-text="rel.bondType || 'Relación'"></span>
+                        </div>
+                        <div x-show="rel.status?.trim()" class="text-xs italic text-ink-sage font-medium">
+                          <strong>Estado:</strong> <span x-text="rel.status"></span>
+                        </div>
+                        <p x-show="rel.description?.trim()"
+                          class="read-value text-xs pt-1 border-t border-parchment-brown/15" x-html="$store.app.formatRichText(rel.description)">
+                        </p>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 4: FACCIONES y RED DE CONTACTOS (LECTURA) ──── -->
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 border-b border-parchment-brown/20 pb-1.5">
+                    <i data-lucide="shield" class="w-4 h-4 text-accent-ruby"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-ruby">Facciones,
+                      Reputación Política y Contactos</h4>
+                  </div>
+
+                  <!-- Badges de Facciones -->
+                  <div
+                    x-show="$store.characters.active?.social.factions &amp;&amp; $store.characters.active?.social.factions.length > 0"
+                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+                    <template x-for="fac in $store.characters.active?.social.factions || []" :key="fac.id">
+                      <div class="flex items-center justify-between p-2.5 rounded-xl border bg-black/40 text-xs">
+                        <span class="font-medium text-parchment-cream font-sans"
+                          x-text="fac.name || 'Sin nombre'"></span>
+                        <span class="px-2 py-0.5 rounded-full font-bold border text-[11px]" :class="{
+                          'bg-accent-gold/20 text-accent-gold border-accent-gold/40': fac.affinity === 'Venerado',
+                          'bg-accent-forest/20 text-accent-forest border-accent-forest/40': fac.affinity === 'Respetado',
+                          'bg-parchment-brown/20 text-ink-sage border-parchment-brown/40': fac.affinity === 'Neutral',
+                          'bg-accent-copper/20 text-accent-copper border-accent-copper/40': fac.affinity === 'Desconfiado',
+                          'bg-accent-ruby/20 text-accent-ruby border-accent-ruby/40': fac.affinity === 'Hostil',
+                          'bg-red-900/30 text-red-300 border-red-500/50': fac.affinity === 'Buscado / Proscrito',
+                          'bg-ink-teal/20 text-ink-teal border-ink-teal/40': !['Venerado', 'Respetado', 'Neutral', 'Desconfiado', 'Hostil', 'Buscado / Proscrito'].includes(fac.affinity)
+                        }" x-text="fac.affinity || 'Neutral'"></span>
+                      </div>
+                    </template>
+                  </div>
+
+                  <!-- Red de Contactos -->
+                  <div class="read-card" x-show="$store.characters.active?.social.networkInfluence?.trim()">
+                    <span class="read-label text-accent-gold"><i data-lucide="network" class="w-3.5 h-3.5"></i> Red de
+                      Contactos, Informantes y Tráfico de Influencia</span>
+                    <p class="read-value" x-html="$store.app.formatRichText($store.characters.active?.social.networkInfluence)"></p>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>

@@ -1,5 +1,32 @@
+# Dependencias y build
 node_modules/
-.env
 dist/
+.vite/
+*.tsbuildinfo
+
+# Tests y calidad de código
+coverage/
+.vitest/
+.eslintcache
+
+# Variables de entorno y logs
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editores, sistema operativo y herramientas locales
 .vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+.gemini/
+scratch/
+
+# Archivos locales del proyecto
 rendimientos/

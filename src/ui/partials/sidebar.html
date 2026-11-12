@@ -1,0 +1,172 @@
+<!-- ==============================================================
+       SIDEBAR — Lista de pestañas activas (Solo en Modo Editor)
+       ============================================================== -->
+    <nav id="app-sidebar" aria-label="Pestañas de ficha" x-show="$store.app.activeView === 'editor'" x-cloak
+      :style="{ width: ($store.app.sidebarWidth || 210) + 'px' }"
+      @dragover.prevent
+      @drop.prevent="$store.app.onSidebarDrop($event)">
+
+      <!-- Resizer / Controlador de Arrastre para Expandir Ancho del Sidebar -->
+      <div class="sidebar-resizer" :class="{ 'is-active': $store.app.isResizingSidebar }"
+        @mousedown="$store.app.startSidebarResize($event)" @dblclick="$store.app.resetSidebarWidth()"
+        title="Arrastra para expandir o doble clic para ajustar">
+        <div class="sidebar-resizer-handle"></div>
+      </div>
+
+      <!-- Label sección -->
+      <p class="sidebar-section-label">Secciones</p>
+
+      <!-- ──── Pestañas activas ──── -->
+      <template x-for="(tab, tIndex) in $store.app.activeTabObjects" :key="tab.id">
+        <div role="button" tabindex="0" class="tab-btn group/tab select-none cursor-pointer" :class="{ 
+            active: $store.app.currentTab === tab.id,
+            'is-dragging': $store.app.draggedTabIndex === tIndex,
+            'drag-over-top': $store.app.dragOverTabIndex === tIndex && $store.app.dragOverPosition === 'before',
+            'drag-over-bottom': $store.app.dragOverTabIndex === tIndex && $store.app.dragOverPosition === 'after'
+          }" :id="`sidebar-tab-${tab.id}`" :draggable="$store.app.editMode ? 'true' : 'false'"
+          @dragstart="$store.app.startTabDrag($event, tIndex)"
+          @dragover.prevent="$store.app.onTabDragOver($event, tIndex)"
+          @dragleave="$store.app.onTabDragLeave($event, tIndex)" @drop.prevent="$store.app.onTabDrop($event, tIndex)"
+          @dragend="$store.app.endTabDrag()" @click="$store.app.setTab(tab.id)"
+          @keydown.enter.prevent="$store.app.setTab(tab.id)"
+          @keydown.space.prevent="$store.app.setTab(tab.id)"
+          @keydown.alt.up.prevent="$store.app.moveTabUp(tIndex)"
+          @keydown.alt.down.prevent="$store.app.moveTabDown(tIndex)"
+          :aria-current="$store.app.currentTab === tab.id ? 'page' : undefined"
+          :title="$store.app.editMode ? 'Mantén presionado y arrastra para reordenar esta sección' : tab.label">
+
+          <!-- Asa de arrastre (visible al pasar el cursor en Modo Edición) -->
+          <span x-show="$store.app.editMode"
+            class="tab-drag-handle opacity-0 group-hover/tab:opacity-70 hover:!opacity-100 transition-opacity -ml-1 mr-0.5 text-parchment-cream/50 cursor-grab active:cursor-grabbing pointer-events-none shrink-0"
+            title="Arrastra para reordenar">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="12" r="1" />
+              <circle cx="9" cy="5" r="1" />
+              <circle cx="9" cy="19" r="1" />
+              <circle cx="15" cy="12" r="1" />
+              <circle cx="15" cy="5" r="1" />
+              <circle cx="15" cy="19" r="1" />
+            </svg>
+          </span>
+
+          <span :data-animate-icon="tab.icon" data-size="16" class="w-4 h-4 shrink-0 flex items-center justify-center pointer-events-none"></span>
+          <span class="truncate text-left flex-1 pointer-events-none" x-text="tab.label"></span>
+          <!-- Medidor de Completitud de la Sección -->
+          <span x-show="!$store.settings.hideTabFieldCounters"
+            class="tab-completion-pill px-1.5 py-0.5 rounded text-[10px] font-medium tracking-tight pointer-events-none shrink-0"
+            :class="(() => { const s = $store.characters.getTabCompletion(tab.id); return s.percent >= 100 ? 'bg-emerald-500/15 text-emerald-400' : s.percent > 0 ? 'bg-white/10 text-slate-300' : 'bg-white/5 text-white/35'; })()"
+            x-text="`${$store.characters.getTabCompletion(tab.id).filled}/${$store.characters.getTabCompletion(tab.id).total}`"
+            :title="`Completitud de sección: ${$store.characters.getTabCompletion(tab.id).percent}% (${$store.characters.getTabCompletion(tab.id).filled} de ${$store.characters.getTabCompletion(tab.id).total} campos)`"></span>
+          <!-- Botón eliminar pestaña (bloqueado para Datos Básicos) -->
+          <button type="button" x-show="tab.id !== 'basics'" class="tab-remove p-0.5 rounded cursor-pointer hover:bg-rose-500/20 text-slate-400 hover:text-rose-400 transition-colors shrink-0"
+            :aria-label="`Ocultar pestaña ${tab.label}`"
+            :title="`Ocultar sección ${tab.label}`"
+            draggable="false"
+            @dragstart.stop.prevent
+            @click.stop="$store.app.removeTab(tab.id)">
+            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+          <!-- Espaciador para Datos Básicos: mantiene la cuadrícula y alineación vertical uniforme con el resto de pestañas -->
+          <span x-show="tab.id === 'basics'" class="w-4 h-4 shrink-0 pointer-events-none" aria-hidden="true"></span>
+        </div>
+      </template>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- ──── Botón [+ Añadir pestaña] ──── -->
+      <div class="relative mx-1" @click.away="$store.app.showAddTabMenu = false">
+        <button id="btn-add-tab" type="button" class="tab-btn text-ink-slate hover:text-ink-teal w-full cursor-pointer"
+          @click.stop="$store.app.showAddTabMenu = !$store.app.showAddTabMenu"
+          :aria-expanded="$store.app.showAddTabMenu" aria-controls="add-tab-menu">
+          <i data-lucide="plus-circle" class="w-4 h-4 shrink-0"></i>
+          <span class="text-left font-semibold">Añadir pestaña</span>
+        </button>
+
+        <!-- Menú desplegable de pestañas / Popover flotante -->
+        <div id="add-tab-menu" class="add-tab-menu" x-show="$store.app.showAddTabMenu" x-cloak
+          x-transition:enter="transition ease-out duration-150"
+          x-transition:enter-start="opacity-0 translate-y-[-6px] scale-95"
+          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+          x-transition:leave="transition ease-in duration-100"
+          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+          x-transition:leave-end="opacity-0 translate-y-[-6px] scale-95" style="transform-origin: top center;">
+
+          <!-- ACCIÓN PRINCIPAL: CREAR SECCIÓN PERSONALIZADA CON AVISO BETA -->
+          <div class="space-y-1.5 p-0.5">
+            <button type="button"
+              class="add-tab-item w-full flex items-center justify-between gap-2 cursor-pointer hover:bg-white/10 text-accent-cyan hover:text-white transition-colors"
+              @click.stop="$store.app.openCreateCustomTabModal()"
+              title="Aviso: Mecánica en Fase Beta. Muy propensa a fallar, bugearse, verse mal visualmente o romperse al usarse.">
+              <div class="flex items-center gap-2 min-w-0">
+                <i data-lucide="folder-plus" class="w-4 h-4 text-accent-cyan shrink-0"></i>
+                <span class="truncate font-bold">Nueva Sección</span>
+                <span class="px-1.5 py-0.5 rounded text-[8.5px] font-mono font-extrabold uppercase bg-amber-500/20 text-amber-300 border border-amber-400/40 shrink-0 shadow-sm">BETA</span>
+              </div>
+              <i data-lucide="plus" class="w-3.5 h-3.5 text-accent-cyan shrink-0"></i>
+            </button>
+
+            <!-- Mensaje de Advertencia Beta -->
+            <div class="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-200/90 text-[10px] leading-snug space-y-1 select-none font-sans">
+              <div class="flex items-center gap-1.5 font-bold text-amber-400 font-mono uppercase text-[9.5px]">
+                <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                <span>Mecánica en Beta</span>
+              </div>
+              <p class="text-amber-200/80 leading-tight">
+                Muy propensa a fallar, bugearse, verse mal visualmente o directamente romperse en caso de ser usada.
+              </p>
+            </div>
+          </div>
+
+          <div class="my-1 border-t border-white/10"></div>
+
+          <!-- SECCIÓN: RESTAURAR SECCIONES OCULTAS -->
+          <template x-if="$store.app.hiddenTabObjects.length > 0">
+            <div class="space-y-0.5 p-1">
+              <span class="block px-2 py-0.5 text-[9px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
+                Restaurar Sección:
+              </span>
+              <template x-for="tab in $store.app.hiddenTabObjects" :key="tab.id">
+                <button type="button" class="add-tab-item w-full flex items-center justify-between gap-2 cursor-pointer hover:bg-white/10"
+                  @click="$store.app.addTab(tab.id)">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span :data-animate-icon="tab.icon" data-size="16" class="w-4 h-4 shrink-0 flex items-center justify-center pointer-events-none" :style="`color: ${tab.accentColor || 'var(--accent, #00F0FF)'};`"></span>
+                    <span class="truncate" x-text="tab.label"></span>
+                  </div>
+                  <i data-lucide="plus" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                </button>
+              </template>
+            </div>
+          </template>
+
+          <!-- Estado cuando no hay secciones ocultas -->
+          <template x-if="$store.app.hiddenTabObjects.length === 0">
+            <div class="p-2 text-center text-[10px] font-mono select-none text-slate-400/70 italic">
+              Todas las secciones estándar están activas
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Spacer para empujar controles al fondo -->
+      <div class="flex-1"></div>
+
+      <div class="sidebar-divider"></div>
+
+      <!-- Configuraciones -->
+      <div class="px-2 pb-3 pt-1">
+        <button id="btn-settings" class="tab-btn w-full text-ink-slate hover:text-accent-primary flex items-center justify-between"
+          @click="$store.settings.openModal()"
+          title="Ajustes (Ctrl + ,)">
+          <div class="flex items-center gap-2 min-w-0">
+            <i data-lucide="settings" class="w-4 h-4 shrink-0"></i>
+            <span class="text-left truncate">Ajustes</span>
+          </div>
+          <kbd class="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-400 shrink-0">Ctrl+,</kbd>
+        </button>
+      </div>
+
+    </nav>

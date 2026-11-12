@@ -1,0 +1,190 @@
+<!-- ==============================================================
+     PANTALLA PRINCIPAL: CREADOR DE TIER LIST [CYBER HUD REWORK]
+     (Clasificación de Operativos por Rangos S, A, B, C, D, E...)
+     ============================================================== -->
+<main id="main-tierlist-view" role="main" aria-label="Creador de Tier List"
+  class="tierlist-fullscreen-view col-span-full w-full min-h-screen bg-transparent px-3 sm:px-6 lg:px-8 py-6 pb-40 flex flex-col items-center justify-start overflow-y-auto relative"
+  :class="{ 'has-pattern-bg': $store.settings.tierlistBgMode === 'pattern', '!pt-2 !pb-12': $store.tierlist.isZenMode }" style="grid-column: 1 / -1; grid-row: 2;"
+  @keydown.ctrl.z.window.prevent="$store.app.activeView === 'tierlist' && $store.tierlist.undo()"
+  @keydown.ctrl.y.window.prevent="$store.app.activeView === 'tierlist' && $store.tierlist.redo()"
+  @keydown.ctrl.shift.z.window.prevent="$store.app.activeView === 'tierlist' && $store.tierlist.redo()"
+  @keydown.window="$store.app.activeView === 'tierlist' && $store.tierlist.handleGlobalKeydown($event)"
+  x-show="$store.app.activeView === 'tierlist'" x-cloak>
+  <!-- Render diferido bajo demanda -->
+  <template x-if="$store.app.isViewVisited('tierlist')">
+  <div>
+  <!-- Pinned Viewport Wallpaper / Fondo HUD de la Tier List -->
+  <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden w-screen h-screen"
+    style="transform: translateZ(0); will-change: transform, filter;">
+
+    <!-- Base sólida oscura detrás de todo para que no se filtre absolutamente nada debajo -->
+    <div class="absolute inset-0 bg-[#07090d]"></div>
+
+    <!-- Modo 1 (Por Defecto): Trama HUD / Rejilla Placeholder con Acento Dinámico -->
+    <template x-if="$store.settings.tierlistBgMode === 'pattern'">
+      <div class="absolute inset-0 pointer-events-none"
+        :style="`background-image: radial-gradient(circle at 50% 0%, rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.12) 0%, transparent 65%), linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px); background-size: 100% 100%, 28px 28px, 28px 28px;`">
+      </div>
+    </template>
+
+    <!-- Modo 2: Custom - Imagen o GIF personalizado con encuadre X/Y, zoom, opacidad y blur -->
+    <template x-if="$store.settings.tierlistBgMode === 'custom' && $store.settings.tierlistBgUrl">
+      <div class="relative w-full h-full overflow-hidden">
+        <img :src="$store.settings.tierlistBgUrl"
+          class="w-full h-full object-cover transition-all duration-300 pointer-events-none"
+          :style="$store.settings.getTierlistBgStyle()" alt="" />
+        <div class="absolute inset-0 bg-[#07090d]"
+          :style="`opacity: ${($store.settings.tierlistBgOpacity ?? 60) / 100};`"></div>
+      </div>
+    </template>
+
+    <!-- Modo 3: Sincronizado - Hereda el fondo configurado en el Panel Principal -->
+    <template x-if="$store.settings.tierlistBgMode === 'sync'">
+      <div class="relative w-full h-full overflow-hidden">
+        <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
+          <div class="w-full h-full relative">
+            <img :src="$store.settings.dashboardBgUrl"
+              class="w-full h-full object-cover transition-all duration-300 pointer-events-none"
+              :style="$store.settings.getDashboardBgStyle()" alt="" />
+            <div class="absolute inset-0 bg-[#07090d]"
+              :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+          </div>
+        </template>
+        <template
+          x-if="$store.settings.dashboardBgMode === 'dynamic' && ($store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl)">
+          <div class="w-full h-full relative">
+            <img
+              :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl"
+              class="w-full h-full object-cover transition-all duration-300 pointer-events-none"
+              :style="$store.settings.getDashboardBgStyle()" alt="" />
+            <div class="absolute inset-0 bg-[#07090d]"
+              :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+          </div>
+        </template>
+        <template
+          x-if="$store.settings.dashboardBgMode === 'pattern' || (!$store.settings.dashboardBgUrl && !$store.characters.active?.presentation?.background?.image && !$store.characters.active?.basics?.bannerDataUrl)">
+          <div class="absolute inset-0 pointer-events-none"
+            :style="`background-image: radial-gradient(circle at 50% 0%, rgba(${($store.settings.rgbChannels || '0, 240, 255')}, 0.12) 0%, transparent 65%), linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px); background-size: 100% 100%, 28px 28px, 28px 28px;`">
+          </div>
+        </template>
+      </div>
+    </template>
+
+    <!-- Scrim Overlay de protección de contraste AAA -->
+    <div
+      class="absolute inset-0 bg-gradient-to-b from-[#07090d]/90 via-[#07090d]/65 to-[#07090d]/95 pointer-events-none">
+    </div>
+  </div>
+
+  <!-- CONTENEDOR PRINCIPAL MAX-WIDTH 1420px (o 1600px en Modo Zen para aprovechar widescreen) -->
+  <div class="relative z-10 w-full mx-auto flex flex-col transition-all duration-300"
+    :class="$store.tierlist.isZenMode ? 'max-w-[1600px] gap-4' : 'max-w-[1420px] gap-6'">
+
+    <!-- ──── BARRA FLOTANTE MODO ZEN (Solo visible en Modo Zen) ──── -->
+    <div x-show="$store.tierlist.isZenMode" x-cloak
+      x-transition:enter="transition ease-out duration-300"
+      x-transition:enter-start="opacity-0 -translate-y-4"
+      x-transition:enter-end="opacity-100 translate-y-0"
+      x-transition:leave="transition ease-in duration-200"
+      x-transition:leave-start="opacity-100 translate-y-0"
+      x-transition:leave-end="opacity-0 -translate-y-4"
+      class="sticky top-3 z-40 w-full p-2.5 sm:p-3 rounded-2xl border backdrop-blur-2xl flex items-center justify-between gap-3 shadow-2xl transition-all"
+      :style="'background: rgba(9, 13, 22, 0.90); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '50; box-shadow: 0 0 30px rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.18);'">
+      
+      <!-- Lado Izquierdo: Icono + Título + Conteo -->
+      <div class="flex items-center gap-3 min-w-0">
+        <!-- Emblema -->
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 border overflow-hidden transition-all shadow-md"
+          :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.15); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '60; color: ' + ($store.settings.accentColor || '#00f0ff') + '; box-shadow: 0 0 15px rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.25);'">
+          <template x-if="$store.tierlist.customIconUrl">
+            <img :src="$store.tierlist.customIconUrl" class="w-full h-full object-cover" :style="$store.tierlist.getCustomIconStyle()" alt="" />
+          </template>
+          <template x-if="!$store.tierlist.customIconUrl">
+            <i :data-lucide="$store.tierlist.icon || 'trophy'" class="w-5 h-5"></i>
+          </template>
+        </div>
+
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <h2 class="font-title text-base sm:text-lg lg:text-xl font-black uppercase tracking-wider text-white truncate"
+              x-text="$store.tierlist.title || 'Tier List de Operativos'"></h2>
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold shrink-0"
+              :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.15); color: ' + ($store.settings.accentColor || '#00f0ff') + '; border: 1px solid ' + ($store.settings.accentColor || '#00f0ff') + '50;'">
+              <span class="w-1.5 h-1.5 rounded-full animate-ping" :style="'background-color: ' + ($store.settings.accentColor || '#00f0ff')"></span>
+              <span>Modo Zen</span>
+            </span>
+          </div>
+          <p class="text-[11px] font-mono text-slate-400 truncate">
+            <strong class="text-white" x-text="$store.tierlist.assignedCount"></strong> operativos clasificados en <span class="text-slate-300" x-text="`${$store.tierlist.tiers.length} rangos`"></span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Lado Derecho: Acciones Zen (Ocultar/Ver Banco, Pantalla Completa, Salir) -->
+      <div class="flex items-center gap-2 shrink-0">
+        <!-- Alternar Banco de Operativos -->
+        <button type="button" @click="$store.tierlist.toggleZenShowPool()"
+          class="px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+          :class="$store.tierlist.zenShowPool ? 'bg-white/15 border-white/30 text-white' : 'bg-white/5 border-white/10 text-slate-300 hover:text-white hover:bg-white/10'"
+          title="Mostrar u ocultar banco de reserva en Modo Zen">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span class="hidden sm:inline" x-text="$store.tierlist.zenShowPool ? 'Ocultar Banco' : 'Ver Banco'"></span>
+        </button>
+
+        <!-- Pantalla Completa del Navegador -->
+        <button type="button" @click="$store.tierlist.toggleNativeFullscreen()"
+          class="px-2.5 sm:px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-xs font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+          title="Alternar Pantalla Completa nativa (F11)">
+          <i data-lucide="maximize" class="w-4 h-4"></i>
+          <span class="hidden md:inline">Pantalla Completa</span>
+        </button>
+
+        <!-- Salir de Modo Zen -->
+        <button type="button" @click="$store.tierlist.toggleZenMode(false)"
+          class="px-3 sm:px-4 py-1.5 rounded-xl font-mono font-black text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md hover:scale-[1.03] active:scale-98"
+          :style="'background: ' + ($store.settings.accentColor || '#00f0ff') + '; color: #000; box-shadow: 0 0 15px ' + ($store.settings.accentColor || '#00f0ff') + '80;'"
+          title="Salir de Modo Zen (Tecla Esc o Z)">
+          <i data-lucide="x" class="w-4 h-4 stroke-[2.5]"></i>
+          <span>Salir</span>
+          <span class="text-[9px] px-1 py-0.2 rounded bg-black/30 text-black/80 font-mono hidden sm:inline">ESC</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- ──── Header Estándar de la Tier List (Oculto en Modo Zen) ──── -->
+    <div x-show="!$store.tierlist.isZenMode" x-transition>
+      <include src="./src/ui/partials/views/tierlist/tierlist-header.html"></include>
+    </div>
+
+    <!-- Contenedor Reordenable: Tablero y Banco (Arriba / Abajo) -->
+    <div class="flex flex-col gap-6"
+      :class="$store.tierlist.poolPosition === 'top' ? 'flex-col-reverse' : 'flex-col'">
+      <!-- ──── TABLERO DE TIER LIST RENDERIZABLE (Render Board) ──── -->
+      <include src="./src/ui/partials/views/tierlist/tierlist-board.html"></include>
+
+      <!-- ──── BANCO DE OPERATIVOS (Oculto en Modo Zen a menos que se active zenShowPool) ──── -->
+      <div x-show="!$store.tierlist.isZenMode || $store.tierlist.zenShowPool" x-transition>
+        <include src="./src/ui/partials/views/tierlist/tierlist-pool.html"></include>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════ MODALES DE SISTEMA DE TIER LIST ════ -->
+  <include src="./src/ui/partials/views/tierlist/modal-tierlist-guest.html"></include>
+  <include src="./src/ui/partials/views/tierlist/modal-tierlist-batch-guests.html"></include>
+  <include src="./src/ui/partials/views/tierlist/modal-tierlist-lists.html"></include>
+  <include src="./src/ui/partials/views/tierlist/modal-tierlist-icon-picker.html"></include>
+  <include src="./src/ui/partials/views/tierlist/modal-tierlist-tier-editor.html"></include>
+  <include src="./src/ui/partials/views/tierlist/modal-tierlist-tiermaker.html"></include>
+  <include src="./src/ui/partials/views/tierlist/modal-tierlist-confirm.html"></include>
+  <include src="./src/ui/partials/views/tierlist/modal-tierlist-divider-title.html"></include>
+  <include src="./src/ui/partials/views/tierlist/modal-tierlist-custom-tool.html"></include>
+
+  <!-- ════ BARRA FLOTANTE DE ACCIONES: SELECCIÓN MÚLTIPLE ════ -->
+  <include src="./src/ui/partials/views/tierlist/tierlist-multiselect-bar.html"></include>
+
+  </div>
+  </template>
+</main>

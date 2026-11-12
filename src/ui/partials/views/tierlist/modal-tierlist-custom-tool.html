@@ -1,0 +1,370 @@
+<!-- Modal de Creación y Edición de Conector / Insignia Personalizada (Layout Horizontal / Más Ancho que Largo) -->
+<div id="modal-tierlist-custom-tool"
+  class="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md"
+  x-show="$store.tierlist.showCustomToolModal" x-cloak
+  @keydown.escape.window="$store.tierlist.showCustomToolModal && $store.tierlist.closeCustomToolModal()"
+  role="dialog" aria-modal="true">
+
+  <!-- Fondo oscuro con clic para cerrar -->
+  <div class="absolute inset-0 cursor-pointer" @click="$store.tierlist.closeCustomToolModal()"></div>
+
+  <!-- Contenedor Modal HUD Horizontal (Más Ancho que Largo para máxima comodidad) -->
+  <div
+    class="relative w-full max-w-4xl max-h-[92vh] bg-[#0b0f19] border rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 transition-all select-none animate-scale-in"
+    :style="`border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}80; box-shadow: 0 0 45px ${$store.tierlist.customToolForm.color || '#00f0ff'}25, 0 25px 60px rgba(0,0,0,0.95);`"
+    @click.stop>
+
+    <!-- Barra de Acento Superior Dinámica Neón -->
+    <div class="h-1.5 w-full shrink-0 transition-all"
+      :style="`background: linear-gradient(90deg, ${$store.tierlist.customToolForm.color || '#00f0ff'}, ${$store.settings.secondaryColor || '#a855f7'}, ${$store.tierlist.customToolForm.color || '#00f0ff'});`"></div>
+
+    <!-- Modal Header Compacto y Elegante -->
+    <div class="px-6 py-3.5 border-b border-white/10 flex items-center justify-between gap-4 shrink-0"
+      :style="`background: linear-gradient(135deg, ${$store.tierlist.customToolForm.color || '#00f0ff'}20 0%, rgba(11, 15, 25, 0.95) 100%);`">
+      <div class="flex items-center gap-3.5 min-w-0">
+        <!-- Emblema de Previsualización Rápida en Cabecera con Auto-Ajuste -->
+        <div class="min-w-[40px] max-w-[76px] h-10 px-2 rounded-xl flex items-center justify-center shrink-0 border-2 transition-all shadow-md font-mono font-black overflow-hidden whitespace-nowrap text-center select-none"
+          :style="`background: ${$store.tierlist.customToolForm.color || '#00f0ff'}25; border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; box-shadow: 0 0 12px ${$store.tierlist.customToolForm.color || '#00f0ff'}40; text-shadow: 0 0 8px ${$store.tierlist.customToolForm.color || '#00f0ff'}; font-size: ${($store.tierlist.customToolForm.symbol || '').length <= 2 ? '14px' : (($store.tierlist.customToolForm.symbol || '').length <= 4 ? '11px' : (($store.tierlist.customToolForm.symbol || '').length <= 6 ? '9px' : '7.5px'))}; letter-spacing: ${($store.tierlist.customToolForm.symbol || '').length >= 6 ? '-0.04em' : 'normal'};`"
+          x-text="$store.tierlist.customToolForm.symbol || '?'">
+        </div>
+        <div class="min-w-0">
+          <h3 class="font-title text-base sm:text-lg font-bold text-white uppercase tracking-wider leading-tight truncate"
+            x-text="$store.tierlist.editingCustomToolId ? 'Editar Conector / Insignia' : 'Nuevo Conector Personalizado'"></h3>
+          <p class="text-[11px] font-mono text-slate-400 truncate">
+            Configura operadores de fila o insignias con texto, alcance y color a tu medida.
+          </p>
+        </div>
+      </div>
+
+      <button type="button" @click="$store.tierlist.closeCustomToolModal()"
+        class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+        title="Cerrar ventana">
+        <i data-lucide="x" class="w-4.5 h-4.5"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body: Distribución en 2 Columnas (Landscape / Más Ancho que Largo) -->
+    <div class="p-5 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+        <!-- ════════ COLUMNA IZQUIERDA: Configuración y Controles (7 Cols) ════════ -->
+        <div class="lg:col-span-7 space-y-4">
+
+          <!-- 1. Campos de Identidad (Símbolo y Nombre) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <!-- Símbolo o Sigla Principal -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label class="text-[11px] font-mono font-bold text-slate-200 uppercase tracking-wider">
+                  Símbolo o Texto <span class="text-rose-400">*</span>
+                </label>
+                <span class="text-[9.5px] font-mono text-slate-400">Máx 8</span>
+              </div>
+              <input type="text" x-model="$store.tierlist.customToolForm.symbol" maxlength="8"
+                @keydown.enter.prevent="$store.tierlist.saveCustomRatingTool()"
+                placeholder="Ej: VS, BUFF, S1..."
+                class="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/20 text-sm font-mono font-black uppercase tracking-wider focus:outline-none transition-all shadow-inner"
+                :style="`color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}80;`" />
+              <span class="text-[9px] font-mono text-slate-500 block leading-tight">
+                // En la fila o esquina del avatar.
+              </span>
+            </div>
+
+            <!-- Nombre Completo o Etiqueta -->
+            <div class="space-y-1">
+              <label class="block text-[11px] font-mono font-bold text-slate-200 uppercase tracking-wider">
+                Nombre Completo (Tooltip)
+              </label>
+              <input type="text" x-model="$store.tierlist.customToolForm.name"
+                placeholder="Ej: Enfrentamiento, Buff..."
+                class="w-full px-3.5 py-2 rounded-xl bg-black/60 border border-white/20 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-white/50 transition-colors shadow-inner font-mono" />
+              <span class="text-[9px] font-mono text-slate-500 block leading-tight">
+                // Visible al pasar el cursor.
+              </span>
+            </div>
+          </div>
+
+          <!-- 2. Selector de Ámbito / Dónde Deseas Usarlo (3 Tarjetas Compactas) -->
+          <div class="space-y-1.5">
+            <label class="block text-[11px] font-mono font-bold text-slate-300 uppercase tracking-wider">
+              ¿Dónde deseas utilizarlo?
+            </label>
+            <div class="grid grid-cols-3 gap-2">
+              <!-- Opción 1: Dual (Fila e Insignia) -->
+              <button type="button" @click="$store.tierlist.customToolForm.type = 'both'"
+                class="p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer relative"
+                :class="$store.tierlist.customToolForm.type === 'both' ? 'bg-white/10 shadow-md ring-1' : 'bg-black/40 border-white/10 text-slate-400 hover:text-white hover:bg-white/5'"
+                :style="$store.tierlist.customToolForm.type === 'both' ? `border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; ring-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}80;` : ''">
+                <div class="flex items-center justify-between">
+                  <i data-lucide="layers" class="w-4 h-4" :style="$store.tierlist.customToolForm.type === 'both' ? `color: ${$store.tierlist.customToolForm.color || '#00f0ff'};` : ''"></i>
+                  <svg x-cloak
+                    class="w-3.5 h-3.5 pointer-events-none drop-shadow"
+                    :class="$store.tierlist.customToolForm.type === 'both' ? 'inline-block' : '!hidden'"
+                    :style="`color: ${$store.tierlist.customToolForm.color || '#00f0ff'};`"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span class="text-[11px] font-mono font-bold text-white">Dual (Ambos)</span>
+                <span class="text-[8.5px] font-mono text-slate-400 leading-tight">Fila y avatar</span>
+              </button>
+
+              <!-- Opción 2: Solo en Fila -->
+              <button type="button" @click="$store.tierlist.customToolForm.type = 'row_operator'"
+                class="p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer relative"
+                :class="$store.tierlist.customToolForm.type === 'row_operator' ? 'bg-white/10 shadow-md ring-1' : 'bg-black/40 border-white/10 text-slate-400 hover:text-white hover:bg-white/5'"
+                :style="$store.tierlist.customToolForm.type === 'row_operator' ? `border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; ring-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}80;` : ''">
+                <div class="flex items-center justify-between">
+                  <i data-lucide="arrow-left-right" class="w-4 h-4" :style="$store.tierlist.customToolForm.type === 'row_operator' ? `color: ${$store.tierlist.customToolForm.color || '#00f0ff'};` : ''"></i>
+                  <svg x-cloak
+                    class="w-3.5 h-3.5 pointer-events-none drop-shadow"
+                    :class="$store.tierlist.customToolForm.type === 'row_operator' ? 'inline-block' : '!hidden'"
+                    :style="`color: ${$store.tierlist.customToolForm.color || '#00f0ff'};`"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span class="text-[11px] font-mono font-bold text-white">Solo en Fila</span>
+                <span class="text-[8.5px] font-mono text-slate-400 leading-tight">Operador entre fichas</span>
+              </button>
+
+              <!-- Opción 3: Solo Insignia -->
+              <button type="button" @click="$store.tierlist.customToolForm.type = 'badge'"
+                class="p-2.5 rounded-xl border text-left flex flex-col gap-1 transition-all cursor-pointer relative"
+                :class="$store.tierlist.customToolForm.type === 'badge' ? 'bg-white/10 shadow-md ring-1' : 'bg-black/40 border-white/10 text-slate-400 hover:text-white hover:bg-white/5'"
+                :style="$store.tierlist.customToolForm.type === 'badge' ? `border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; ring-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}80;` : ''">
+                <div class="flex items-center justify-between">
+                  <i data-lucide="award" class="w-4 h-4" :style="$store.tierlist.customToolForm.type === 'badge' ? `color: ${$store.tierlist.customToolForm.color || '#00f0ff'};` : ''"></i>
+                  <svg x-cloak
+                    class="w-3.5 h-3.5 pointer-events-none drop-shadow"
+                    :class="$store.tierlist.customToolForm.type === 'badge' ? 'inline-block' : '!hidden'"
+                    :style="`color: ${$store.tierlist.customToolForm.color || '#00f0ff'};`"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+                <span class="text-[11px] font-mono font-bold text-white">Solo Insignia</span>
+                <span class="text-[8.5px] font-mono text-slate-400 leading-tight">Sello sobre avatar</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Selector de Color Neón Cyber HUD Profesional -->
+          <div class="space-y-2 p-3.5 rounded-xl bg-black/40 border border-white/10 relative"
+            x-data="cyberColorPicker({
+              label: 'Color del Conector',
+              defaultColor: '#00F0FF',
+              value: () => $store.tierlist.customToolForm.color,
+              onSelect: (c) => { $store.tierlist.customToolForm.color = c; },
+              liveUpdate: true
+            })">
+            
+            <div class="flex items-center justify-between">
+              <label class="text-[11px] font-mono font-bold text-slate-200 uppercase tracking-wider block">
+                Color de Resplandor Neón
+              </label>
+              <!-- Botón para abrir el Selector Profesional Cyber HUD del programa -->
+              <button type="button" @click="toggle()"
+                class="text-[10.5px] font-mono font-bold text-cyan-400 hover:text-cyan-300 hover:underline cursor-pointer flex items-center gap-1.5 transition-colors">
+                <i data-lucide="palette" class="w-3.5 h-3.5"></i>
+                <span>Selector Cyber HUD</span>
+              </button>
+            </div>
+
+            <!-- Fila del Trigger Cyber HUD e Input HEX Directo -->
+            <div class="flex items-center gap-2">
+              <!-- Botón Muestra / Cuentagotas que despliega el Cyber Color Popover -->
+              <button type="button" @click="toggle()"
+                class="w-8 h-8 rounded-lg border-2 transition-transform cursor-pointer flex items-center justify-center shrink-0 relative overflow-hidden group shadow-md hover:scale-105 active:scale-95"
+                :style="`background-color: ${currentHex}; border-color: rgba(255,255,255,0.7); box-shadow: 0 0 12px ${currentHex}60;`"
+                title="Abrir selector Cyber HUD profesional (con pipeta y espectro 2D)">
+                <i data-lucide="pipette" class="w-3.5 h-3.5 text-white drop-shadow"></i>
+              </button>
+
+              <!-- Input HEX editable en vivo -->
+              <div class="flex-1 flex items-center gap-1 px-2.5 py-1 rounded-lg bg-black/70 border border-white/15">
+                <span class="text-xs font-mono text-slate-500 font-bold">#</span>
+                <input type="text"
+                  :value="(currentHex || '').replace('#', '').toUpperCase()"
+                  @input="setFromHex('#' + $event.target.value, false)"
+                  class="bg-transparent text-xs font-mono uppercase font-black tracking-wider focus:outline-none w-full text-white"
+                  placeholder="00F0FF" maxlength="6" />
+              </div>
+
+              <!-- Indicador de Color Activo -->
+              <div class="px-2 py-1 rounded-md bg-white/5 border border-white/10 font-mono text-[10.5px] font-bold shrink-0"
+                :style="`color: ${currentHex};`"
+                x-text="currentHex.toUpperCase()"></div>
+            </div>
+
+            <!-- Popover Flotante Cyber HUD del Programa (EyeDropper, SV Box 2D, Hue, HEX/RGB/HSL) -->
+            <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
+
+            <!-- Paleta Rápida de Neones (Con SVGs inline fijos: CERO ticks duplicados) -->
+            <div class="flex items-center gap-1.5 flex-wrap pt-2 border-t border-white/10">
+              <template x-for="c in [
+                '#00f0ff', '#3b82f6', '#8b5cf6', '#a855f7', 
+                '#d946ef', '#ec4899', '#f43f5e', '#ef4444', 
+                '#f97316', '#f59e0b', '#eab308', '#84cc16', 
+                '#10b981', '#ffffff'
+              ]" :key="c">
+                <button type="button"
+                  @click="$store.tierlist.customToolForm.color = c; if (typeof setFromHex === 'function') setFromHex(c, true);"
+                  class="w-6.5 h-6.5 rounded-lg transition-all cursor-pointer border shadow-sm flex items-center justify-center hover:scale-115 active:scale-95 relative"
+                  :class="($store.tierlist.customToolForm.color || '').toLowerCase() === c.toLowerCase() ? 'ring-2 ring-white scale-110 border-white z-10' : 'border-white/20 hover:border-white/60'"
+                  :style="`background-color: ${c}; box-shadow: 0 0 8px ${c}50;`"
+                  :title="c">
+                  <!-- SVG checkmark inline: nunca se acumula ni duplica -->
+                  <svg x-cloak
+                    class="w-3.5 h-3.5 pointer-events-none"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+                    :class="($store.tierlist.customToolForm.color || '').toLowerCase() === c.toLowerCase() ? (c.toLowerCase() === '#ffffff' ? 'inline-block text-black' : 'inline-block text-black drop-shadow') : '!hidden'">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </button>
+              </template>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ════════ COLUMNA DERECHA: Vista Previa en Vivo Interactiva (5 Cols) ════════ -->
+        <div class="lg:col-span-5 flex flex-col gap-3.5 p-4 rounded-2xl border border-white/15 bg-gradient-to-b from-black/80 via-[#0c101c]/90 to-black/90 shadow-xl">
+          
+          <!-- Encabezado de la Vista Previa -->
+          <div class="flex items-center justify-between border-b border-white/10 pb-2">
+            <span class="text-xs font-mono uppercase tracking-wider text-slate-200 font-bold flex items-center gap-1.5">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5" :style="`color: ${$store.tierlist.customToolForm.color || '#00f0ff'};`"></i>
+              <span>Simulador de Tablero</span>
+            </span>
+            <span class="text-[9.5px] font-mono px-2 py-0.5 rounded border uppercase font-bold"
+              :style="`color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}60; background: ${$store.tierlist.customToolForm.color || '#00f0ff'}15;`"
+              x-text="$store.tierlist.customToolForm.type === 'both' ? 'Modo Dual' : ($store.tierlist.customToolForm.type === 'row_operator' ? 'Solo en Fila' : 'Solo Insignia')"></span>
+          </div>
+
+          <!-- Mini Tablero de Simulación Realista de Tier List -->
+          <div class="rounded-xl border border-white/15 bg-slate-950/90 overflow-hidden shadow-lg">
+            <!-- Barra superior del mini tablero -->
+            <div class="px-3 py-1 bg-black/80 border-b border-white/10 flex items-center justify-between text-[8.5px] font-mono text-slate-400">
+              <span class="tracking-wider">// TIER LIST MATRIX</span>
+              <div class="flex items-center gap-1.5">
+                <span class="w-1.5 h-1.5 rounded-full animate-pulse" :style="`background-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; box-shadow: 0 0 6px ${$store.tierlist.customToolForm.color || '#00f0ff'};`"></span>
+                <span class="text-slate-300 font-bold">VISTA PREVIA</span>
+              </div>
+            </div>
+
+            <!-- Fila de Rango de Ejemplo -->
+            <div class="flex items-stretch min-h-[96px] bg-black/40">
+              <!-- Monumento de Tier (Nivel S con degradado cálido) -->
+              <div class="w-18 shrink-0 p-2 flex flex-col items-center justify-center gap-1 border-r border-white/10 select-none"
+                style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.95), rgba(249, 115, 22, 0.95));">
+                <span class="font-title font-black text-2xl text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">S</span>
+                <span class="text-[7.5px] font-mono px-1.5 py-0.2 rounded bg-black/50 text-white font-bold">2 OP</span>
+              </div>
+
+              <!-- Dropzone con los Operativos y el Conector / Insignias -->
+              <div class="flex-1 p-2.5 flex items-center justify-center gap-2.5 bg-black/30 flex-wrap relative">
+                
+                <!-- Operativo Alfa (con avatar y posible insignia) -->
+                <div class="flex flex-col items-center gap-1 shrink-0">
+                  <div class="relative w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/20 flex items-center justify-center shadow-md">
+                    <i data-lucide="user" class="w-6 h-6 text-slate-400"></i>
+                    
+                    <!-- Insignia Neón Personalizada (si type !== 'row_operator') con auto-ajuste de escala -->
+                    <span x-show="$store.tierlist.customToolForm.type !== 'row_operator'"
+                      class="absolute -top-1.5 -right-1.5 min-w-[18px] max-w-[48px] px-1 py-0.2 rounded font-mono font-black border-2 shadow-lg uppercase transition-all z-20 pointer-events-none overflow-hidden whitespace-nowrap text-center"
+                      :style="`color: ${$store.tierlist.customToolForm.color || '#00f0ff'} !important; border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'} !important; background-color: #0b0f19 !important; box-shadow: 0 0 10px ${$store.tierlist.customToolForm.color || '#00f0ff'}80 !important; text-shadow: 0 0 6px ${$store.tierlist.customToolForm.color || '#00f0ff'}; font-size: ${($store.tierlist.customToolForm.symbol || '').length <= 2 ? '8.5px' : (($store.tierlist.customToolForm.symbol || '').length <= 4 ? '7.5px' : (($store.tierlist.customToolForm.symbol || '').length <= 6 ? '6.5px' : '5.5px'))}; letter-spacing: ${($store.tierlist.customToolForm.symbol || '').length >= 5 ? '-0.05em' : 'normal'};`"
+                      x-text="$store.tierlist.customToolForm.symbol || '?'"></span>
+                  </div>
+                  <span class="text-[8.5px] font-mono font-bold text-slate-300 uppercase tracking-wider">ALFA</span>
+                </div>
+
+                <!-- Elemento Central: Chip Conector en Fila o Separador -->
+                <div class="shrink-0 flex items-center justify-center">
+                  <!-- Caso 1: Se muestra el Conector de Fila si type !== 'badge' -->
+                  <div x-show="$store.tierlist.customToolForm.type !== 'badge'"
+                    class="px-2.5 py-1.5 rounded-lg border-2 font-mono font-black transition-all shadow-md flex items-center justify-center shrink-0 min-w-[44px] max-w-[120px] overflow-hidden whitespace-nowrap text-center"
+                    :style="`color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}80; background-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}20; box-shadow: 0 0 16px ${$store.tierlist.customToolForm.color || '#00f0ff'}40; text-shadow: 0 0 8px ${$store.tierlist.customToolForm.color || '#00f0ff'}; font-size: ${($store.tierlist.customToolForm.symbol || '').length <= 2 ? '18px' : (($store.tierlist.customToolForm.symbol || '').length <= 4 ? '14px' : (($store.tierlist.customToolForm.symbol || '').length <= 6 ? '11px' : '9.5px'))}; letter-spacing: ${($store.tierlist.customToolForm.symbol || '').length >= 6 ? '-0.04em' : 'normal'};`"
+                    x-text="$store.tierlist.customToolForm.symbol || '?'"></div>
+
+                  <!-- Caso 2: Divisor sutil si es Solo Insignia (mantiene equilibrio visual) -->
+                  <div x-show="$store.tierlist.customToolForm.type === 'badge'"
+                    class="w-5 h-0.5 rounded-full bg-white/20"></div>
+                </div>
+
+                <!-- Operativo Beta (segundo personaje en el rango) -->
+                <div class="flex flex-col items-center gap-1 shrink-0">
+                  <div class="relative w-12 h-12 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/20 flex items-center justify-center shadow-md">
+                    <i data-lucide="user" class="w-6 h-6 text-slate-400"></i>
+                  </div>
+                  <span class="text-[8.5px] font-mono font-bold text-slate-300 uppercase tracking-wider">BETA</span>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Tarjeta de Enfoque y Lectura de Datos del Conector -->
+          <div class="p-3.5 rounded-xl bg-black/50 border border-white/10 space-y-2.5">
+            <div class="flex items-center gap-3">
+              <!-- Muestra Ampliada del Símbolo con Auto-Adaptación Elástica y Tipografía Proporcional -->
+              <div class="min-w-[42px] max-w-[96px] h-10 px-2 rounded-xl border-2 flex items-center justify-center font-mono font-black shrink-0 shadow-lg overflow-hidden whitespace-nowrap text-center transition-all select-none"
+                :style="`color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; border-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; background-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}20; box-shadow: 0 0 12px ${$store.tierlist.customToolForm.color || '#00f0ff'}50; font-size: ${($store.tierlist.customToolForm.symbol || '').length <= 2 ? '15px' : (($store.tierlist.customToolForm.symbol || '').length <= 4 ? '12px' : (($store.tierlist.customToolForm.symbol || '').length <= 6 ? '9.5px' : '8.5px'))}; letter-spacing: ${($store.tierlist.customToolForm.symbol || '').length >= 6 ? '-0.04em' : 'normal'};`"
+                x-text="$store.tierlist.customToolForm.symbol || '?'"></div>
+
+              <div class="min-w-0 flex-1">
+                <span class="text-xs font-mono font-bold text-white block truncate"
+                  x-text="$store.tierlist.customToolForm.name || 'Sin nombre descriptivo'"></span>
+                <span class="text-[9.5px] font-mono text-slate-400 block leading-tight mt-0.5"
+                  x-text="$store.tierlist.customToolForm.type === 'both' ? 'Aparece como separador en fila y como insignia en ficha' : ($store.tierlist.customToolForm.type === 'row_operator' ? 'Se inserta entre casillas en el tablero' : 'Se adhiere como sello en la esquina del avatar')"></span>
+              </div>
+            </div>
+
+            <!-- Fila de Chips Informativos -->
+            <div class="flex items-center justify-between pt-2 border-t border-white/10 text-[9.5px] font-mono text-slate-400">
+              <span class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full" :style="`background-color: ${$store.tierlist.customToolForm.color || '#00f0ff'};`"></span>
+                <span class="font-bold text-slate-300" x-text="($store.tierlist.customToolForm.color || '#00F0FF').toUpperCase()"></span>
+              </span>
+              <span class="font-bold text-cyan-400 tracking-wider">// CYBER HUD LIVE</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Modal Footer Compacto y Funcional -->
+    <div class="px-6 py-3.5 border-t border-white/10 bg-black/60 flex items-center justify-between gap-3 shrink-0">
+      <!-- Botón Eliminar (Visible solo al editar con confirmación) -->
+      <div>
+        <template x-if="$store.tierlist.editingCustomToolId">
+          <button type="button"
+            @click="$store.tierlist.deleteCustomRatingTool($store.tierlist.editingCustomToolId, true)"
+            class="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 hover:text-rose-100 font-mono text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm hover:scale-[1.02]">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <span>Eliminar Conector</span>
+          </button>
+        </template>
+      </div>
+
+      <!-- Acciones de Cierre y Guardado -->
+      <div class="flex items-center gap-3">
+        <button type="button" @click="$store.tierlist.closeCustomToolModal()"
+          class="px-4 py-2 rounded-xl text-xs font-mono font-bold text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+          Cancelar
+        </button>
+
+        <button type="button" @click="$store.tierlist.saveCustomRatingTool()"
+          :disabled="!($store.tierlist.customToolForm.symbol || '').trim()"
+          class="px-5 py-2 rounded-xl text-black font-mono text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-lg transition-all cursor-pointer hover:scale-[1.02] active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+          :style="`background-color: ${$store.tierlist.customToolForm.color || '#00f0ff'}; box-shadow: 0 0 16px ${$store.tierlist.customToolForm.color || '#00f0ff'}60;`">
+          <i data-lucide="check" class="w-4 h-4 stroke-[3]"></i>
+          <span x-text="$store.tierlist.editingCustomToolId ? 'Guardar Cambios' : 'Crear Conector'"></span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

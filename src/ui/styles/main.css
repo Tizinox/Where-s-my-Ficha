@@ -1,0 +1,12 @@
+/**
+ * ui/styles/main.css — Orquestador Modular de Estilos
+ * WhereIsMySUPER-Ficha — Cyber / High-Contrast Design System
+ */
+
+@import './variables.css';
+@import './layout.css';
+@import './forms.css';
+@import './components.css';
+@import './dashboard.css';
+@import './tierlist.css';
+@import './modals.css';

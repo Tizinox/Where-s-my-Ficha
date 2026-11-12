@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-corner-style="chamfer">
+<html lang="es" data-corner-style="rounded">
 
 <head>
   <meta charset="UTF-8" />
@@ -18,7 +18,8 @@
     (function () {
       try {
         var s = JSON.parse(localStorage.getItem('superficha_global_settings') || '{}');
-        if (s.showSplashScreen === false || s.fastBoot === true) {
+        var v2 = localStorage.getItem('superficha_ui_v2_sober');
+        if (!v2 || s.showSplashScreen !== true || s.fastBoot === true) {
           document.documentElement.classList.add('boot-mode-generic');
         } else {
           document.documentElement.classList.add('boot-mode-bios');
@@ -663,7 +664,7 @@
   </noscript>
 
   <!-- Vite module entry -->
-  <script type="module" src="/src/main.js"></script>
+  <script type="module" src="/src/main.ts"></script>
 </head>
 
 <body>
@@ -759,22 +760,22 @@
     }">
 
     <!-- Capa de Fondo Dinámico -->
-    <include src="./src/partials/dynamic-bg.html"></include>
+    <include src="./src/ui/partials/dynamic-bg.html"></include>
 
     <!-- Barra de Encabezado Superior -->
-    <include src="./src/partials/header.html"></include>
+    <include src="./src/ui/partials/header.html"></include>
 
     <!-- Pantalla Principal: Panel de Personajes (Fullscreen Dashboard) -->
-    <include src="./src/partials/views/dashboard.html"></include>
+    <include src="./src/ui/partials/views/dashboard.html"></include>
 
     <!-- Pantalla Principal: Ajustes / Configuración (Fullscreen Settings) -->
-    <include src="./src/partials/views/settings.html"></include>
+    <include src="./src/ui/partials/views/settings.html"></include>
 
     <!-- Pantalla Principal: Creador de Tier List (Fullscreen Tier List Maker) [EXPERIMENTAL] -->
-    <include src="./src/partials/views/tierlist.html"></include>
+    <include src="./src/ui/partials/views/tierlist.html"></include>
 
     <!-- Barra Lateral de Pestañas (Sidebar) -->
-    <include src="./src/partials/sidebar.html"></include>
+    <include src="./src/ui/partials/sidebar.html"></include>
 
     <!-- =======================================================
        MAIN CONTENT — Contenedor y Pestañas de la Ficha
@@ -783,18 +784,17 @@
       x-cloak>
 
       <!-- Skeleton Screen de Ficha de Personaje -->
-      <include src="./src/partials/views/sheet-skeleton.html"></include>
+      <include src="./src/ui/partials/views/sheet-skeleton.html"></include>
 
       <!-- Sin personaje activo -->
       <div x-show="!$store.characters.loading && !$store.characters.active" x-cloak class="empty-state">
-        <i data-lucide="scan-face" class="w-16 h-16"></i>
-        <h2 class="font-title" style="font-size:1.8rem;color:var(--text-primary);">NINGÚN OPERATIVO ACTIVO</h2>
-        <p
-          style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-muted);max-width:260px;text-align:center;letter-spacing:0.06em;">
-          INICIALIZA UN NUEVO PERFIL PARA COMENZAR</p>
-        <button class="header-btn-accent mt-4" @click="$store.characters.createNew()">
+        <i data-lucide="user" class="w-12 h-12"></i>
+        <h2 class="font-title" style="font-size:1.5rem;color:var(--text-primary);">Ningún personaje seleccionado</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);max-width:280px;text-align:center;">
+          Crea una nueva ficha o selecciona un personaje desde el panel principal.</p>
+        <button class="header-btn-accent mt-3" @click="$store.characters.createNew()">
           <i data-lucide="plus" class="w-4 h-4"></i>
-          NUEVO OPERATIVO
+          Crear Ficha
         </button>
       </div>
 
@@ -812,48 +812,48 @@
               </span>
             </template>
             <!-- Badge del modo -->
-            <span class="mode-badge shadow-lg shadow-black/80 backdrop-blur-md"
+            <span class="mode-badge"
               :class="$store.app.editMode ? 'mode-badge-edit' : 'mode-badge-preview'"
-              x-text="$store.app.editMode ? '// EDITANDO' : '// VISTA PREVIA'"></span>
+              x-text="$store.app.editMode ? 'Modo Edición' : 'Vista Previa'"></span>
           </div>
 
           <!-- Pestañas Modulares del Personaje -->
-          <include src="./src/partials/tabs/tab-basics.html"></include>
+          <include src="./src/ui/partials/tabs/tab-basics.html"></include>
 
           <!-- Pestañas Secundarias con Renderizado Diferido Bajo Demanda (Lazy Mount) -->
           <template x-if="$store.app.isTabVisited('body')">
-            <div class="contents"><include src="./src/partials/tabs/tab-body.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-body.html"></include></div>
           </template>
           <template x-if="$store.app.isTabVisited('mind')">
-            <div class="contents"><include src="./src/partials/tabs/tab-mind.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-mind.html"></include></div>
           </template>
           <template x-if="$store.app.isTabVisited('social')">
-            <div class="contents"><include src="./src/partials/tabs/tab-social.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-social.html"></include></div>
           </template>
           <template x-if="$store.app.isTabVisited('beliefs')">
-            <div class="contents"><include src="./src/partials/tabs/tab-beliefs.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-beliefs.html"></include></div>
           </template>
           <template x-if="$store.app.isTabVisited('priorities')">
-            <div class="contents"><include src="./src/partials/tabs/tab-priorities.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-priorities.html"></include></div>
           </template>
           <template x-if="$store.app.isTabVisited('skills')">
-            <div class="contents"><include src="./src/partials/tabs/tab-skills.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-skills.html"></include></div>
           </template>
           <template x-if="$store.app.isTabVisited('weapons')">
-            <div class="contents"><include src="./src/partials/tabs/tab-weapons.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-weapons.html"></include></div>
           </template>
           <template x-if="$store.app.isTabVisited('power')">
-            <div class="contents"><include src="./src/partials/tabs/tab-power.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-power.html"></include></div>
           </template>
           <template x-if="$store.app.isTabVisited('extras')">
-            <div class="contents"><include src="./src/partials/tabs/tab-extras.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-extras.html"></include></div>
           </template>
           <template x-if="$store.app.isTabVisited('steam')">
-            <div class="contents"><include src="./src/partials/tabs/tab-steam.html"></include></div>
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-steam.html"></include></div>
           </template>
 
           <!-- Pestaña para Secciones Personalizadas Dinámicas -->
-          <include src="./src/partials/tabs/tab-custom.html"></include>
+          <include src="./src/ui/partials/tabs/tab-custom.html"></include>
 
         </div>
       </template>
@@ -865,25 +865,25 @@
   <!-- ==============================================================
      MODALES Y DIÁLOGOS DE SISTEMA
      ============================================================== -->
-  <include src="./src/partials/modals/modal-dashboard.html"></include>
-  <include src="./src/partials/modals/modal-discord.html"></include>
-  <include src="./src/partials/modals/modal-cropper.html"></include>
-  <include src="./src/partials/modals/modal-multi-image-picker.html"></include>
-  <include src="./src/partials/modals/modal-media-notices.html"></include>
-  <include src="./src/partials/modals/modal-theme-designer.html"></include>
-  <include src="./src/partials/modals/modal-dev-console.html"></include>
-  <include src="./src/partials/modals/modal-hotkeys.html"></include>
-  <include src="./src/partials/modals/modal-factory-reset.html"></include>
-  <include src="./src/partials/modals/modal-folders.html"></include>
-  <include src="./src/partials/modals/modal-steam-cosmetics.html"></include>
-  <include src="./src/partials/modals/modal-emoji-picker.html"></include>
-  <include src="./src/partials/modals/modal-steam-emojis.html"></include>
-  <include src="./src/partials/modals/modal-json-preview.html"></include>
-  <include src="./src/partials/modals/modal-create-custom-tab.html"></include>
-  <include src="./src/partials/modals/modal-custom-block.html"></include>
+  <include src="./src/ui/partials/modals/modal-dashboard.html"></include>
+  <include src="./src/ui/partials/modals/modal-discord.html"></include>
+  <include src="./src/ui/partials/modals/modal-cropper.html"></include>
+  <include src="./src/ui/partials/modals/modal-multi-image-picker.html"></include>
+  <include src="./src/ui/partials/modals/modal-media-notices.html"></include>
+  <include src="./src/ui/partials/modals/modal-theme-designer.html"></include>
+  <include src="./src/ui/partials/modals/modal-dev-console.html"></include>
+  <include src="./src/ui/partials/modals/modal-hotkeys.html"></include>
+  <include src="./src/ui/partials/modals/modal-factory-reset.html"></include>
+  <include src="./src/ui/partials/modals/modal-folders.html"></include>
+  <include src="./src/ui/partials/modals/modal-steam-cosmetics.html"></include>
+  <include src="./src/ui/partials/modals/modal-emoji-picker.html"></include>
+  <include src="./src/ui/partials/modals/modal-steam-emojis.html"></include>
+  <include src="./src/ui/partials/modals/modal-json-preview.html"></include>
+  <include src="./src/ui/partials/modals/modal-create-custom-tab.html"></include>
+  <include src="./src/ui/partials/modals/modal-custom-block.html"></include>
 
   <!-- Contenedor del Sistema de Notificaciones Toast -->
-  <include src="./src/partials/toasts.html"></include>
+  <include src="./src/ui/partials/toasts.html"></include>
 
 </body>
 </html>

@@ -2,7 +2,7 @@
 export default {
   content: [
     "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx,html}",
+    "./src/**/*.{js,ts,html}",
   ],
   safelist: [
     'col-span-12', 'col-span-6', 'col-span-4', 'col-span-3', 'col-span-8',

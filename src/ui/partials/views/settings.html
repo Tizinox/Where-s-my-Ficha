@@ -1,0 +1,255 @@
+<!-- ==============================================================
+         PANTALLA DEDICADA: CONFIGURACIONES (FULLSCREEN VIEW)
+         ============================================================== -->
+    <main id="main-settings-view" role="main" aria-label="Ajustes y Configuración"
+      class="settings-fullscreen-view col-span-full w-full min-h-screen px-4 sm:px-6 lg:px-10 py-6 overflow-y-auto relative"
+      :style="'grid-column: 1 / -1; grid-row: 2; background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + ';'"
+      x-show="$store.app.activeView === 'settings'" x-cloak
+      @pointermove="window.settingsInteractiveGrid?.handlePointerMove($event)"
+      @pointerleave="window.settingsInteractiveGrid?.handlePointerLeave()"
+      @keydown.escape.window="if ($store.app.activeView === 'settings') $store.settings.closeModal()">
+
+      <!-- Capa de Fondo Dinámica: Interactive Grid Hero (Skecher UI) -->
+      <div id="settings-interactive-grid-container"
+        x-show="!$store.settings.disableSettingsInteractiveGrid"
+        class="fixed inset-0 z-0 pointer-events-none overflow-hidden select-none">
+        <canvas id="settings-interactive-grid-canvas" class="w-full h-full block pointer-events-none"></canvas>
+        <!-- Overlay sutil de viñeteado para mantener máxima legibilidad en paneles -->
+        <div class="absolute inset-0 pointer-events-none transition-colors duration-300"
+          :style="'background: radial-gradient(circle at 50% 35%, transparent 35%, ' + ($store.settings.surfaceColor || '#0a0c0e') + 'aa 80%, ' + ($store.settings.surfaceColor || '#0a0c0e') + ' 100%);'">
+        </div>
+      </div>
+
+      <!-- CONTENEDOR PRINCIPAL CENTRADO Y EXPANSIVO (Render diferido bajo demanda) -->
+      <template x-if="$store.app.isViewVisited('settings')">
+      <div class="relative z-10 w-full max-w-[1440px] mx-auto flex flex-col gap-6 pb-20">
+
+        <!-- CABECERA EXPANSIVA CON NAVEGACIÓN Y BOTÓN DE RETORNO -->
+        <div class="dashboard-header-panel w-full p-5 sm:p-6 rounded-2xl space-y-4"
+          :style="'border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid;'">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+            <!-- Título y Subtítulo -->
+            <div class="flex items-center gap-3.5">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg shrink-0"
+                :style="'background: rgba(' + $store.settings.rgbChannels + ', 0.15); border: 1px solid rgba(' + $store.settings.rgbChannels + ', 0.45); color: ' + $store.settings.accentColor + '; box-shadow: 0 0 16px rgba(' + $store.settings.rgbChannels + ', 0.25);'">
+                <span data-animate-icon="sliders-horizontal" data-size="24" class="w-6 h-6 flex items-center justify-center pointer-events-none"></span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2.5">
+                  <h1
+                    class="font-title text-2xl sm:text-3xl text-parchment-cream font-bold uppercase tracking-wider text-shadow-scrim">
+                    Configuraciones
+                  </h1>
+
+                  <span class="hidden sm:inline-flex items-center gap-1 text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-slate-300">
+                    <kbd class="text-[10px] text-accent-gold font-bold">Ctrl</kbd> + <kbd class="text-[10px] text-accent-gold font-bold">,</kbd>
+                  </span>
+                </div>
+                <p class="text-xs text-ink-slate font-sans mt-0.5">
+                  Personalización visual del sistema: Tematización, tipografías, kits, entornos y exportación.
+                </p>
+              </div>
+            </div>
+
+            <!-- Botón de Navegación / Retorno Claro -->
+            <div class="flex items-center gap-2.5 shrink-0">
+              <button type="button"
+                class="px-5 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer transition-all shadow-md"
+                :style="'background: ' + $store.settings.accentColor + '; color: #000000; box-shadow: 0 0 14px rgba(' + $store.settings.rgbChannels + ', 0.35);'"
+                @click="$store.settings.closeModal()">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span
+                  x-text="$store.app.previousView === 'tierlist' ? 'Volver a Tier List' : ($store.app.previousView === 'editor' && $store.characters.active ? 'Volver a la Ficha' : '← Volver al Panel')"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Barra de Navegación de Pestañas: Riel de Píldora Líquida Magnética -->
+          <div class="w-full pt-3 border-t border-white/10">
+            <div id="settings-subtabs-rail"
+              class="relative flex items-center p-1.5 rounded-2xl border backdrop-blur-xl overflow-x-auto custom-scrollbar select-none gap-1 shadow-2xl shadow-black/80"
+              :style="'background-color: rgba(' + $store.settings.surfaceRgbChannels + ', 0.85); border-color: ' + ($store.settings.borderColor || 'rgba(255,255,255,0.1)') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid;'">
+              
+              <!-- Píldora Fantasma Magnética (Hover Ghost Pill) -->
+              <div class="settings-ghost-pill pointer-events-none absolute top-1.5 bottom-1.5 rounded-xl bg-white/[0.05] border border-white/10 opacity-0 transition-opacity duration-200 z-0 will-change-transform"></div>
+
+              <!-- Píldora Líquida Magnética Principal (Morphing Liquid Pill) -->
+              <div class="settings-liquid-pill pointer-events-none absolute top-1.5 bottom-1.5 rounded-xl z-0 will-change-transform transition-opacity duration-300 opacity-0">
+                <!-- Cuerpo de cristal líquido tintado con acento y sombra volumétrica -->
+                <div class="w-full h-full rounded-xl transition-colors duration-300 relative overflow-hidden"
+                  :style="'background: linear-gradient(135deg, rgba(' + $store.settings.rgbChannels + ', 0.22) 0%, rgba(' + $store.settings.rgbChannels + ', 0.08) 100%); border: 1px solid rgba(' + $store.settings.rgbChannels + ', 0.65); box-shadow: 0 0 20px rgba(' + $store.settings.rgbChannels + ', 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.4);'">
+                  <!-- Reflejo especular superior -->
+                  <div class="absolute top-0 left-2 right-2 h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent"></div>
+                  <!-- Haz láser centrado en la base de la píldora -->
+                  <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-10 h-[2px] rounded-full transition-colors duration-300"
+                    :style="'background: ' + $store.settings.accentColor + '; box-shadow: 0 0 10px ' + $store.settings.accentColor + ';'"></div>
+                </div>
+              </div>
+
+              <!-- Nodos / Botones de Pestañas con micro-interacción magnética -->
+              <button type="button"
+                data-subtab="identity"
+                @click="$store.settings.setSubTab('identity'); window.settingsMagneticRail?.setActive('identity')"
+                @mouseenter="window.settingsMagneticRail?.setHover('identity')"
+                @mouseleave="window.settingsMagneticRail?.clearHover()"
+                class="relative z-10 px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 flex items-center gap-2.5 cursor-pointer outline-none group shrink-0"
+                :class="$store.settings.activeSubTab === 'identity' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'">
+                <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 shrink-0"
+                  :style="$store.settings.activeSubTab === 'identity' ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 10px ' + $store.settings.accentColor + '; transform: scale(1.3);') : 'background: rgba(255,255,255,0.25);'"></div>
+                <span data-animate-icon="palette" data-size="18" class="w-4 h-4 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 pointer-events-none"
+                  :style="$store.settings.activeSubTab === 'identity' ? ('color: ' + $store.settings.accentColor + '; filter: drop-shadow(0 0 8px ' + $store.settings.accentColor + ');') : ''"></span>
+                <span class="font-sans font-bold transition-all duration-200"
+                  :style="$store.settings.activeSubTab === 'identity' ? ('color: #ffffff; text-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.6);') : ''">
+                  Identidad Visual
+                </span>
+              </button>
+
+              <button type="button"
+                data-subtab="presets"
+                @click="$store.settings.setSubTab('presets'); window.settingsMagneticRail?.setActive('presets')"
+                @mouseenter="window.settingsMagneticRail?.setHover('presets')"
+                @mouseleave="window.settingsMagneticRail?.clearHover()"
+                class="relative z-10 px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 flex items-center gap-2.5 cursor-pointer outline-none group shrink-0"
+                :class="$store.settings.activeSubTab === 'presets' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'">
+                <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 shrink-0"
+                  :style="$store.settings.activeSubTab === 'presets' ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 10px ' + $store.settings.accentColor + '; transform: scale(1.3);') : 'background: rgba(255,255,255,0.25);'"></div>
+                <span data-animate-icon="layers" data-size="18" class="w-4 h-4 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 pointer-events-none"
+                  :style="$store.settings.activeSubTab === 'presets' ? ('color: ' + $store.settings.accentColor + '; filter: drop-shadow(0 0 8px ' + $store.settings.accentColor + ');') : ''"></span>
+                <span class="font-sans font-bold transition-all duration-200"
+                  :style="$store.settings.activeSubTab === 'presets' ? ('color: #ffffff; text-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.6);') : ''">
+                  Kits y Presets
+                </span>
+              </button>
+
+              <button type="button"
+                data-subtab="environment"
+                @click="$store.settings.setSubTab('environment'); window.settingsMagneticRail?.setActive('environment')"
+                @mouseenter="window.settingsMagneticRail?.setHover('environment')"
+                @mouseleave="window.settingsMagneticRail?.clearHover()"
+                class="relative z-10 px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 flex items-center gap-2.5 cursor-pointer outline-none group shrink-0"
+                :class="$store.settings.activeSubTab === 'environment' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'">
+                <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 shrink-0"
+                  :style="$store.settings.activeSubTab === 'environment' ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 10px ' + $store.settings.accentColor + '; transform: scale(1.3);') : 'background: rgba(255,255,255,0.25);'"></div>
+                <span data-animate-icon="image" data-size="18" class="w-4 h-4 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 pointer-events-none"
+                  :style="$store.settings.activeSubTab === 'environment' ? ('color: ' + $store.settings.accentColor + '; filter: drop-shadow(0 0 8px ' + $store.settings.accentColor + ');') : ''"></span>
+                <span class="font-sans font-bold transition-all duration-200"
+                  :style="$store.settings.activeSubTab === 'environment' ? ('color: #ffffff; text-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.6);') : ''">
+                  Entorno y Fondo
+                </span>
+              </button>
+
+              <button type="button"
+                data-subtab="emojis"
+                @click="$store.settings.setSubTab('emojis'); window.settingsMagneticRail?.setActive('emojis')"
+                @mouseenter="window.settingsMagneticRail?.setHover('emojis')"
+                @mouseleave="window.settingsMagneticRail?.clearHover()"
+                class="relative z-10 px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 flex items-center gap-2.5 cursor-pointer outline-none group shrink-0"
+                :class="$store.settings.activeSubTab === 'emojis' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'">
+                <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 shrink-0"
+                  :style="$store.settings.activeSubTab === 'emojis' ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 10px ' + $store.settings.accentColor + '; transform: scale(1.3);') : 'background: rgba(255,255,255,0.25);'"></div>
+                <span data-animate-icon="smile" data-size="18" class="w-4 h-4 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 pointer-events-none"
+                  :style="$store.settings.activeSubTab === 'emojis' ? ('color: ' + $store.settings.accentColor + '; filter: drop-shadow(0 0 8px ' + $store.settings.accentColor + ');') : ''"></span>
+                <span class="font-sans font-bold transition-all duration-200"
+                  :style="$store.settings.activeSubTab === 'emojis' ? ('color: #ffffff; text-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.6);') : ''">
+                  Emojis y Emoticonos
+                </span>
+              </button>
+
+              <button type="button"
+                data-subtab="data"
+                @click="$store.settings.setSubTab('data'); window.settingsMagneticRail?.setActive('data')"
+                @mouseenter="window.settingsMagneticRail?.setHover('data')"
+                @mouseleave="window.settingsMagneticRail?.clearHover()"
+                class="relative z-10 px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 flex items-center gap-2.5 cursor-pointer outline-none group shrink-0"
+                :class="$store.settings.activeSubTab === 'data' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'">
+                <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 shrink-0"
+                  :style="$store.settings.activeSubTab === 'data' ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 10px ' + $store.settings.accentColor + '; transform: scale(1.3);') : 'background: rgba(255,255,255,0.25);'"></div>
+                <span data-animate-icon="database" data-size="18" class="w-4 h-4 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 pointer-events-none"
+                  :style="$store.settings.activeSubTab === 'data' ? ('color: ' + $store.settings.accentColor + '; filter: drop-shadow(0 0 8px ' + $store.settings.accentColor + ');') : ''"></span>
+                <span class="font-sans font-bold transition-all duration-200"
+                  :style="$store.settings.activeSubTab === 'data' ? ('color: #ffffff; text-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.6);') : ''">
+                  Datos y Exportación
+                </span>
+              </button>
+
+              <button type="button"
+                data-subtab="extras"
+                @click="$store.settings.setSubTab('extras'); window.settingsMagneticRail?.setActive('extras')"
+                @mouseenter="window.settingsMagneticRail?.setHover('extras')"
+                @mouseleave="window.settingsMagneticRail?.clearHover()"
+                class="relative z-10 px-5 py-2.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 flex items-center gap-2.5 cursor-pointer outline-none group shrink-0"
+                :class="$store.settings.activeSubTab === 'extras' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'">
+                <div class="w-1.5 h-1.5 rounded-full transition-all duration-300 shrink-0"
+                  :style="$store.settings.activeSubTab === 'extras' ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 10px ' + $store.settings.accentColor + '; transform: scale(1.3);') : 'background: rgba(255,255,255,0.25);'"></div>
+                <span data-animate-icon="puzzle" data-size="18" class="w-4 h-4 flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110 pointer-events-none"
+                  :style="$store.settings.activeSubTab === 'extras' ? ('color: ' + $store.settings.accentColor + '; filter: drop-shadow(0 0 8px ' + $store.settings.accentColor + ');') : ''"></span>
+                <span class="font-sans font-bold transition-all duration-200"
+                  :style="$store.settings.activeSubTab === 'extras' ? ('color: #ffffff; text-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.6);') : ''">
+                  Extras
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CUERPO DE PESTAÑAS (EXPANDIDO PARA PANTALLA COMPLETA) -->
+        <div class="w-full">
+
+          <!-- Sub-tab 1: Identidad Visual -->
+          <include src="./src/ui/partials/views/settings/settings-identity.html"></include>
+
+          <!-- Sub-tab 2: Kits y Presets -->
+          <include src="./src/ui/partials/views/settings/settings-presets.html"></include>
+
+          <!-- Sub-tab 3: Entorno y Fondo -->
+          <include src="./src/ui/partials/views/settings/settings-environment.html"></include>
+
+          <!-- Sub-tab 4: Emojis y Emoticonos Personalizados -->
+          <include src="./src/ui/partials/views/settings/settings-emojis.html"></include>
+
+          <!-- Sub-tab 5: Datos y Exportación -->
+          <include src="./src/ui/partials/views/settings/settings-data.html"></include>
+
+          <!-- Sub-tab 6: Extras y Detalles Menores -->
+          <include src="./src/ui/partials/views/settings/settings-extras.html"></include>
+        </div>
+
+        <!-- BARRA DE ACCIONES INFERIOR INTEGRADA / ACCESIBLE -->
+        <div
+          class="dashboard-header-panel w-full p-4 sm:p-5 rounded-2xl flex flex-wrap items-center justify-between gap-4 mt-2"
+          :style="'border-color: ' + ($store.settings.borderColor || '#222A36') + ';'">
+          <button type="button"
+            class="header-btn-ghost text-accent-ruby text-xs flex items-center gap-2 px-3.5 py-2.5 cursor-pointer hover:bg-accent-ruby/10 rounded-xl transition-colors border border-transparent hover:border-accent-ruby/30 font-mono"
+            @click="$store.settings.resetToDefault()">
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Restaurar Valores por Defecto
+          </button>
+
+          <div class="flex items-center gap-3">
+            <button type="button"
+              class="header-btn-ghost text-xs flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 hover:border-white/40 text-parchment-cream font-mono cursor-pointer transition-all"
+              @click="$store.settings.closeModal()">
+              <i data-lucide="arrow-left" class="w-4 h-4 text-ink-slate"></i>
+              <span
+                x-text="$store.app.previousView === 'editor' && $store.characters.active ? 'Volver a la Ficha' : 'Volver al Panel'"></span>
+            </button>
+
+            <button type="button"
+              class="header-btn-ghost text-xs flex items-center gap-2 px-4 py-2.5 rounded-xl border border-white/20 hover:border-white/40 text-parchment-cream font-mono cursor-pointer transition-all"
+              @click="$store.settings.saveAsGlobalDefault()">
+              <i data-lucide="save" class="w-4 h-4 text-accent-gold"></i>
+              <span>Guardar como Predeterminado</span>
+            </button>
+
+            <button type="button"
+              class="px-6 py-2.5 rounded-xl text-xs font-mono font-extrabold uppercase tracking-wider transition-all shadow-lg flex items-center gap-2 cursor-pointer"
+              :style="'background: ' + $store.settings.accentColor + '; color: #000000; box-shadow: 0 0 16px rgba(' + $store.settings.rgbChannels + ', 0.4);'"
+              @click="$store.settings.applyAndCloseModal()">
+              <i data-lucide="check" class="w-4 h-4"></i> Listo / Guardar Ajustes
+            </button>
+          </div>
+        </div>
+
+      </div>
+      </template>
+    </main>
