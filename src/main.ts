@@ -30,6 +30,7 @@ import { registerCyberColorPicker } from '@core/ui/cyberColorPicker.js';
 
 import 'cropperjs/dist/cropper.css';
 import '@ui/styles/main.css';
+import '@ui/styles/wiki-souls.css';
 
 // ── 0. Funciones de arranque temprano (Boot Sequence) ─────────────────────────
 function bootstrapFactoryReset(): void {

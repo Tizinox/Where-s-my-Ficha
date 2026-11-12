@@ -1,0 +1,1235 @@
+/* ==========================================================================
+   WHERE'S MY FICHA — TEMA WIKI FANDOM & DARK SOULS MENU
+   Diseño editorial limpio, orden visual de cajas y líneas sobrias.
+   Cero mecánicas de rol intrusivas (sin dados, HP ni atributos D&D).
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap');
+
+:root {
+  /* Paleta Base (Modo Oscuro Fandom Slate / Grafito Suave - Cero Negro Absoluto) */
+  --wiki-bg-outer: #1e1f26;        /* Fondo exterior pizarra suave */
+  --wiki-bg-canvas: #282a36;       /* Hoja / Contenedor principal de la Wiki */
+  --wiki-bg-elevated: #313342;     /* Tarjetas, cajas elevadas, inputs y sumario */
+  --wiki-bg-infobox: #2c2f3d;      /* Fondo de la Infobox lateral */
+  --wiki-bg-header: #181920;       /* Barra superior fija limpia */
+
+  /* Bordes limpios (Estilo Fandom / Hoja física) */
+  --wiki-border: #3d4154;          /* Borde neutro mate sin brillo */
+  --wiki-border-strong: #50556e;   /* Borde definido */
+  --wiki-accent: #cda869;          /* Dorado apagado y editorial (sin neón) */
+  --wiki-accent-dim: rgba(205, 168, 105, 0.12);
+  --wiki-link: #6ba6ff;            /* Azul hipervínculo clásico de Wiki */
+
+  /* Texto de alta legibilidad */
+  --wiki-text-main: #f0f1f5;       /* Blanco roto suave para lectura cómoda */
+  --wiki-text-muted: #a0a4b8;      /* Texto secundario claro */
+  --wiki-text-dim: #717589;        /* Texto sutil */
+
+  /* Tipografías */
+  --font-display: 'Cinzel', Georgia, serif;
+  --font-wiki-serif: 'Source Serif 4', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Adaptación de variables previas al nuevo tema sobrio */
+  --accent: var(--wiki-accent);
+  --accent-dim: var(--wiki-accent-dim);
+  --accent-glow: transparent;
+  --border-subtle: var(--wiki-border);
+  --border-custom: var(--wiki-border-strong);
+  --bg-panel: var(--wiki-bg-canvas);
+  --bg-panel-elevated: var(--wiki-bg-elevated);
+  --text-primary: var(--wiki-text-main);
+  --text-secondary: var(--wiki-text-muted);
+  --text-muted: var(--wiki-text-dim);
+}
+
+/* Tema Claro (Modo Papel / Fandom Claro) */
+html[data-theme="light"],
+[data-surface-theme="light"],
+.surface-light {
+  --wiki-bg-outer: #eaebf0;        /* Gris suave limpio */
+  --wiki-bg-canvas: #ffffff;       /* Hoja blanca de Wiki */
+  --wiki-bg-elevated: #f4f5f8;     /* Cajas secundarias */
+  --wiki-bg-infobox: #f8f9fb;      /* Infobox lateral */
+  --wiki-bg-header: #1f222a;       /* Barra superior */
+  --wiki-border: #d0d4dd;
+  --wiki-border-strong: #9ca3af;
+  --wiki-accent: #8c5d17;          /* Dorado ámbar cálido */
+  --wiki-accent-dim: rgba(140, 93, 23, 0.08);
+  --wiki-link: #1d4ed8;
+  --wiki-text-main: #1e2229;
+  --wiki-text-muted: #545b69;
+  --wiki-text-dim: #798294;
+
+  --accent: var(--wiki-accent);
+  --accent-dim: var(--wiki-accent-dim);
+  --accent-glow: transparent;
+  --border-subtle: var(--wiki-border);
+  --border-custom: var(--wiki-border-strong);
+  --bg-panel: var(--wiki-bg-canvas);
+  --bg-panel-elevated: var(--wiki-bg-elevated);
+  --text-primary: var(--wiki-text-main);
+  --text-secondary: var(--wiki-text-muted);
+  --text-muted: var(--wiki-text-dim);
+}
+
+/* 1. Resetear el "AI Slop" global y Desbloquear Scroll Web Natural (Estilo Fandom Wiki) */
+html {
+  min-height: 100% !important;
+  height: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100% !important;
+  height: auto !important;
+  background-color: var(--wiki-bg-outer) !important;
+  color: var(--wiki-text-main) !important;
+  font-family: var(--font-sans) !important;
+  line-height: 1.65;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+*, *::before, *::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* Desbloqueo de la prisión de 100vh de #app */
+#app {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  position: relative !important;
+  z-index: 1;
+  background: transparent !important;
+}
+
+#app-content {
+  flex: 1 0 auto !important;
+  display: block !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  width: 100% !important;
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+#main-dashboard-view,
+#main-tierlist-view,
+#main-settings-view {
+  min-height: auto !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+/* 2. Contenedor Principal tipo Wiki Fandom */
+.wiki-shell {
+  max-width: 1240px;
+  margin: 0 auto;
+  min-height: calc(100vh - 56px);
+  background-color: var(--wiki-bg-canvas);
+  border-left: 1px solid var(--wiki-border);
+  border-right: 1px solid var(--wiki-border);
+  padding: 28px 36px;
+}
+
+@media (max-width: 768px) {
+  .wiki-shell {
+    padding: 16px;
+    border: none;
+  }
+}
+
+/* 3. Cabecera de Página Wiki (Título + Contador + Pestañas de Artículo) */
+.wiki-page-header {
+  border-bottom: 1px solid var(--wiki-border);
+  padding-bottom: 12px;
+  margin-bottom: 24px;
+}
+
+.wiki-page-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.wiki-page-title {
+  font-family: var(--font-wiki-serif);
+  font-size: 2.15rem;
+  font-weight: 600;
+  color: var(--wiki-text-main);
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Pestañas inferiores de artículo (Estilo Fandom: Artículo | Lore | Power Scaling | Galería) */
+.wiki-article-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 16px;
+  border-bottom: 1px solid var(--wiki-border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.wiki-article-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.wiki-article-tab {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--wiki-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  cursor: pointer;
+  transition: color 0.15s ease, background-color 0.15s ease;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+}
+
+.wiki-article-tab:hover {
+  color: var(--wiki-text-main);
+  background: var(--wiki-bg-elevated);
+}
+
+.wiki-article-tab.active,
+.wiki-article-tab.is-active {
+  color: var(--wiki-accent);
+  background: var(--wiki-bg-canvas);
+  border-color: var(--wiki-border);
+  border-top: 2px solid var(--wiki-accent);
+  margin-bottom: -1px;
+  font-weight: 600;
+}
+
+/* 4. Layout de Artículo Wiki (Cuerpo a la izquierda + Infobox a la derecha) */
+.wiki-article-grid {
+  display: grid;
+  grid-template-columns: 1fr 310px;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .wiki-article-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sumario / Tabla de Contenidos (TOC clásico de Wiki) */
+.wiki-toc {
+  display: inline-block;
+  min-width: 240px;
+  max-width: 340px;
+  background-color: var(--wiki-bg-elevated);
+  border: 1px solid var(--wiki-border);
+  padding: 12px 18px;
+  margin: 16px 0 24px 0;
+  font-size: 0.88rem;
+}
+
+.wiki-toc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--wiki-border);
+  color: var(--wiki-text-main);
+  font-family: var(--font-sans);
+}
+
+.wiki-toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.wiki-toc-list li {
+  margin: 5px 0;
+}
+
+.wiki-toc-list a {
+  color: var(--wiki-link);
+  text-decoration: none;
+}
+
+.wiki-toc-list a:hover {
+  text-decoration: underline;
+}
+
+.wiki-toc-num {
+  color: var(--wiki-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  margin-right: 6px;
+}
+
+/* Títulos de sección dentro del artículo (H2 con línea inferior estilo Wikipedia/Fandom) */
+.wiki-h2 {
+  font-family: var(--font-wiki-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--wiki-text-main);
+  border-bottom: 1px solid var(--wiki-border);
+  padding-bottom: 6px;
+  margin: 32px 0 14px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Cita introductoria estilo Fandom */
+.wiki-quote {
+  background: var(--wiki-bg-elevated);
+  border-left: 3px solid var(--wiki-accent);
+  padding: 12px 18px;
+  margin: 0 0 20px 0;
+  font-family: var(--font-wiki-serif);
+  font-style: italic;
+  color: var(--wiki-text-main);
+}
+
+/* 5. INFOBOX LATERAL (Estilo Fandom) */
+.wiki-infobox {
+  background-color: var(--wiki-bg-infobox);
+  border: 1px solid var(--wiki-border-strong);
+  width: 100%;
+  font-size: 0.86rem;
+  position: sticky;
+  top: 72px;
+}
+
+.wiki-infobox-title {
+  background-color: var(--wiki-bg-elevated);
+  border-bottom: 2px solid var(--wiki-accent);
+  padding: 10px 14px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--wiki-text-main);
+}
+
+.wiki-infobox-subtitle {
+  text-align: center;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--wiki-text-muted);
+  border-bottom: 1px solid var(--wiki-border);
+}
+
+.wiki-infobox-image {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--wiki-border);
+  background: var(--wiki-bg-outer);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wiki-infobox-image img {
+  max-width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border: 1px solid var(--wiki-border);
+}
+
+.wiki-infobox-section-header {
+  background-color: var(--wiki-bg-elevated);
+  color: var(--wiki-accent);
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 12px;
+  text-align: center;
+  border-top: 1px solid var(--wiki-border);
+  border-bottom: 1px solid var(--wiki-border);
+}
+
+.wiki-infobox-row {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  border-bottom: 1px solid var(--wiki-border);
+}
+
+.wiki-infobox-row:last-child {
+  border-bottom: none;
+}
+
+.wiki-infobox-label {
+  padding: 8px 10px;
+  font-weight: 600;
+  color: var(--wiki-text-muted);
+  background: rgba(255, 255, 255, 0.015);
+  border-right: 1px solid var(--wiki-border);
+}
+
+.wiki-infobox-value {
+  padding: 8px 12px;
+  color: var(--wiki-text-main);
+  word-break: break-word;
+}
+
+/* ==========================================================================
+   6. CREADOR / EDITOR DE PERSONAJES (ESTILO MENÚ DARK SOULS + HOJA LIMPIA)
+   ========================================================================== */
+
+.souls-creator-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .souls-creator-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Paneles con doble marco fino estilo Dark Souls / Hoja física */
+.souls-panel {
+  background-color: var(--wiki-bg-canvas);
+  border: 1px solid var(--wiki-border-strong);
+  outline: 1px solid var(--wiki-border);
+  outline-offset: -4px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.souls-panel-header {
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--wiki-accent);
+  border-bottom: 1px solid var(--wiki-border-strong);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Filas horizontales de formulario (Etiqueta a la izq, Valor a la der — Estilo Dark Souls) */
+.souls-field-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  align-items: center;
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--wiki-border);
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .souls-field-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+.souls-field-label {
+  font-family: var(--font-wiki-serif);
+  font-size: 0.95rem;
+  color: var(--wiki-text-muted);
+  font-weight: 600;
+}
+
+/* Inputs limpios sin aspecto de formulario web genérico */
+.souls-input,
+.souls-select,
+.souls-textarea {
+  width: 100%;
+  background-color: var(--wiki-bg-elevated) !important;
+  border: 1px solid var(--wiki-border) !important;
+  border-radius: 0 !important;
+  color: var(--wiki-text-main) !important;
+  padding: 7px 10px !important;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease;
+}
+
+.souls-input:focus,
+.souls-select:focus,
+.souls-textarea:focus {
+  outline: none !important;
+  border-color: var(--wiki-accent) !important;
+  background-color: var(--wiki-bg-outer) !important;
+}
+
+/* Cajas de texto con renglones sutiles (Inspirado en las hojas físicas) */
+.souls-lined-textarea {
+  width: 100%;
+  min-height: 130px;
+  background-color: var(--wiki-bg-elevated) !important;
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 27px,
+    var(--wiki-border) 27px,
+    var(--wiki-border) 28px
+  ) !important;
+  line-height: 28px !important;
+  padding: 0 10px !important;
+  border: 1px solid var(--wiki-border-strong) !important;
+  color: var(--wiki-text-main) !important;
+  font-family: var(--font-wiki-serif);
+  font-size: 1rem;
+  resize: vertical;
+}
+
+/* Botones editoriales sobrios */
+.souls-btn {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 16px;
+  background-color: var(--wiki-bg-elevated);
+  color: var(--wiki-text-main);
+  border: 1px solid var(--wiki-border-strong);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.souls-btn:hover {
+  border-color: var(--wiki-accent);
+  color: var(--wiki-accent);
+  background-color: var(--wiki-accent-dim);
+}
+
+.souls-btn-primary {
+  background-color: var(--wiki-accent-dim);
+  border-color: var(--wiki-accent);
+  color: var(--wiki-accent);
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   7. ADAPTADORES DE INTEGRACIÓN (Limpieza global sobre componentes previos)
+   ========================================================================== */
+
+#app-header {
+  background-color: var(--wiki-bg-header) !important;
+  border-bottom: 1px solid var(--wiki-border) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  padding: 0 20px !important;
+}
+
+#app-sidebar {
+  display: none !important;
+}
+
+.form-card,
+.read-card {
+  background-color: var(--wiki-bg-canvas) !important;
+  border: 1px solid var(--wiki-border-strong) !important;
+  outline: 1px solid var(--wiki-border) !important;
+  outline-offset: -4px !important;
+  border-radius: 0 !important;
+}
+
+.form-card-title,
+.category-header-title {
+  font-family: var(--font-display) !important;
+  color: var(--wiki-accent) !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  background-color: var(--wiki-bg-elevated) !important;
+  border: 1px solid var(--wiki-border) !important;
+  border-radius: 0 !important;
+  color: var(--wiki-text-main) !important;
+  font-family: var(--font-sans) !important;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  border-color: var(--wiki-accent) !important;
+  outline: none !important;
+}
+
+.form-label,
+.read-label {
+  font-family: var(--font-wiki-serif) !important;
+  color: var(--wiki-text-muted) !important;
+  font-size: 0.9rem !important;
+}
+
+.section-header-bar {
+  border-bottom: 1px solid var(--wiki-border) !important;
+  background: transparent !important;
+}
+
+.section-title {
+  font-family: var(--font-wiki-serif) !important;
+  color: var(--wiki-text-main) !important;
+}
+
+.tab-btn {
+  border-radius: 0 !important;
+  border-left-width: 2px !important;
+  font-family: var(--font-sans) !important;
+}
+
+.tab-btn.active {
+  background-color: var(--wiki-accent-dim) !important;
+  border-left-color: var(--wiki-accent) !important;
+  color: var(--wiki-accent) !important;
+}
+
+.mode-badge {
+  border-radius: 0 !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.05em !important;
+}
+
+#tab-content {
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: auto !important;
+}
+
+#character-sheet-skeleton {
+  max-width: 1240px;
+  margin: 0 auto;
+  background-color: var(--wiki-bg-canvas);
+  border-left: 1px solid var(--wiki-border);
+  border-right: 1px solid var(--wiki-border);
+  padding: 28px 36px;
+}
+
+/* Dashboard, Modales y Componentes limpios sin neones ni sombras difusas */
+.dashboard-fullscreen-view .bg-\[\#080a0d\] {
+  background-color: var(--wiki-bg-outer) !important;
+}
+
+/* Neutralizar clases Cyber / Neón en todo el sistema */
+[class*="text-cyan-"],
+[class*="text-cyan"] {
+  color: var(--wiki-accent) !important;
+}
+
+[class*="border-cyan-"],
+[class*="border-cyan"] {
+  border-color: var(--wiki-border-strong) !important;
+}
+
+[class*="bg-cyan-"],
+[class*="bg-cyan"] {
+  background-color: var(--wiki-accent-dim) !important;
+}
+
+/* Neutralizar fondos pitch black forzados por utilidades Tailwind */
+.bg-slate-950,
+.bg-slate-900,
+.bg-zinc-950,
+.bg-zinc-900,
+.bg-\[\#090d16\],
+.bg-\[\#080a0d\],
+.bg-\[\#0d0d10\],
+.bg-\[\#0a0e17\],
+.bg-\[\#06090e\] {
+  background-color: var(--wiki-bg-elevated) !important;
+}
+
+.character-card,
+.char-card,
+.tier-row,
+.tier-item {
+  border-radius: 0 !important;
+  border-color: var(--wiki-border-strong) !important;
+}
+
+/* ==========================================================================
+   8. ENTORNO DEL EDITOR: HOJA FÍSICA CENTRADA SIN DIVISIÓN DE SESIONES
+   ========================================================================== */
+
+#app[data-active-view="editor"] #app-sidebar {
+  display: none !important;
+}
+
+#app[data-active-view="editor"] #app-content {
+  grid-column: 1 / -1 !important;
+  grid-area: 2 / 1 / -1 / -1 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  padding: 0 !important;
+}
+
+.rpg-sheet-shell {
+  max-width: 1280px;
+  margin: 24px auto 60px;
+  background-color: var(--wiki-bg-canvas);
+  border: 2px solid var(--wiki-border-strong);
+  outline: 1px solid var(--wiki-border);
+  outline-offset: -5px;
+  padding: 28px 32px;
+}
+
+@media (max-width: 768px) {
+  .rpg-sheet-shell {
+    padding: 14px;
+    margin: 8px auto;
+    border-width: 1px;
+    outline: none;
+  }
+}
+
+/* Banner de Cabecera de la Ficha (D&D / Mörk Borg Header) */
+.rpg-sheet-header-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+  gap: 12px;
+  border-bottom: 2px solid var(--wiki-border-strong);
+  padding-bottom: 18px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 980px) {
+  .rpg-sheet-header-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .rpg-sheet-header-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.rpg-header-field {
+  border: 1px solid var(--wiki-border-strong);
+  background-color: var(--wiki-bg-elevated);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.rpg-header-label {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--wiki-accent);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.rpg-header-val {
+  font-family: var(--font-wiki-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--wiki-text-main);
+  line-height: 1.2;
+}
+
+.rpg-header-field.is-title .rpg-header-val {
+  font-size: 1.45rem;
+  letter-spacing: 0.02em;
+}
+
+/* Grid de 3 Columnas Físicas Integrales */
+.rpg-sheet-3col {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1.25fr;
+  gap: 22px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .rpg-sheet-3col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .rpg-sheet-3col {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cajas Estructuradas con Doble Marco */
+.rpg-box {
+  border: 1px solid var(--wiki-border-strong);
+  background-color: var(--wiki-bg-canvas);
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.rpg-box-header {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--wiki-accent);
+  background-color: var(--wiki-bg-elevated);
+  border-bottom: 1px solid var(--wiki-border-strong);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rpg-box-body {
+  padding: 14px;
+}
+
+/* Bloques de Atributos & Estadísticas (Estilo D&D / Mörk Borg) */
+.rpg-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.rpg-stat-bubble {
+  border: 1px solid var(--wiki-border-strong);
+  background-color: var(--wiki-bg-elevated);
+  padding: 8px 10px;
+  text-align: center;
+}
+
+.rpg-stat-label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--wiki-text-muted);
+  display: block;
+}
+
+.rpg-stat-val {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--wiki-accent);
+  margin-top: 2px;
+}
+
+/* Marco Central de Retrato / Ilustración */
+.rpg-portrait-frame {
+  border: 2px solid var(--wiki-border-strong);
+  background-color: var(--wiki-bg-outer);
+  padding: 8px;
+  text-align: center;
+  position: relative;
+}
+
+/* Cuaderno de Lore con renglones físicos continuos */
+.rpg-lined-area {
+  background-color: var(--wiki-bg-elevated);
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 26px,
+    var(--wiki-border) 26px,
+    var(--wiki-border) 27px
+  );
+  line-height: 27px;
+  padding: 6px 12px;
+  font-family: var(--font-wiki-serif);
+  font-size: 0.95rem;
+  color: var(--wiki-text-main);
+  min-height: 200px;
+}
+
+/* ==========================================================================
+   9. COMUNIDAD & HUB PRINCIPAL ESTILO WIKI FANDOM
+   Cabecera de comunidad con blasón, título editorial, métricas y subnav.
+   ========================================================================== */
+
+.fandom-community-banner {
+  background: linear-gradient(180deg, #2b2e3c 0%, #232531 100%);
+  border: 1px solid var(--wiki-border);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.fandom-community-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--wiki-accent);
+}
+
+.fandom-community-banner-content {
+  padding: 24px 28px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .fandom-community-banner-content {
+    padding: 18px 16px 14px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.fandom-community-brand-block {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-width: 0;
+  flex: 1;
+}
+
+.fandom-community-avatar {
+  width: 60px;
+  height: 60px;
+  background: var(--wiki-bg-elevated);
+  border: 1px solid var(--wiki-border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 6px;
+}
+
+.fandom-community-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.fandom-community-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fandom-community-badge {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wiki-accent);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fandom-community-title {
+  font-family: var(--font-wiki-serif);
+  font-size: 1.85rem;
+  font-weight: 600;
+  color: var(--wiki-text-main);
+  margin: 0;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 640px) {
+  .fandom-community-title {
+    font-size: 1.45rem;
+  }
+}
+
+.fandom-community-tagline {
+  font-size: 0.85rem;
+  color: var(--wiki-text-muted);
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
+.fandom-community-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .fandom-community-actions {
+    width: 100%;
+    justify-content: space-between;
+    border-top: 1px solid var(--wiki-border);
+    padding-top: 14px;
+  }
+}
+
+.fandom-community-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.fandom-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.fandom-stat-val {
+  font-family: var(--font-mono);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--wiki-accent);
+  line-height: 1;
+}
+
+.fandom-stat-lbl {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--wiki-text-muted);
+  margin-top: 3px;
+}
+
+.fandom-stat-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--wiki-border);
+}
+
+/* Sub-navegación inferior de la comunidad (Pestañas estilo Fandom) */
+.fandom-community-subnav {
+  border-top: 1px solid var(--wiki-border);
+  background-color: var(--wiki-bg-elevated);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.fandom-community-subnav::-webkit-scrollbar {
+  display: none;
+}
+
+.fandom-subnav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.fandom-subnav-tab {
+  padding: 10px 16px;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--wiki-text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fandom-subnav-tab:hover {
+  color: var(--wiki-text-main);
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.fandom-subnav-tab.is-active {
+  color: var(--wiki-accent);
+  border-bottom-color: var(--wiki-accent);
+  font-weight: 600;
+}
+
+/* Fila de Barra de Búsqueda y Orden */
+.fandom-search-bar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.fandom-search-field {
+  flex: 1;
+  min-width: 260px;
+  position: relative;
+}
+
+.fandom-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--wiki-text-muted);
+  pointer-events: none;
+}
+
+.fandom-search-input {
+  width: 100%;
+  padding: 10px 38px 10px 40px;
+  background-color: var(--wiki-bg-canvas) !important;
+  border: 1px solid var(--wiki-border-strong) !important;
+  color: var(--wiki-text-main) !important;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  border-radius: 0 !important;
+  box-sizing: border-box;
+}
+
+.fandom-search-input:focus {
+  outline: none;
+  border-color: var(--wiki-accent) !important;
+  background-color: var(--wiki-bg-elevated) !important;
+}
+
+.fandom-search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--wiki-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.fandom-search-clear:hover {
+  color: var(--wiki-text-main);
+}
+
+.fandom-sort-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.fandom-sort-label {
+  font-size: 0.8rem;
+  color: var(--wiki-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
+/* Cuadrícula de Tarjetas Fandom */
+.fandom-roster-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+  width: 100%;
+}
+
+.fandom-card {
+  background-color: var(--wiki-bg-canvas);
+  border: 1px solid var(--wiki-border-strong);
+  overflow: hidden;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  cursor: pointer;
+}
+
+.fandom-card:hover {
+  border-color: var(--wiki-accent);
+  transform: translateY(-2px);
+}
+
+.fandom-card-thumb {
+  width: 100%;
+  height: 220px;
+  background-color: var(--wiki-bg-outer);
+  overflow: hidden;
+  position: relative;
+  border-bottom: 1px solid var(--wiki-border);
+}
+
+.fandom-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.fandom-card:hover .fandom-card-thumb img {
+  transform: scale(1.04);
+}
+
+.fandom-card-body {
+  padding: 14px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.fandom-card-title {
+  font-family: var(--font-wiki-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--wiki-text-main);
+  margin: 0 0 4px;
+  line-height: 1.25;
+}
+
+.fandom-card-subtitle {
+  font-size: 0.78rem;
+  color: var(--wiki-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
+

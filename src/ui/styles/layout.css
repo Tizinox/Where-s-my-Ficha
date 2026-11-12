@@ -444,8 +444,9 @@ body.is-resizing-sidebar * {
    MAIN CONTENT
    ══════════════════════════════════════════════════════════ */
 #app-content {
-  grid-area: content;
-  overflow-y: auto;
+  flex: 1 0 auto;
+  width: 100%;
+  overflow: visible;
   background: transparent !important;
   position: relative;
   z-index: 1;

@@ -1,75 +1,23 @@
 <!-- ==============================================================
-         Dynamic Background Layer (Level 3 - Hardware Accelerated)
-         ============================================================== -->
-    <div id="dynamic-bg-layer" class="fixed inset-0 z-0 pointer-events-none overflow-hidden w-full h-full bg-[#080a0d] [transform:translate3d(0,0,0)] will-change-transform">
-      <!-- Base sólida de respaldo -->
-      <div class="absolute inset-0 bg-[#080a0d] pointer-events-none"></div>
+     DYNAMIC BACKGROUND LAYER (WIKI SOBRIO & EDITORIAL)
+     ============================================================== -->
+<div id="dynamic-bg-container" class="fixed inset-0 pointer-events-none -z-10 overflow-hidden w-full h-full"
+  style="background-color: var(--wiki-bg-outer);">
+  <!-- Capa de compatibilidad de ID para controladores existentes -->
+  <div id="dynamic-bg-layer" class="absolute inset-0 pointer-events-none">
+    <!-- Base sólida exterior -->
+    <div class="absolute inset-0 pointer-events-none" style="background-color: var(--wiki-bg-outer);"></div>
 
-      <!-- Modo 1: Trama HUD Sci-Fi limpia (o fallback sin imagen) -->
-      <template
-        x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'pattern' || (!($store.characters.active?.presentation?.background?.image || $store.characters.active?.visualSettings?.backgroundUrl) && ($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom')">
-        <div class="absolute inset-0 pointer-events-none"
-          style="background-image: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.04) 0%, transparent 65%), linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px); background-size: 100% 100%, 32px 32px, 32px 32px;">
-        </div>
-      </template>
-
-      <!-- Modo 2: Custom - Imagen o GIF personalizado con encuadre, zoom, blur y scrim -->
-      <template
-        x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom' && ($store.characters.active?.presentation?.background?.image || $store.characters.active?.visualSettings?.backgroundUrl)">
-        <div class="relative w-full h-full overflow-hidden [transform:translate3d(0,0,0)]">
-          <img
-            :src="$store.app.getOptimizedImageUrl($store.characters.active?.presentation?.background?.image || $store.characters.active?.visualSettings?.backgroundUrl)"
-            class="w-full h-full object-cover transition-opacity duration-300 pointer-events-none [transform:translate3d(0,0,0)] will-change-transform" fetchpriority="high" decoding="async"
-            :style="$store.characters.getBackgroundStyle() + ' opacity: ' + (($store.characters.active?.presentation?.background?.opacity ?? 50) / 100) + ';'"
-            alt="Fondo Dinámico" />
-          <!-- Scrim Overlay de oscurecimiento configurable -->
-          <div class="absolute inset-0 bg-[#080a0d] pointer-events-none"
-            :style="`opacity: ${($store.characters.active?.presentation?.background?.scrim ?? 20) / 100};`">
-          </div>
-          <!-- Scrim sutil de viñeteado para contraste sin matar la visibilidad de la imagen -->
-          <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50 pointer-events-none">
-          </div>
-        </div>
-      </template>
-
-      <!-- Modo 3: Sincronizado con Panel Principal -->
-      <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'sync'">
-        <div class="relative w-full h-full overflow-hidden [transform:translate3d(0,0,0)]">
-          <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
-            <div class="w-full h-full relative">
-              <img :src="$store.settings.dashboardBgUrl"
-                class="w-full h-full object-cover transition-opacity duration-300 pointer-events-none [transform:translate3d(0,0,0)] will-change-transform"
-                :style="$store.settings.getDashboardBgStyle() + ' opacity: ' + (($store.characters.active?.presentation?.background?.opacity ?? 50) / 100) + ';'"
-                alt="Fondo Sincronizado" />
-              <div class="absolute inset-0 bg-[#080a0d] pointer-events-none"
-                :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
-            </div>
-          </template>
-          <template
-            x-if="$store.settings.dashboardBgMode === 'dynamic' && ($store.characters.active?.basics?.bannerDataUrl || $store.characters.active?.presentation?.background?.image)">
-            <div class="w-full h-full relative">
-              <img
-                :src="$store.characters.active?.basics?.bannerDataUrl || $store.characters.active?.presentation?.background?.image"
-                class="w-full h-full object-cover transition-opacity duration-300 pointer-events-none [transform:translate3d(0,0,0)] will-change-transform"
-                :style="$store.settings.getDashboardBgStyle() + ' opacity: ' + (($store.characters.active?.presentation?.background?.opacity ?? 50) / 100) + ';'"
-                alt="Fondo Sincronizado Dinámico" />
-              <div class="absolute inset-0 bg-[#080a0d] pointer-events-none"
-                :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
-            </div>
-          </template>
-          <template
-            x-if="$store.settings.dashboardBgMode === 'pattern' || (!$store.settings.dashboardBgUrl && !$store.characters.active?.basics?.bannerDataUrl && !$store.characters.active?.presentation?.background?.image)">
-            <div class="absolute inset-0 pointer-events-none"
-              style="background-image: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.04) 0%, transparent 65%), linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px); background-size: 100% 100%, 32px 32px, 32px 32px;">
-            </div>
-          </template>
-          <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/50 pointer-events-none">
-          </div>
-        </div>
-      </template>
-
-      <!-- Respaldo cuando no hay personaje activo -->
-      <div
-        x-show="!$store.characters.active"
-        class="absolute inset-0 bg-[#07090c]/80 pointer-events-none"></div>
-    </div>
+    <!-- Imagen personalizada (si existe wallpaper activo), con opacidad sobria y elegante -->
+    <template
+      x-if="($store.characters.active?.presentation?.background?.image || $store.characters.active?.visualSettings?.backgroundUrl) && ($store.characters.active?.presentation?.background?.mode === 'custom' || $store.characters.active?.presentation?.background?.mode === 'sync')">
+      <div id="custom-bg-layer" class="absolute inset-0 overflow-hidden opacity-10 transition-opacity duration-300">
+        <img
+          :src="$store.app.getOptimizedImageUrl($store.characters.active?.presentation?.background?.image || $store.characters.active?.visualSettings?.backgroundUrl)"
+          class="w-full h-full object-cover pointer-events-none"
+          :style="$store.characters.getBackgroundStyle()"
+          alt="" />
+      </div>
+    </template>
+  </div>
+</div>

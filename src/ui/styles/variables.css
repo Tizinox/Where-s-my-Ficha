@@ -748,15 +748,12 @@ body::before {
 
 /* ── Layout Grid ────────────────────────────────────────── */
 #app {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  grid-template-columns: auto 1fr;
-  grid-template-areas:
-    "header  header"
-    "sidebar content";
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: auto;
+  max-height: none;
+  overflow: visible;
   position: relative;
   z-index: 1;
   background: transparent !important;
@@ -996,4 +993,23 @@ body::before {
 .cyber-color-popover .text-parchment-cream {
   color: #F8FAFC !important;
 }
+
+/* ── Modo Mate / Desactivar Resplandores Neón Globalmente ── */
+body.no-glow-effects [class*="shadow-[0_0_"] {
+  box-shadow: none !important;
+}
+
+body.no-glow-effects .mode-badge-edit,
+body.no-glow-effects .mode-badge-preview,
+body.no-glow-effects .category-header-icon-box,
+body.no-glow-effects .read-card:hover,
+body.no-glow-effects .skill-card:hover,
+body.no-glow-effects .form-input:focus,
+body.no-glow-effects .form-textarea:focus,
+body.no-glow-effects .form-select:focus,
+body.no-glow-effects .rich-text-editor:focus {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
 

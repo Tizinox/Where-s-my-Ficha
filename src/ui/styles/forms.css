@@ -245,11 +245,13 @@ body.hide-icons-labels .read-label svg {
   display: none !important;
 }
 
-/* ── Neutralización Cromática / Modo Monocromático de Textos y Títulos ── */
+/* ── Neutralización Cromática / Modo Sobrio de Textos y Títulos ── */
 body.disable-custom-colors .section-title,
 body.disable-custom-colors .category-header-title,
 body.disable-custom-colors .form-card h3,
 body.disable-custom-colors .form-card h4,
+body.disable-custom-colors [data-tab-section] h3[class*="text-"],
+body.disable-custom-colors [data-tab-section] h4[class*="text-"],
 body.disable-custom-colors .p-4.rounded-xl h4 {
   color: var(--text-primary, #f1f5f9) !important;
   text-shadow: none !important;
@@ -262,6 +264,7 @@ body.disable-custom-colors .category-header-desc {
 
 body.disable-custom-colors .form-label,
 body.disable-custom-colors .read-label,
+body.disable-custom-colors [data-tab-section] .form-card label[class*="text-"],
 body.disable-custom-colors .form-card .form-label[class*="text-"] {
   color: var(--text-secondary, #cbd5e1) !important;
   text-shadow: none !important;
@@ -272,16 +275,20 @@ body.disable-custom-colors .form-label svg,
 body.disable-custom-colors .read-label i,
 body.disable-custom-colors .read-label svg,
 body.disable-custom-colors .p-4.rounded-xl > div.flex.items-center > i,
-body.disable-custom-colors .p-4.rounded-xl > div.flex.items-center > svg {
+body.disable-custom-colors .p-4.rounded-xl > div.flex.items-center > svg,
+body.disable-custom-colors [data-tab-section] .form-card h4 > i,
+body.disable-custom-colors [data-tab-section] .form-card h4 > svg,
+body.disable-custom-colors [data-tab-section] .form-card label > i,
+body.disable-custom-colors [data-tab-section] .form-card label > svg {
   color: var(--ink-slate, #94a3b8) !important;
 }
 
 body.disable-custom-colors .p-4.rounded-xl.border {
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-color: var(--border-subtle, rgba(255, 255, 255, 0.1)) !important;
 }
 
 body.disable-custom-colors .category-header-icon-box {
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: var(--border-subtle, rgba(255, 255, 255, 0.12)) !important;
   background-color: rgba(255, 255, 255, 0.04) !important;
   background-image: none !important;
   box-shadow: none !important;
@@ -289,7 +296,12 @@ body.disable-custom-colors .category-header-icon-box {
 
 body.disable-custom-colors .category-header-icon-box i,
 body.disable-custom-colors .category-header-icon-box svg {
-  color: var(--ink-slate, #cbd5e1) !important;
+  color: var(--accent, #C8AA6E) !important;
+}
+
+/* Tipografía legible sin sobrecarga monoespaciada en secciones de ficha */
+[data-tab-section] .font-mono:not(kbd):not(code):not(input):not(textarea) {
+  font-family: var(--font-body, 'Inter Tight', sans-serif);
 }
 
 /* ── Componente Universal de Toggle Switch ── */

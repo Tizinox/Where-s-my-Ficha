@@ -48,72 +48,11 @@ export class BootScreen {
   }
 
   init() {
-    this.isDone = false;
     this.biosScreen = document.getElementById('bios-boot-screen');
     this.genericScreen = document.getElementById('generic-loading-screen');
-
-    // Limpiar listeners previos si los hubiera
-    if (this.skipHandler) {
-      window.removeEventListener('keydown', this.skipHandler);
-      if (this.biosScreen) this.biosScreen.removeEventListener('click', this.skipHandler);
-      if (this.genericScreen) this.genericScreen.removeEventListener('click', this.skipHandler);
-    }
-
-    // 1. Determinar modo según configuración del usuario
-    const saved = this._getSavedSettings();
-    const useBios = saved.showSplashScreen !== false && !saved.fastBoot;
-
-    // Actualizar clases de modo en <html> para consistencia
-    if (typeof document !== 'undefined' && document.documentElement) {
-      if (useBios) {
-        document.documentElement.classList.remove('boot-mode-generic');
-        document.documentElement.classList.add('boot-mode-bios');
-      } else {
-        document.documentElement.classList.remove('boot-mode-bios');
-        document.documentElement.classList.add('boot-mode-generic');
-      }
-    }
-
-    // 2. Controlador de salto rápido (Click o teclas Space, Enter, Escape)
-    this.skipHandler = (e) => {
-      if (e.type === 'keydown') {
-        if (!['Space', 'Enter', 'Escape'].includes(e.code) && e.key !== ' ' && e.key !== 'Escape' && e.key !== 'Enter') {
-          return;
-        }
-        e.preventDefault();
-      }
-      this.dismiss(true);
-    };
-
-    window.addEventListener('keydown', this.skipHandler);
-
-    if (useBios) {
-      if (this.genericScreen) this.genericScreen.style.display = 'none';
-      if (this.biosScreen) {
-        this.biosScreen.style.display = 'flex';
-        this.biosScreen.style.opacity = '1';
-        this.biosScreen.addEventListener('click', this.skipHandler);
-
-        const skipBtn = document.getElementById('bios-skip-btn');
-        if (skipBtn) {
-          skipBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.dismiss(true);
-          });
-        }
-
-        this.runBiosSequence(saved);
-      }
-    } else {
-      if (this.biosScreen) this.biosScreen.style.display = 'none';
-      if (this.genericScreen) {
-        this.genericScreen.style.display = 'flex';
-        this.genericScreen.style.opacity = '1';
-        this.genericScreen.addEventListener('click', this.skipHandler);
-
-        this.runGenericSequence();
-      }
-    }
+    if (this.biosScreen) this.biosScreen.style.display = 'none';
+    if (this.genericScreen) this.genericScreen.style.display = 'none';
+    this.dismiss(true);
   }
 
   async runBiosSequence(savedSettings = {}) {

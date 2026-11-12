@@ -28,11 +28,11 @@
     })();
   </script>
   <style>
-    /* Prevención total de FOUC (Flash of Unstyled Content) */
+    /* Prevención total de FOUC con el tema base Fandom Slate */
     html,
     body {
-      background-color: #000000 !important;
-      color: #ffffff;
+      background-color: #1e1f26 !important;
+      color: #e4e4e9;
       margin: 0;
       padding: 0;
     }
@@ -42,11 +42,9 @@
       display: none !important;
     }
 
-    /* ── Control de Pantallas de Arranque (Anti-FOUC) ── */
-    html.boot-mode-generic #bios-boot-screen {
-      display: none !important;
-    }
-    html:not(.boot-mode-generic) #generic-loading-screen {
+    /* ── Desactivar Pantallas de Arranque Cyber BIOS y Cubo 3D Neón ── */
+    #bios-boot-screen,
+    #generic-loading-screen {
       display: none !important;
     }
 
@@ -798,63 +796,11 @@
         </button>
       </div>
 
-      <!-- Tab content dinámico -->
+      <!-- Contenedor Principal de la Ficha Unificada (Hoja Física Integral sin división de sesiones) -->
       <template x-if="$store.characters.active">
-        <div id="tab-content" class="min-h-[600px] min-h-[60vh]" x-show="!$store.characters.loading && !$store.app.isSheetLoading" x-cloak>
-          <!-- Encabezado de sección -->
-          <div class="section-header-bar">
-            <template x-for="tab in $store.app.activeTabObjects" :key="tab.id">
-              <span x-show="$store.app.currentTab === tab.id">
-                <h2 class="section-title">
-                  <span :data-animate-icon="tab.icon" data-size="24" class="w-6 h-6 flex items-center justify-center shrink-0"></span>
-                  <span x-text="tab.label"></span>
-                </h2>
-              </span>
-            </template>
-            <!-- Badge del modo -->
-            <span class="mode-badge"
-              :class="$store.app.editMode ? 'mode-badge-edit' : 'mode-badge-preview'"
-              x-text="$store.app.editMode ? 'Modo Edición' : 'Vista Previa'"></span>
-          </div>
-
-          <!-- Pestañas Modulares del Personaje -->
+        <div id="character-view-container" class="w-full" x-show="!$store.characters.loading && !$store.app.isSheetLoading" x-cloak>
+          <!-- Ficha Integral Física Unificada (Inspirada en D&D y Mörk Borg) -->
           <include src="./src/ui/partials/tabs/tab-basics.html"></include>
-
-          <!-- Pestañas Secundarias con Renderizado Diferido Bajo Demanda (Lazy Mount) -->
-          <template x-if="$store.app.isTabVisited('body')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-body.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('mind')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-mind.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('social')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-social.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('beliefs')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-beliefs.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('priorities')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-priorities.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('skills')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-skills.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('weapons')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-weapons.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('power')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-power.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('extras')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-extras.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('steam')">
-            <div class="contents"><include src="./src/ui/partials/tabs/tab-steam.html"></include></div>
-          </template>
-
-          <!-- Pestaña para Secciones Personalizadas Dinámicas -->
-          <include src="./src/ui/partials/tabs/tab-custom.html"></include>
-
         </div>
       </template>
 

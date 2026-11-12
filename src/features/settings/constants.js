@@ -9,8 +9,8 @@ export const DEFAULT_SETTINGS = {
   tertiaryColor: '#94A3B8',
   glowColor: '#C8AA6E',
   glowMode: 'auto', // 'auto' | 'custom'
-  surfaceColor: '#121418',
-  borderColor: '#2A2E37',
+  surfaceColor: '#1e1f26',
+  borderColor: '#3d4154',
   borderWidth: 1,
   fontDisplay: 'Barlow Condensed',
   fontBody: 'Inter Tight',

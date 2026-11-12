@@ -39,12 +39,13 @@ export {
 };
 
 export function registerSettingsStore(Alpine) {
-  // Migración única al nuevo diseño sobrio y legible (v2)
-  if (!ls.getJSON('superficha_ui_v2_sober')) {
+  // Migración única al nuevo diseño sobrio y legible (v3)
+  let _pendingSoberDbReset = false;
+  if (!ls.getJSON('superficha_ui_v3_sober')) {
     ls.remove('superficha_global_settings');
     ls.remove('superficha_show_placeholders');
-    ls.setJSON('superficha_ui_v2_sober', true);
-    try { db?.meta?.delete?.('global_settings'); } catch {}
+    ls.setJSON('superficha_ui_v3_sober', true);
+    _pendingSoberDbReset = true;
   }
 
   // Carga sincrónica de caché desde localStorage para disponibilidad instantánea al montar
@@ -81,7 +82,7 @@ export function registerSettingsStore(Alpine) {
     fontWeightTierlist: cached.fontWeightTierlist || DEFAULT_SETTINGS.fontWeightTierlist,
 
     density: cached.density || DEFAULT_SETTINGS.density,
-    cornerStyle: cached.cornerStyle || DEFAULT_SETTINGS.cornerStyle || 'chamfer',
+    cornerStyle: cached.cornerStyle || DEFAULT_SETTINGS.cornerStyle || 'rounded',
     kitId: cached.kitId !== undefined ? cached.kitId : DEFAULT_SETTINGS.kitId,
 
     // Visibilidad de Íconos en Interfaz
@@ -449,6 +450,13 @@ export function registerSettingsStore(Alpine) {
 
     async loadGlobalSettings() {
       try {
+        if (_pendingSoberDbReset) {
+          _pendingSoberDbReset = false;
+          try { await db.meta.delete('global_settings'); } catch { }
+          this.showPlaceholders = DEFAULT_SETTINGS.showPlaceholders;
+          this.applyPlaceholderSettings();
+        }
+
         const savedLs = ls.getJSON('superficha_global_settings') || {};
         this._applySettingsObject(savedLs);
 
@@ -464,6 +472,7 @@ export function registerSettingsStore(Alpine) {
             await db.meta.put({ key: 'global_settings', value: serializedSavedLs });
           }
         } catch { }
+        this.applySettings();
       } catch (e) {
         console.warn('[settings] Error al cargar configuraciones globales:', e);
       }
@@ -1201,8 +1210,8 @@ export function registerSettingsStore(Alpine) {
       const secondary = this.secondaryColor || DEFAULT_SETTINGS.secondaryColor;
       const secRgb = this.hexToRgb(secondary) || { r: 255, g: 0, b: 119 };
 
-      let glowRgba = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.35)`;
-      if (this.glowMode === 'custom' && this.glowColor) {
+      let glowRgba = this.disableGlowEffects ? 'transparent' : `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.35)`;
+      if (!this.disableGlowEffects && this.glowMode === 'custom' && this.glowColor) {
         const glowRgb = this.hexToRgb(this.glowColor) || rgb;
         glowRgba = `rgba(${glowRgb.r}, ${glowRgb.g}, ${glowRgb.b}, 0.45)`;
       }
@@ -1227,6 +1236,10 @@ export function registerSettingsStore(Alpine) {
       const border = this.borderColor || DEFAULT_SETTINGS.borderColor;
       const bordRgb = this.hexToRgb(border) || { r: 34, g: 42, b: 54 };
 
+      const secGlow = this.disableGlowEffects ? 'transparent' : `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.35)`;
+      const tertGlow = this.disableGlowEffects ? 'transparent' : `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.35)`;
+      const glowLg = this.disableGlowEffects ? 'transparent' : `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`;
+
       targets.forEach(el => {
         el.style.setProperty('--accent-primary', accent);
         el.style.setProperty('--accent-primary-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
@@ -1239,9 +1252,9 @@ export function registerSettingsStore(Alpine) {
         el.style.setProperty('--accent-secondary-dim', `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.18)`);
         el.style.setProperty('--accent-tertiary-dim', `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.18)`);
         el.style.setProperty('--accent-glow', glowRgba);
-        el.style.setProperty('--accent-secondary-glow', `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.35)`);
-        el.style.setProperty('--accent-tertiary-glow', `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.35)`);
-        el.style.setProperty('--accent-glow-lg', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`);
+        el.style.setProperty('--accent-secondary-glow', secGlow);
+        el.style.setProperty('--accent-tertiary-glow', tertGlow);
+        el.style.setProperty('--accent-glow-lg', glowLg);
         el.style.setProperty('--border-accent', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.25)`);
         el.style.setProperty('--border-secondary', `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.35)`);
         el.style.setProperty('--border-tertiary', `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.35)`);
@@ -1313,6 +1326,7 @@ export function registerSettingsStore(Alpine) {
         document.body.classList.toggle('hide-icons-h3', isH3Hidden);
         document.body.classList.toggle('hide-icons-labels', isLabelsHidden);
         document.body.classList.toggle('disable-custom-colors', isMonochrome);
+        this._syncDocumentThemeClasses();
       }
 
       this.verifyAndLoadFonts();
