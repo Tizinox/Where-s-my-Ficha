@@ -711,8 +711,8 @@
 
           <!-- Resumen de Conducta -->
           <div>
-            <span class="block text-[10px] font-display uppercase tracking-wider text-slate-400 mb-1">Resumen de Personalidad</span>
-            <div x-show="!$store.app.editMode" class="text-slate-300 leading-relaxed"
+            <span class="block text-[10px] font-display uppercase tracking-wider text-[var(--wiki-text-muted)] mb-1">Resumen de Personalidad</span>
+            <div x-show="!$store.app.editMode" class="text-[var(--wiki-text-main)] leading-relaxed"
               x-text="$store.characters.active?.mind?.personalitySummary || 'Sin resumen registrado.'"></div>
             <textarea x-show="$store.app.editMode"
               class="souls-input text-xs w-full min-h-[70px]"
@@ -723,8 +723,8 @@
 
           <!-- Virtudes / Ideales -->
           <div class="pt-2 border-t border-[var(--wiki-border)]">
-            <span class="block text-[10px] font-display uppercase tracking-wider text-emerald-400 mb-1">Virtudes / Ideales</span>
-            <div x-show="!$store.app.editMode" class="text-slate-300"
+            <span class="block text-[10px] font-display uppercase tracking-wider text-emerald-400/90 mb-1">Virtudes / Ideales</span>
+            <div x-show="!$store.app.editMode" class="text-[var(--wiki-text-main)]"
               x-text="$store.characters.active?.mind?.virtues || '—'"></div>
             <input x-show="$store.app.editMode" type="text" class="souls-input text-xs w-full !p-1.5"
               x-model="$store.characters.active.mind.virtues" @input="$store.characters.scheduleAutoSave()"
@@ -733,8 +733,8 @@
 
           <!-- Defectos / Flaws -->
           <div class="pt-2 border-t border-[var(--wiki-border)]">
-            <span class="block text-[10px] font-display uppercase tracking-wider text-rose-400 mb-1">Defectos / Flaws</span>
-            <div x-show="!$store.app.editMode" class="text-slate-300"
+            <span class="block text-[10px] font-display uppercase tracking-wider text-rose-400/90 mb-1">Defectos / Flaws</span>
+            <div x-show="!$store.app.editMode" class="text-[var(--wiki-text-main)]"
               x-text="$store.characters.active?.mind?.flaws || '—'"></div>
             <input x-show="$store.app.editMode" type="text" class="souls-input text-xs w-full !p-1.5"
               x-model="$store.characters.active.mind.flaws" @input="$store.characters.scheduleAutoSave()"
@@ -748,15 +748,15 @@
       <div class="rpg-box">
         <div class="rpg-box-header">
           <span>Historia, Lore &amp; Trasfondo</span>
-          <span class="text-[10px] font-mono opacity-60">Crónica Completa</span>
+          <span class="text-[10px] font-mono opacity-60">Crónica de Campo</span>
         </div>
         <div class="rpg-box-body p-0">
           <!-- Cuaderno físico con renglones continuos -->
-          <div x-show="!$store.app.editMode" class="rpg-lined-area prose max-w-none text-xs sm:text-sm p-4 whitespace-pre-line leading-loose"
+          <div x-show="!$store.app.editMode" class="rpg-lined-area prose max-w-none text-xs sm:text-sm p-4 whitespace-pre-line leading-loose text-[var(--wiki-text-main)]"
             x-html="$store.app.formatRichText($store.characters.active?.beliefs?.originEvent || $store.characters.active?.body?.physicalDescription || 'Sin biografía o trasfondo histórico registrado.')"></div>
 
           <textarea x-show="$store.app.editMode"
-            class="rpg-lined-area w-full p-4 border-0 focus:outline-none resize-vertical"
+            class="rpg-lined-area w-full p-4 border-0 focus:outline-none resize-vertical text-[var(--wiki-text-main)]"
             style="min-height: 280px;"
             x-model="$store.characters.active.beliefs.originEvent"
             @input="$store.characters.scheduleAutoSave()"
@@ -771,7 +771,7 @@
           <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[var(--wiki-accent)]"></i>
         </div>
         <div class="rpg-box-body space-y-2 text-xs">
-          <div x-show="!$store.app.editMode" class="text-slate-300 leading-relaxed whitespace-pre-line"
+          <div x-show="!$store.app.editMode" class="text-[var(--wiki-text-main)] leading-relaxed whitespace-pre-line"
             x-text="$store.characters.active?.extras?.curiosities || 'Sin notas adicionales.'"></div>
           <textarea x-show="$store.app.editMode"
             class="souls-input text-xs w-full min-h-[80px]"

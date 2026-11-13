@@ -1,42 +1,44 @@
 /* ==========================================================================
-   WHERE'S MY FICHA — TEMA WIKI FANDOM & DARK SOULS MENU
-   Diseño editorial limpio, orden visual de cajas y líneas sobrias.
-   Cero mecánicas de rol intrusivas (sin dados, HP ni atributos D&D).
+   WHERE'S MY FICHA — TEMA CLEAN PAPER & FIELD ARCHIVE
+   Diseño sobrio, sensación de libreta de campo, expediente y cuaderno físico.
+   Menos saturación digital, cero cliché de IA, alta elegancia y foco editorial.
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap');
 
 :root {
-  /* Paleta Base (Modo Oscuro Fandom Slate / Grafito Suave - Cero Negro Absoluto) */
-  --wiki-bg-outer: #1e1f26;        /* Fondo exterior pizarra suave */
-  --wiki-bg-canvas: #282a36;       /* Hoja / Contenedor principal de la Wiki */
-  --wiki-bg-elevated: #313342;     /* Tarjetas, cajas elevadas, inputs y sumario */
-  --wiki-bg-infobox: #2c2f3d;      /* Fondo de la Infobox lateral */
-  --wiki-bg-header: #181920;       /* Barra superior fija limpia */
+  /* Paleta Base Clean Paper Dark (Pizarra carbón cálido + papel biblia envejecido / tinta pergamino) */
+  --wiki-bg-outer: #151619;        /* Fondo exterior: carbón suave natural */
+  --wiki-bg-canvas: #1c1d22;       /* Cuaderno / Expediente principal */
+  --wiki-bg-elevated: #24262c;     /* Cajas de notas, bloques y fichas secundarias */
+  --wiki-bg-infobox: #202228;      /* Ficha biográfica lateral */
+  --wiki-bg-header: #121316;       /* Barra superior minimalista */
 
-  /* Bordes limpios (Estilo Fandom / Hoja física) */
-  --wiki-border: #3d4154;          /* Borde neutro mate sin brillo */
-  --wiki-border-strong: #50556e;   /* Borde definido */
-  --wiki-accent: #cda869;          /* Dorado apagado y editorial (sin neón) */
-  --wiki-accent-dim: rgba(205, 168, 105, 0.12);
-  --wiki-link: #6ba6ff;            /* Azul hipervínculo clásico de Wiki */
+  /* Bordes artesanales limpios y sutiles (sin brillos de neón) */
+  --wiki-border: #32353e;          /* Trazo fino de lápiz / delimitador mate */
+  --wiki-border-strong: #464a57;   /* Trazo de encuadernación */
+  --wiki-accent: #d4a359;          /* Tinta dorada tenue / ámbar sepia */
+  --wiki-accent-rgb: 212, 163, 89;
+  --wiki-accent-dim: rgba(212, 163, 89, 0.12);
+  --wiki-accent-strong: #e5b974;
+  --wiki-link: #82aaff;            /* Tinta de referencia azul clásica */
 
-  /* Texto de alta legibilidad */
-  --wiki-text-main: #f0f1f5;       /* Blanco roto suave para lectura cómoda */
-  --wiki-text-muted: #a0a4b8;      /* Texto secundario claro */
-  --wiki-text-dim: #717589;        /* Texto sutil */
+  /* Tipografía y Textos de descanso visual */
+  --wiki-text-main: #ede8df;       /* Blanco pergamino / marfil suave para no cansar la vista */
+  --wiki-text-muted: #a39e93;      /* Tinta secundaria agrisada cálida */
+  --wiki-text-dim: #706c64;        /* Anotaciones al margen sutiles */
 
-  /* Tipografía editorial Wiki */
-  --font-wiki-serif: 'Source Serif 4', Georgia, serif;
+  /* Tipografías de Autor */
+  --font-wiki-serif: 'Newsreader', 'Source Serif 4', Georgia, serif;
 }
 
 /* En modo Ficha Clásica (rama main) se conservan las variables y tipografías originales de variables.css */
 :root:not(.sheet-mode-classic) {
-  --font-display: 'Cinzel', Georgia, serif;
+  --font-display: 'Cinzel', 'Newsreader', Georgia, serif;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Adaptación de variables previas al nuevo tema sobrio */
+  /* Adaptación de variables al nuevo tema artesanal Clean Paper */
   --accent: var(--wiki-accent);
   --accent-dim: var(--wiki-accent-dim);
   --accent-glow: transparent;
@@ -49,23 +51,24 @@
   --text-muted: var(--wiki-text-dim);
 }
 
-/* Tema Claro (Modo Papel / Fandom Claro) */
+/* Tema Claro (Clean Paper Claro / Cuaderno de Campo Blanco Hueso) */
 html[data-theme="light"],
 [data-surface-theme="light"],
 .surface-light {
-  --wiki-bg-outer: #eaebf0;        /* Gris suave limpio */
-  --wiki-bg-canvas: #ffffff;       /* Hoja blanca de Wiki */
-  --wiki-bg-elevated: #f4f5f8;     /* Cajas secundarias */
-  --wiki-bg-infobox: #f8f9fb;      /* Infobox lateral */
-  --wiki-bg-header: #1f222a;       /* Barra superior */
-  --wiki-border: #d0d4dd;
-  --wiki-border-strong: #9ca3af;
-  --wiki-accent: #8c5d17;          /* Dorado ámbar cálido */
-  --wiki-accent-dim: rgba(140, 93, 23, 0.08);
-  --wiki-link: #1d4ed8;
-  --wiki-text-main: #1e2229;
-  --wiki-text-muted: #545b69;
-  --wiki-text-dim: #798294;
+  --wiki-bg-outer: #f4f1ea;        /* Mesa de madera clara / lino */
+  --wiki-bg-canvas: #faf8f5;       /* Hoja de papel hueso / kraft suave */
+  --wiki-bg-elevated: #eeebe3;     /* Cajas de notas */
+  --wiki-bg-infobox: #f1eee6;      /* Bloque de ficha */
+  --wiki-bg-header: #21201d;       /* Barra sobria */
+  --wiki-border: #d7d1c5;          /* Trazo de lápiz suave */
+  --wiki-border-strong: #aba394;   /* Línea de guía definida */
+  --wiki-accent: #9e6919;          /* Tinta sepia quemada */
+  --wiki-accent-rgb: 158, 105, 25;
+  --wiki-accent-dim: rgba(158, 105, 25, 0.09);
+  --wiki-link: #2b5cb8;
+  --wiki-text-main: #23221e;       /* Tinta negra carbón */
+  --wiki-text-muted: #5e5a52;      /* Gris grafito */
+  --wiki-text-dim: #8c867c;        /* Margen */
 }
 
 html:not(.sheet-mode-classic)[data-theme="light"],
@@ -927,26 +930,26 @@ body.sheet-mode-classic {
   background-color: var(--wiki-bg-elevated);
   background-image: repeating-linear-gradient(
     transparent,
-    transparent 26px,
-    var(--wiki-border) 26px,
-    var(--wiki-border) 27px
+    transparent 27px,
+    var(--wiki-border) 27px,
+    var(--wiki-border) 28px
   );
-  line-height: 27px;
-  padding: 6px 12px;
+  line-height: 28px;
+  padding: 8px 14px;
   font-family: var(--font-wiki-serif);
-  font-size: 0.95rem;
+  font-size: 0.98rem;
   color: var(--wiki-text-main);
-  min-height: 200px;
+  min-height: 220px;
 }
 
 /* ==========================================================================
-   9. COMUNIDAD & HUB PRINCIPAL ESTILO WIKI FANDOM
-   Cabecera de comunidad con blasón, título editorial, métricas y subnav.
+   9. COMUNIDAD & HUB PRINCIPAL ESTILO EXPEDIENTE & CLEAN PAPER
+   Cabecera de compendio con textura serena, métricas de archivo y subnav fluida.
    ========================================================================== */
 
 .fandom-community-banner {
-  background: linear-gradient(180deg, #2b2e3c 0%, #232531 100%);
-  border: 1px solid var(--wiki-border);
+  background-color: var(--wiki-bg-canvas);
+  border: 1px solid var(--wiki-border-strong);
   margin-bottom: 24px;
   position: relative;
   overflow: hidden;
@@ -959,7 +962,7 @@ body.sheet-mode-classic {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2px;
   background: var(--wiki-accent);
 }
 
@@ -1222,7 +1225,7 @@ body.sheet-mode-classic {
   font-family: var(--font-mono);
 }
 
-/* Cuadrícula de Tarjetas Fandom */
+/* Cuadrícula de Tarjetas Clean Paper / Expedientes */
 .fandom-roster-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -1232,9 +1235,10 @@ body.sheet-mode-classic {
 
 .fandom-card {
   background-color: var(--wiki-bg-canvas);
-  border: 1px solid var(--wiki-border-strong);
+  border: 1px solid var(--wiki-border);
+  border-radius: 4px;
   overflow: hidden;
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -1244,6 +1248,7 @@ body.sheet-mode-classic {
 .fandom-card:hover {
   border-color: var(--wiki-accent);
   transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .fandom-card-thumb {
@@ -1264,7 +1269,7 @@ body.sheet-mode-classic {
 }
 
 .fandom-card:hover .fandom-card-thumb img:not([style*="transform"]) {
-  transform: scale(1.04);
+  transform: scale(1.02);
 }
 
 .fandom-card-body {

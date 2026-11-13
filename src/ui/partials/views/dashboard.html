@@ -26,21 +26,21 @@
 
   <div class="w-full max-w-[1240px] mx-auto px-4 sm:px-6 py-6 flex flex-col gap-6">
 
-    <!-- 1. BANNER DE CABECERA DE COMUNIDAD ESTILO FANDOM WIKI -->
+    <!-- 1. BANNER DE CABECERA ESTILO ARCHIVO DE EXPEDIENTES / CLEAN PAPER -->
     <div class="fandom-community-banner">
       <div class="fandom-community-banner-content">
 
-        <!-- Blasón y Título de la Wiki -->
+        <!-- Emblema y Título del Archivo -->
         <div class="fandom-community-brand-block">
           <div class="fandom-community-avatar">
-            <img src="/favicon.png" alt="Wiki Crest" />
+            <img src="/favicon.png" alt="Sello de Archivo" />
           </div>
           <div class="fandom-community-meta">
             <span class="fandom-community-badge">
-              <i data-lucide="compass" class="w-3 h-3"></i>
-              <span>Compendio &amp; Archivo Central</span>
+              <i data-lucide="scroll" class="w-3 h-3"></i>
+              <span>Compendio &amp; Registro de Personajes</span>
             </span>
-            <h1 class="fandom-community-title">Where's my Ficha Wiki</h1>
+            <h1 class="fandom-community-title">Where's my Ficha</h1>
           </div>
         </div>
 
@@ -49,32 +49,32 @@
           <div class="fandom-community-stats">
             <div class="fandom-stat-item">
               <span class="fandom-stat-val" x-text="$store.characters.list.length">0</span>
-              <span class="fandom-stat-lbl">Fichas</span>
+              <span class="fandom-stat-lbl">Expedientes</span>
             </div>
             <div class="fandom-stat-divider"></div>
             <div class="fandom-stat-item">
               <span class="fandom-stat-val" x-text="$store.characters.folders.length">0</span>
-              <span class="fandom-stat-lbl">Categorías</span>
+              <span class="fandom-stat-lbl">Tomos / Mundos</span>
             </div>
           </div>
 
           <button type="button" class="souls-btn souls-btn-primary py-2 px-4 text-xs font-semibold"
             @click="$store.characters.createNew()" title="Crear nueva ficha de personaje">
-            <i data-lucide="plus" class="w-4 h-4"></i>
-            <span>+ Crear Ficha</span>
+            <i data-lucide="feather" class="w-4 h-4"></i>
+            <span>+ Redactar Ficha</span>
           </button>
         </div>
 
       </div>
 
-      <!-- Sub-navegación estilo Fandom (Pestañas de Categorías y Filtros) -->
+      <!-- Sub-navegación estilo Clean Paper (Pestañas de Carpetas y Filtros) -->
       <div class="fandom-community-subnav">
         <div class="fandom-subnav-tabs">
           <button type="button" class="fandom-subnav-tab"
             :class="{ 'is-active': $store.characters.activeFolderId === 'all' && !$store.characters.filterFavorite }"
             @click="$store.characters.filterFavorite = false; $store.characters.setActiveFolder('all')">
-            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-            <span>Todas las Fichas</span>
+            <i data-lucide="archive" class="w-3.5 h-3.5"></i>
+            <span>Todos los Registros</span>
             <span class="opacity-60 text-xs" x-text="`(${$store.characters.list.length})`"></span>
           </button>
 

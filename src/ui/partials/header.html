@@ -14,35 +14,35 @@
         <img src="/favicon.png" alt="Logo" class="w-7 h-7 object-contain border p-0.5 shrink-0"
           style="border-color: var(--wiki-border-strong);" />
         <div class="flex flex-col">
-          <span style="font-family: var(--font-display); letter-spacing: 0.06em;"
-            class="text-xs sm:text-sm font-bold text-[#e4e4e9] group-hover:text-[var(--wiki-accent)] transition-colors leading-tight truncate">
+          <span style="font-family: var(--font-display); letter-spacing: 0.08em;"
+            class="text-xs sm:text-sm font-bold text-[var(--wiki-text-main)] group-hover:text-[var(--wiki-accent)] transition-colors leading-tight truncate">
             WHERE'S MY FICHA
           </span>
           <span class="text-[9px] sm:text-[10px] uppercase tracking-widest hidden sm:inline" style="color: var(--wiki-text-muted);">
-            Compendio &amp; Wiki de Personajes
+            Archivo &amp; Cuaderno de Rol
           </span>
         </div>
       </a>
 
-      <!-- Navegación Principal estilo Wiki (Pestañas Superiores) -->
+      <!-- Navegación Principal estilo Cuaderno de Campo -->
       <nav id="main-nav-tabs" class="hidden md:flex items-center gap-1 shrink-0">
         <button type="button" data-tab="characters"
           class="souls-btn !border-0 !bg-transparent text-xs py-1.5 px-3 uppercase tracking-wider transition-colors cursor-pointer"
-          :class="$store.app.activeView === 'dashboard' ? '!text-[var(--wiki-accent)] !border-b-2 !border-[var(--wiki-accent)] font-semibold' : 'text-slate-300 hover:text-white'"
+          :class="$store.app.activeView === 'dashboard' ? '!text-[var(--wiki-accent)] !border-b-2 !border-[var(--wiki-accent)] font-semibold' : 'text-[var(--wiki-text-muted)] hover:text-[var(--wiki-text-main)]'"
           @click="$store.app.openDashboardView()">
-          Archivo de Fichas
+          Archivo
         </button>
         <button type="button" data-tab="tierlist"
           class="souls-btn !border-0 !bg-transparent text-xs py-1.5 px-3 uppercase tracking-wider transition-colors cursor-pointer"
-          :class="$store.app.activeView === 'tierlist' ? '!text-[var(--wiki-accent)] !border-b-2 !border-[var(--wiki-accent)] font-semibold' : 'text-slate-300 hover:text-white'"
+          :class="$store.app.activeView === 'tierlist' ? '!text-[var(--wiki-accent)] !border-b-2 !border-[var(--wiki-accent)] font-semibold' : 'text-[var(--wiki-text-muted)] hover:text-[var(--wiki-text-main)]'"
           @click="$store.app.openTierListView()">
-          Tier List
+          Escala / Tier List
         </button>
         <button type="button" data-tab="settings"
           class="souls-btn !border-0 !bg-transparent text-xs py-1.5 px-3 uppercase tracking-wider transition-colors cursor-pointer"
-          :class="$store.app.activeView === 'settings' ? '!text-[var(--wiki-accent)] !border-b-2 !border-[var(--wiki-accent)] font-semibold' : 'text-slate-300 hover:text-white'"
+          :class="$store.app.activeView === 'settings' ? '!text-[var(--wiki-accent)] !border-b-2 !border-[var(--wiki-accent)] font-semibold' : 'text-[var(--wiki-text-muted)] hover:text-[var(--wiki-text-main)]'"
           @click="$store.settings.openModal()">
-          Configuración
+          Ajustes
         </button>
       </nav>
 
