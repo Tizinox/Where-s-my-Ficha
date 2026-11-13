@@ -1,7 +1,7 @@
 <!-- ==============================================================
      HEADER BAR — WIKI FANDOM FLAT TOP BAR
      ============================================================== -->
-<header id="app-header" class="sticky top-0 z-40 w-full border-b"
+<header id="app-header" data-protect-contrast="true" class="sticky top-0 z-40 w-full border-b"
   style="background-color: var(--wiki-bg-header); border-color: var(--wiki-border);"
   :class="{ '!hidden': $store.app.activeView === 'tierlist' && $store.tierlist.isZenMode }">
   <div class="w-full max-w-[1240px] mx-auto px-4 h-14 flex items-center justify-between gap-4">
@@ -15,7 +15,7 @@
           style="border-color: var(--wiki-border-strong);" />
         <div class="flex flex-col">
           <span style="font-family: var(--font-display); letter-spacing: 0.06em;"
-            class="text-xs sm:text-sm font-bold text-[#e4e4e9] group-hover:text-[#c8aa6e] transition-colors leading-tight truncate">
+            class="text-xs sm:text-sm font-bold text-[#e4e4e9] group-hover:text-[var(--wiki-accent)] transition-colors leading-tight truncate">
             WHERE'S MY FICHA
           </span>
           <span class="text-[9px] sm:text-[10px] uppercase tracking-widest hidden sm:inline" style="color: var(--wiki-text-muted);">
@@ -55,7 +55,7 @@
           <span class="hidden xl:inline">Fichas</span>
         </button>
 
-        <span class="text-xs font-serif font-semibold text-parchment-cream truncate max-w-[130px] sm:max-w-[170px]"
+        <span class="text-xs font-serif font-semibold text-[#e4e4e9] truncate max-w-[130px] sm:max-w-[170px]"
           x-text="$store.characters.active?.name || 'Ficha sin título'"></span>
 
         <!-- Favorito & Bloqueo -->

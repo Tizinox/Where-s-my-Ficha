@@ -5,10 +5,10 @@
 <main id="main-dashboard-view" role="main" aria-label="Archivo Central de Fichas"
   x-data="{ isDraggingFiles: false }"
   @keydown.escape.window="if ($store.app.activeView === 'dashboard' && $store.characters.selectedCount > 0) $store.characters.clearSelection()"
-  @dragenter.prevent="isDraggingFiles = true"
-  @dragleave.prevent="isDraggingFiles = false"
-  @dragover.prevent
-  @drop.prevent="isDraggingFiles = false; $store.characters.handleJSONDrop($event)"
+  @dragenter.prevent="if (!$store.characters.draggingCharId && $event.dataTransfer?.types?.includes('Files')) isDraggingFiles = true"
+  @dragover.prevent="if (!$store.characters.draggingCharId && $event.dataTransfer?.types?.includes('Files')) isDraggingFiles = true"
+  @dragleave.prevent="if ($event.relatedTarget === null || $event.target === $el) isDraggingFiles = false"
+  @drop.prevent="isDraggingFiles = false; if (!$store.characters.draggingCharId && $event.dataTransfer?.files?.length) $store.characters.handleJSONDrop($event)"
   class="w-full pb-24 relative"
   style="background-color: var(--wiki-bg-outer);"
   x-show="$store.app.activeView === 'dashboard'">
@@ -80,17 +80,40 @@
 
           <button type="button" class="fandom-subnav-tab"
             :class="{ 'is-active': $store.characters.filterFavorite }"
-            @click="$store.characters.filterFavorite = !$store.characters.filterFavorite">
+            @click="$store.characters.filterFavorite = !$store.characters.filterFavorite; $store.characters.currentPage = 1">
             <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i>
             <span>Favoritas</span>
             <span class="opacity-60 text-xs" x-text="`(${$store.characters.list.filter(c => c.isFavorite).length})`"></span>
           </button>
 
-          <!-- Carpetas y Universos Dinámicos -->
+          <button type="button" class="fandom-subnav-tab"
+            x-show="$store.characters.folders.length > 0"
+            :class="{
+              'is-active': $store.characters.activeFolderId === 'unassigned' && !$store.characters.filterFavorite,
+              '!border-dashed !border-[var(--wiki-accent)] !bg-[var(--wiki-accent-dim)]': $store.characters.dragOverFolderId === 'unassigned'
+            }"
+            @click="$store.characters.filterFavorite = false; $store.characters.setActiveFolder('unassigned')"
+            @dragover.prevent="$store.characters.handleDragOverFolder($event, 'unassigned')"
+            @dragleave.prevent="$store.characters.handleDragLeaveFolder($event, 'unassigned')"
+            @drop.stop.prevent="$store.characters.handleDropOnFolder($event, 'unassigned')"
+            title="Fichas sin carpeta (suelta una ficha aquí para sacarla de su carpeta)">
+            <i data-lucide="folder" class="w-3.5 h-3.5 opacity-70"></i>
+            <span>Sin Carpeta</span>
+            <span class="opacity-60 text-xs" x-text="`(${$store.characters.unassignedCharCount})`"></span>
+          </button>
+
+          <!-- Carpetas y Universos Dinámicos (Aceptan Drag & Drop de Fichas) -->
           <template x-for="folder in $store.characters.folders" :key="folder.id">
             <button type="button" class="fandom-subnav-tab"
-              :class="{ 'is-active': $store.characters.activeFolderId === folder.id && !$store.characters.filterFavorite }"
-              @click="$store.characters.filterFavorite = false; $store.characters.setActiveFolder(folder.id)">
+              :class="{
+                'is-active': $store.characters.activeFolderId === folder.id && !$store.characters.filterFavorite,
+                '!border-dashed !border-[var(--wiki-accent)] !bg-[var(--wiki-accent-dim)]': $store.characters.dragOverFolderId === folder.id
+              }"
+              @click="$store.characters.filterFavorite = false; $store.characters.setActiveFolder(folder.id)"
+              @dragover.prevent="$store.characters.handleDragOverFolder($event, folder.id)"
+              @dragleave.prevent="$store.characters.handleDragLeaveFolder($event, folder.id)"
+              @drop.stop.prevent="$store.characters.handleDropOnFolder($event, folder.id)"
+              :title="`Abrir carpeta «${folder.name}» (también puedes soltar tarjetas aquí)`">
               <span class="w-2 h-2 rounded-full inline-block shrink-0" :style="`background-color: ${folder.color || 'var(--wiki-accent)'};`"></span>
               <span x-text="folder.name"></span>
               <span class="opacity-60 text-xs" x-text="`(${$store.characters.getFolderCharCount(folder.id)})`"></span>
@@ -105,6 +128,62 @@
           </button>
         </div>
       </div>
+
+      <!-- Barra Contextual de Carpeta Activa (Añadir fichas existentes, editar o eliminar carpeta) -->
+      <template x-if="$store.characters.activeFolder && !$store.characters.filterFavorite">
+        <div class="mt-2 px-3 py-2 bg-[var(--wiki-bg-elevated)] border border-[var(--wiki-border-strong)] flex flex-wrap items-center justify-between gap-2 text-xs"
+          x-data="{ openAddChars: false }">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-4 h-4 inline-flex items-center justify-center shrink-0"
+              x-html="$store.characters.renderFolderIconSvg($store.characters.activeFolder.icon, 'w-4 h-4', $store.characters.activeFolder.color || 'var(--wiki-accent)')"></span>
+            <span class="font-semibold text-white truncate" x-text="$store.characters.activeFolder.name"></span>
+            <span class="text-slate-400 font-mono text-[11px]"
+              x-text="`· ${$store.characters.getFolderCharCount($store.characters.activeFolder.id)} ficha(s)`"></span>
+          </div>
+
+          <div class="flex items-center gap-1.5 flex-wrap relative">
+            <!-- Desplegable para añadir personajes existentes a esta carpeta -->
+            <div class="relative" @click.outside="openAddChars = false">
+              <button type="button" class="souls-btn souls-btn-primary text-[11px] py-1 px-2.5 cursor-pointer flex items-center gap-1"
+                @click="openAddChars = !openAddChars">
+                <i data-lucide="plus" class="w-3 h-3"></i>
+                <span>Meter Fichas</span>
+              </button>
+
+              <div x-show="openAddChars" x-cloak
+                class="absolute right-0 top-full mt-1 w-64 max-h-64 overflow-y-auto p-1.5 bg-[var(--wiki-bg-elevated)] border border-[var(--wiki-border-strong)] z-40 shadow-xl space-y-0.5">
+                <div class="px-2 py-1 text-[10px] font-mono uppercase text-slate-400 border-b border-white/10">
+                  Añadir a «<span x-text="$store.characters.activeFolder.name"></span>»
+                </div>
+                <template x-for="cand in $store.characters.list.filter(c => c.folderId !== $store.characters.activeFolderId)" :key="cand.id">
+                  <button type="button"
+                    @click="$store.characters.moveCharacterToFolder(cand.id, $store.characters.activeFolderId)"
+                    class="w-full text-left px-2 py-1.5 hover:bg-white/10 flex items-center justify-between gap-2 text-slate-200 cursor-pointer">
+                    <span class="truncate" x-text="cand.name || cand.basics?.fullName || 'Sin Nombre'"></span>
+                    <span class="text-[10px] font-mono text-[var(--wiki-accent)] shrink-0">+ Meter</span>
+                  </button>
+                </template>
+                <div x-show="$store.characters.list.filter(c => c.folderId !== $store.characters.activeFolderId).length === 0"
+                  class="px-2 py-2 text-[11px] text-slate-400 italic text-center">
+                  Todas las fichas ya están en esta carpeta.
+                </div>
+              </div>
+            </div>
+
+            <button type="button" class="souls-btn text-[11px] py-1 px-2 cursor-pointer flex items-center gap-1"
+              @click="$store.characters.openEditFolderModal($store.characters.activeFolder)" title="Editar carpeta">
+              <i data-lucide="pencil" class="w-3 h-3"></i>
+              <span>Editar</span>
+            </button>
+
+            <button type="button" class="souls-btn text-[11px] py-1 px-2 cursor-pointer !text-rose-400 flex items-center gap-1"
+              @click="$store.characters.confirmDeleteFolder($store.characters.activeFolder)" title="Eliminar carpeta">
+              <i data-lucide="trash-2" class="w-3 h-3"></i>
+              <span>Eliminar</span>
+            </button>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- 2. BARRA DE BÚSQUEDA Y ORDEN -->
@@ -176,25 +255,68 @@
         <template x-for="char in $store.characters.paginatedList" :key="char.id">
           <div class="fandom-card group"
             x-data="{ isMenuOpen: false }"
+            draggable="true"
+            :class="{ 'is-menu-open': isMenuOpen }"
+            :style="isMenuOpen ? 'overflow: visible !important; z-index: 40 !important;' : ''"
+            @dragstart="$store.characters.startCharDrag($event, char.id)"
+            @dragend="$store.characters.endCharDrag()"
             @click="$store.characters.openCharacterSheet(char.id)"
-            :title="`Abrir ficha: ${char.name || 'Sin Nombre'}`">
+            :title="`Abrir ficha: ${char.name || 'Sin Nombre'} (arrástrala a una carpeta para guardarla)`">
 
-            <!-- Portada / Retrato del Personaje -->
-            <div class="fandom-card-thumb">
-              <template x-if="char.basics?.avatarDataUrl || char.basics?.bannerDataUrl || char.visualSettings?.backgroundUrl">
-                <img :src="$store.app.getOptimizedImageUrl(char.basics?.avatarDataUrl || char.basics?.bannerDataUrl || char.visualSettings?.backgroundUrl)"
-                  :alt="char.name" loading="lazy" />
+            <!-- Portada / Báner + Retrato del Personaje -->
+            <div class="fandom-card-thumb" :style="isMenuOpen ? 'overflow: visible !important;' : ''">
+              <!-- Caso 1: Tiene Báner (o Fondo) — Se ve de fondo panorámico y superpone la Imagen/Avatar si existe -->
+              <template x-if="char.basics?.bannerDataUrl || char.visualSettings?.backgroundUrl">
+                <div class="w-full h-full relative overflow-hidden">
+                  <img :src="$store.app.getOptimizedImageUrl(char.basics?.bannerDataUrl || char.visualSettings?.backgroundUrl)"
+                    :alt="char.name"
+                    draggable="false"
+                    class="w-full h-full object-cover block"
+                    :style="char.basics?.bannerDataUrl ? (char.basics?.bannerTransform || '') : ''"
+                    loading="lazy" />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/15 pointer-events-none"></div>
+
+                  <!-- Retrato / Imagen del Personaje superpuesta sobre el Báner -->
+                  <template x-if="char.basics?.avatarDataUrl">
+                    <div class="absolute bottom-2.5 left-2.5 z-10 w-20 h-24">
+                      <div class="w-full h-full border-2 border-[var(--wiki-accent)] bg-black/75 overflow-hidden"
+                        :style="`border-radius: ${$store.characters.getAvatarRadiusCss(char)};`">
+                        <img :src="$store.app.getOptimizedImageUrl(char.basics.avatarDataUrl)"
+                          :alt="char.name"
+                          draggable="false"
+                          class="w-full h-full object-cover block"
+                          :style="char.basics?.avatarTransform || ''"
+                          loading="lazy" />
+                      </div>
+                      <template x-if="char.basics?.avatarFrame?.url">
+                        <img :src="char.basics.avatarFrame.url" class="steam-avatar-frame-overlay pointer-events-none" alt="" />
+                      </template>
+                    </div>
+                  </template>
+                </div>
               </template>
+
+              <!-- Caso 2: Sin Báner pero con Imagen/Avatar principal -->
+              <template x-if="!(char.basics?.bannerDataUrl || char.visualSettings?.backgroundUrl) && char.basics?.avatarDataUrl">
+                <div class="w-full h-full relative overflow-hidden">
+                  <img :src="$store.app.getOptimizedImageUrl(char.basics.avatarDataUrl)"
+                    :alt="char.name"
+                    draggable="false"
+                    class="w-full h-full object-cover block"
+                    :style="char.basics?.avatarTransform || ''"
+                    loading="lazy" />
+                  <template x-if="char.basics?.avatarFrame?.url">
+                    <img :src="char.basics.avatarFrame.url" class="steam-avatar-frame-overlay pointer-events-none" alt="" />
+                  </template>
+                </div>
+              </template>
+
+              <!-- Caso 3: Sin Báner ni Imagen/Avatar -->
               <template x-if="!char.basics?.avatarDataUrl && !char.basics?.bannerDataUrl && !char.visualSettings?.backgroundUrl">
                 <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-[var(--wiki-bg-elevated)]">
                   <i data-lucide="user" class="w-12 h-12 mb-1 opacity-50"></i>
                   <span class="text-[10px] uppercase font-mono tracking-wider">Sin Ilustración</span>
                 </div>
-              </template>
-
-              <!-- Marco de Steam overlay si está configurado -->
-              <template x-if="char.basics?.avatarFrame?.url">
-                <img :src="char.basics.avatarFrame.url" class="steam-avatar-frame-overlay pointer-events-none" alt="" />
               </template>
 
               <!-- Botón Favorito en Esquina Superior Izquierda -->
@@ -216,7 +338,7 @@
 
                 <!-- Menú desplegable -->
                 <div x-show="isMenuOpen" @click.outside="isMenuOpen = false"
-                  class="absolute right-0 top-full mt-1 w-44 p-1 bg-[var(--wiki-bg-elevated)] border border-[var(--wiki-border-strong)] z-30 shadow-lg text-xs space-y-0.5" x-cloak>
+                  class="absolute right-0 top-full mt-1 w-52 p-1 bg-[var(--wiki-bg-elevated)] border border-[var(--wiki-border-strong)] z-30 shadow-lg text-xs space-y-0.5 max-h-80 overflow-y-auto" x-cloak>
                   <button type="button" @click.stop="$store.characters.duplicate(char.id); isMenuOpen = false"
                     class="w-full text-left px-2.5 py-1.5 hover:bg-white/10 flex items-center gap-2 text-slate-200 cursor-pointer">
                     <i data-lucide="copy" class="w-3.5 h-3.5"></i>
@@ -227,6 +349,37 @@
                     <i data-lucide="download" class="w-3.5 h-3.5"></i>
                     <span>Exportar JSON</span>
                   </button>
+
+                  <!-- Mover a Carpeta -->
+                  <div class="border-t border-white/10 pt-1 mt-1 space-y-0.5">
+                    <div class="px-2.5 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                      Guardar en carpeta
+                    </div>
+                    <template x-for="f in $store.characters.folders" :key="f.id">
+                      <button type="button"
+                        @click.stop="$store.characters.moveCharacterToFolder(char.id, f.id); isMenuOpen = false"
+                        class="w-full text-left px-2.5 py-1.5 hover:bg-white/10 flex items-center justify-between gap-2 text-slate-200 cursor-pointer">
+                        <span class="flex items-center gap-2 min-w-0">
+                          <span class="w-2 h-2 rounded-full shrink-0" :style="`background-color: ${f.color || 'var(--wiki-accent)'};`"></span>
+                          <span class="truncate" x-text="f.name"></span>
+                        </span>
+                        <i x-show="char.folderId === f.id" data-lucide="check" class="w-3.5 h-3.5 text-[var(--wiki-accent)] shrink-0"></i>
+                      </button>
+                    </template>
+                    <button x-show="char.folderId" type="button"
+                      @click.stop="$store.characters.moveCharacterToFolder(char.id, 'unassigned'); isMenuOpen = false"
+                      class="w-full text-left px-2.5 py-1.5 hover:bg-white/10 flex items-center gap-2 text-slate-300 cursor-pointer">
+                      <i data-lucide="folder" class="w-3.5 h-3.5 opacity-60"></i>
+                      <span>Quitar de carpeta</span>
+                    </button>
+                    <button type="button"
+                      @click.stop="isMenuOpen = false; $store.characters.openCreateFolderModal()"
+                      class="w-full text-left px-2.5 py-1.5 hover:bg-white/10 flex items-center gap-2 text-[var(--wiki-accent)] cursor-pointer">
+                      <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i>
+                      <span>+ Nueva Carpeta</span>
+                    </button>
+                  </div>
+
                   <button type="button" @click.stop="$store.characters.confirmDelete(char.id); isMenuOpen = false"
                     class="w-full text-left px-2.5 py-1.5 hover:bg-rose-500/20 text-rose-400 flex items-center gap-2 cursor-pointer border-t border-white/10">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -235,8 +388,8 @@
                 </div>
               </div>
 
-              <!-- Badge de Tier o Rol en la esquina inferior -->
-              <div class="absolute bottom-2 left-2 z-10">
+              <!-- Badge de Tier o Rol en la esquina inferior derecha -->
+              <div class="absolute bottom-2 right-2 z-10 flex items-center gap-1">
                 <span class="text-[9.5px] font-mono uppercase font-bold px-1.5 py-0.5 bg-[var(--wiki-bg-header)]/90 border border-white/20 text-[var(--wiki-accent)]"
                   x-text="char.powerScaling?.tier || char.basics?.role || 'Ficha'"></span>
               </div>
@@ -244,10 +397,18 @@
 
             <!-- Cuerpo del Card -->
             <div class="fandom-card-body">
-              <div>
-                <h3 class="fandom-card-title truncate" x-text="char.name || char.basics?.fullName || 'Sin Nombre'"></h3>
-                <p class="fandom-card-subtitle truncate"
-                  x-text="char.basics?.nickname ? ('«' + char.basics.nickname + '»') : (char.basics?.race || 'Registro Enciclopédico')"></p>
+              <div class="flex items-start gap-2.5">
+                <template x-if="char.basics?.iconDataUrl">
+                  <img :src="$store.app.getOptimizedImageUrl(char.basics.iconDataUrl)"
+                    :alt="char.name"
+                    class="w-9 h-9 object-cover border border-[var(--wiki-border-strong)] shrink-0 mt-0.5"
+                    :style="char.basics.iconTransform || ''" />
+                </template>
+                <div class="min-w-0 flex-1">
+                  <h3 class="fandom-card-title truncate" x-text="char.name || char.basics?.fullName || 'Sin Nombre'"></h3>
+                  <p class="fandom-card-subtitle truncate"
+                    x-text="char.basics?.nickname ? ('«' + char.basics.nickname + '»') : (char.basics?.race || 'Registro Enciclopédico')"></p>
+                </div>
               </div>
 
               <!-- Cita representativa breve (si existe) -->
@@ -255,6 +416,15 @@
                 <p class="text-[11px] italic text-slate-400 font-serif line-clamp-1 mt-2 border-t border-[var(--wiki-border)] pt-1.5">
                   “<span x-text="char.basics.quotes[0]"></span>”
                 </p>
+              </template>
+
+              <!-- Etiqueta discreta de carpeta asignada -->
+              <template x-if="char.folderId && $store.characters.folders.some(f => f.id === char.folderId)">
+                <div class="mt-2 pt-1.5 border-t border-[var(--wiki-border)] flex items-center gap-1.5 text-[10px] font-mono text-slate-400">
+                  <span class="w-2 h-2 rounded-full shrink-0"
+                    :style="`background-color: ${$store.characters.folders.find(f => f.id === char.folderId)?.color || 'var(--wiki-accent)'};`"></span>
+                  <span class="truncate" x-text="$store.characters.getFolderName(char.folderId)"></span>
+                </div>
               </template>
             </div>
 

@@ -1,1172 +1,517 @@
-          <!-- ═════════════════════════════════════════════════════════
-               SUB-TAB 3: ENTORNO Y FONDO (DISEÑO TOTALMENTE RENOVADO)
-               ═════════════════════════════════════════════════════════ -->
-          <div x-show="$store.settings.activeSubTab === 'environment'"
-            x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            class="space-y-6">
+<!-- SUB-PESTAÑA 3: FONDOS DE PANTALLA (GUIADO EN 1 COLUMNA) -->
+<div x-data="{ activeSurface: 'dashboard', showAdvBg: false }" class="space-y-5">
 
-            <!-- ──── 0. BANNER CYBERPUNK SUPERIOR (HEADER DE SECCIÓN Y ACCIONES RÁPIDAS) ──── -->
-            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-cyan-950/40 via-purple-950/30 to-emerald-950/40 border border-white/15 shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 select-none relative overflow-hidden backdrop-blur-xl">
-              <!-- Glow decorativo superior -->
-              <div class="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-cyan-400 via-purple-400 to-emerald-400 opacity-60"></div>
-              
-              <div class="flex items-center gap-3.5 z-10">
-                <div class="w-11 h-11 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 flex items-center justify-center shrink-0 shadow-[0_0_16px_rgba(6,182,212,0.3)]">
-                  <i data-lucide="palette" class="w-5 h-5 text-cyan-300"></i>
-                </div>
-                <div>
-                  <div class="flex items-center gap-2">
-                    <h3 class="text-sm sm:text-base font-title font-black uppercase tracking-wider text-white">
-                      Entorno, Fondos y Atmósfera Visual
-                    </h3>
-                    <span class="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/40 uppercase shadow-[0_0_8px_rgba(6,182,212,0.2)]">
-                      3 Superficies
-                    </span>
-                  </div>
-                  <p class="text-xs text-slate-300/80 font-sans mt-0.5">
-                    Lienzo interactivo 2D, encuadre directo, desenfoque por capas y prueba de contraste en vivo.
-                  </p>
-                </div>
-              </div>
+  <div class="wiki-settings-pane-head">
+    <h2 class="wiki-settings-pane-title">Fondos de Pantalla</h2>
+    <p class="wiki-settings-pane-desc">Elige qué parte de la aplicación quieres personalizar y configura su fondo.</p>
+  </div>
 
-              <!-- Acciones Rápidas Globales -->
-              <div class="flex items-center gap-2.5 shrink-0 z-10">
-                <button type="button" @click="$store.settings.cloneDashboardBgToAll()"
-                  class="px-3.5 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/50 text-cyan-200 hover:text-white text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer shadow-[0_0_14px_rgba(6,182,212,0.2)] hover:scale-[1.02] active:scale-[0.98]">
-                  <i data-lucide="copy" class="w-3.5 h-3.5 text-cyan-300"></i>
-                  <span>Clonar Panel a Todo</span>
-                </button>
+  <!-- Paso 1: Elegir vista -->
+  <div class="wiki-segmented w-full">
+    <button type="button" @click="activeSurface = 'dashboard'"
+      :class="{ 'is-active': activeSurface === 'dashboard' }"
+      class="wiki-segmented-btn flex-1 justify-center">
+      <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+      <span>Panel Principal</span>
+    </button>
+    <button type="button" @click="activeSurface = 'tierlist'"
+      :class="{ 'is-active': activeSurface === 'tierlist' }"
+      class="wiki-segmented-btn flex-1 justify-center">
+      <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
+      <span>Tier List</span>
+    </button>
+    <button type="button" @click="activeSurface = 'character'"
+      :class="{ 'is-active': activeSurface === 'character' }"
+      class="wiki-segmented-btn flex-1 justify-center">
+      <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+      <span>Ficha Abierta</span>
+    </button>
+  </div>
 
-                <button type="button" @click="$store.settings.resetAllBackgrounds()"
-                  class="p-2 rounded-xl bg-black/60 hover:bg-rose-500/25 border border-white/15 hover:border-rose-400/50 text-slate-400 hover:text-rose-300 transition-all cursor-pointer shadow"
-                  title="Restablecer todos los fondos a Trama HUD estándar">
-                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
-                </button>
+  <!-- ════════ 1. PANEL PRINCIPAL ════════ -->
+  <div x-show="activeSurface === 'dashboard'" class="space-y-4">
+    <!-- Vista previa limpia -->
+    <div class="relative w-full h-44 overflow-hidden border select-none"
+      style="background: var(--wiki-bg-outer); border-color: var(--wiki-border);">
+      <template x-if="$store.settings.dashboardBgMode === 'pattern'">
+        <div class="w-full h-full pointer-events-none"
+          style="background-image: linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 24px 24px;"></div>
+      </template>
+      <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
+        <div class="w-full h-full relative overflow-hidden pointer-events-none">
+          <img :src="$store.settings.dashboardBgUrl" class="w-full h-full object-cover" :style="$store.settings.getDashboardBgStyle()" alt="" />
+          <div class="absolute inset-0 bg-[#0a0c0e]" :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+        </div>
+      </template>
+      <template x-if="$store.settings.dashboardBgMode === 'custom' && !$store.settings.dashboardBgUrl">
+        <div class="w-full h-full flex flex-col items-center justify-center gap-1.5 text-xs pointer-events-none" style="color: var(--wiki-text-dim);">
+          <i data-lucide="image" class="w-6 h-6 opacity-50"></i>
+          <span>Sube una imagen o elige un estilo abajo</span>
+        </div>
+      </template>
+      <template x-if="$store.settings.dashboardBgMode === 'dynamic'">
+        <div class="w-full h-full relative overflow-hidden pointer-events-none">
+          <img :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl || ''"
+            class="w-full h-full object-cover" :style="$store.settings.getDashboardBgStyle()" alt="" />
+          <div class="absolute inset-0 bg-[#0a0c0e]" :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+        </div>
+      </template>
+
+      <div x-show="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl"
+        class="absolute bottom-2.5 right-2.5 flex items-center gap-1.5">
+        <button type="button" @click="$store.settings.openCropperForDashboard()" class="souls-btn !px-2.5 !py-1 text-xs">
+          <i data-lucide="crop" class="w-3.5 h-3.5"></i>
+          <span>Encuadrar</span>
+        </button>
+        <button type="button" @click="$store.settings.resetDashboardBgFrame()" class="souls-btn !p-1.5" title="Restablecer encuadre">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+
+    <section class="wiki-settings-section space-y-4">
+      <div class="space-y-2">
+        <label class="text-sm font-semibold block" style="color: var(--wiki-text-main);">Tipo de fondo</label>
+        <div class="wiki-segmented w-full">
+          <button type="button" @click="$store.settings.dashboardBgMode = 'pattern'; $store.settings.saveDashboardBgSettings()"
+            :class="{ 'is-active': $store.settings.dashboardBgMode === 'pattern' }"
+            class="wiki-segmented-btn flex-1 justify-center">Cuadrícula simple</button>
+          <button type="button" @click="$store.settings.dashboardBgMode = 'custom'; $store.settings.saveDashboardBgSettings()"
+            :class="{ 'is-active': $store.settings.dashboardBgMode === 'custom' }"
+            class="wiki-segmented-btn flex-1 justify-center">Imagen o GIF</button>
+          <button type="button" @click="$store.settings.dashboardBgMode = 'dynamic'; $store.settings.saveDashboardBgSettings()"
+            :class="{ 'is-active': $store.settings.dashboardBgMode === 'dynamic' }"
+            class="wiki-segmented-btn flex-1 justify-center">Del personaje abierto</button>
+        </div>
+      </div>
+
+      <div x-show="$store.settings.dashboardBgMode === 'dynamic'" x-cloak class="text-xs" style="color: var(--wiki-text-muted);">
+        El fondo cambiará automáticamente según el último personaje que hayas abierto.
+      </div>
+
+      <div x-show="$store.settings.dashboardBgMode === 'custom'" x-cloak class="space-y-3 pt-2 border-t" style="border-color: var(--wiki-border);">
+        <input id="dashboard-bg-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif"
+          class="hidden" @change="$store.settings.uploadDashboardBgImage($event)">
+
+        <template x-if="$store.settings.dashboardBgUrl">
+          <div class="wiki-settings-card flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img :src="$store.settings.dashboardBgUrl" class="w-9 h-9 object-cover border shrink-0"
+                style="border-color: var(--wiki-border);" alt="" />
+              <div class="min-w-0">
+                <div class="text-xs font-semibold truncate"
+                  x-text="$store.settings.dashboardBgUrl.startsWith('data:') ? 'Imagen cargada' : 'Imagen por enlace'"></div>
+                <div class="text-[11px] truncate" style="color: var(--wiki-text-muted);"
+                  x-text="$store.settings.dashboardBgUrl.startsWith('data:') ? 'Guardada localmente' : $store.settings.dashboardBgUrl"></div>
               </div>
             </div>
-
-            <!-- ──── CUADRÍCULA DE 3 PANELES PARALELOS PERFECTAMENTE ARMONIZADOS ──── -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5 items-stretch">
-
-              <!-- ══════════════════════════════════════════════════════════
-                   COLUMNA 1: FONDO DEL PANEL PRINCIPAL (DASHBOARD)
-                   ══════════════════════════════════════════════════════════ -->
-              <div class="p-4 sm:p-5 rounded-2xl border border-cyan-500/40 bg-slate-950/90 flex flex-col h-full space-y-3.5 shadow-2xl relative overflow-hidden backdrop-blur-xl group hover:border-cyan-400/60 transition-all">
-                <!-- Acento luminoso superior -->
-                <div class="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-75"></div>
-
-                <div class="space-y-2.5">
-                  <!-- Header del Panel -->
-                  <div class="flex items-center justify-between border-b border-white/10 pb-2">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 flex items-center justify-center shadow-[0_0_8px_rgba(6,182,212,0.25)]">
-                        <i data-lucide="layout-grid" class="w-4 h-4 text-cyan-400"></i>
-                      </div>
-                      <div>
-                        <h4 class="text-xs sm:text-sm font-bold text-white font-mono uppercase tracking-wider">
-                          Panel Principal
-                        </h4>
-                        <span class="text-[10px] font-mono text-cyan-400/80 block -mt-0.5">DASHBOARD // ROSTER</span>
-                      </div>
-                    </div>
-                    <span class="text-[10px] font-mono text-cyan-300 px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/30 uppercase font-bold"
-                      x-text="`Modo: ${$store.settings.dashboardBgMode}`"></span>
-                  </div>
-
-                  <!-- Selector Segmentado de Modo (Tabs Modernas) -->
-                  <div class="space-y-1.5">
-                    <label class="text-[11px] font-bold text-slate-300 font-mono uppercase tracking-wider block">
-                      Modo de Fondo:
-                    </label>
-
-                    <div class="p-1 rounded-xl bg-black/70 border border-white/10 grid grid-cols-3 gap-1 select-none shadow-inner">
-                      <!-- Modo 1: Trama HUD -->
-                      <button type="button"
-                        class="py-2 px-1 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
-                        :class="$store.settings.dashboardBgMode === 'pattern'
-                          ? 'bg-cyan-500/25 border border-cyan-400/60 text-white shadow-[0_0_10px_rgba(6,182,212,0.3)]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
-                        @click="$store.settings.dashboardBgMode = 'pattern'; $store.settings.saveDashboardBgSettings()">
-                        <div class="flex items-center gap-1">
-                          <i data-lucide="grid" class="w-3.5 h-3.5 text-cyan-400"></i>
-                          <span>Trama HUD</span>
-                        </div>
-                        <span class="text-[8px] opacity-70">Rejilla Sci-Fi</span>
-                      </button>
-
-                      <!-- Modo 2: Imagen / GIF -->
-                      <button type="button"
-                        class="py-2 px-1 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
-                        :class="$store.settings.dashboardBgMode === 'custom'
-                          ? 'bg-cyan-500/25 border border-cyan-400/60 text-white shadow-[0_0_10px_rgba(6,182,212,0.3)]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
-                        @click="$store.settings.dashboardBgMode = 'custom'; $store.settings.saveDashboardBgSettings()">
-                        <div class="flex items-center gap-1">
-                          <i data-lucide="image" class="w-3.5 h-3.5 text-amber-400"></i>
-                          <span>Imagen/GIF</span>
-                        </div>
-                        <span class="text-[8px] opacity-70">Personalizado</span>
-                      </button>
-
-                      <!-- Modo 3: Dinámico -->
-                      <button type="button"
-                        class="py-2 px-1 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
-                        :class="$store.settings.dashboardBgMode === 'dynamic'
-                          ? 'bg-cyan-500/25 border border-cyan-400/60 text-white shadow-[0_0_10px_rgba(6,182,212,0.3)]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
-                        @click="$store.settings.dashboardBgMode = 'dynamic'; $store.settings.saveDashboardBgSettings()">
-                        <div class="flex items-center gap-1">
-                          <i data-lucide="wand-2" class="w-3.5 h-3.5 text-cyan-300"></i>
-                          <span>Dinámico</span>
-                        </div>
-                        <span class="text-[8px] opacity-70">Ficha Activa</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Área de Archivo Personalizado (Sin cadenas base64 feas) -->
-                  <div x-show="$store.settings.dashboardBgMode === 'custom'" x-cloak class="space-y-2 pt-1">
-                    <!-- Si ya hay imagen cargada: Pastilla elegante de archivo -->
-                    <template x-if="$store.settings.dashboardBgUrl">
-                      <div class="p-2.5 rounded-xl bg-black/60 border border-cyan-400/30 flex items-center justify-between gap-3 shadow-inner">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                          <div class="w-9 h-9 rounded-lg overflow-hidden border border-cyan-400/40 shrink-0 bg-slate-900 shadow">
-                            <img :src="$store.settings.dashboardBgUrl" class="w-full h-full object-cover" alt="" />
-                          </div>
-                          <div class="min-w-0">
-                            <div class="text-xs font-mono font-bold text-white truncate flex items-center gap-1.5">
-                              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
-                              <span x-text="$store.settings.dashboardBgUrl.startsWith('data:') ? 'Imagen Local Cargada' : 'Fondo por Enlace Web'"></span>
-                            </div>
-                            <div class="text-[10px] font-mono text-cyan-300/70 truncate"
-                              x-text="$store.settings.dashboardBgUrl.startsWith('data:') ? 'En memoria local (WebP/GIF)' : $store.settings.dashboardBgUrl"></div>
-                          </div>
-                        </div>
-
-                        <div class="flex items-center gap-1.5 shrink-0">
-                          <label for="dashboard-bg-upload"
-                            class="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 hover:text-white text-[11px] font-mono font-bold cursor-pointer transition-all flex items-center gap-1">
-                            <i data-lucide="upload" class="w-3 h-3"></i>
-                            <span>Cambiar</span>
-                          </label>
-                          <button type="button" @click="$store.settings.removeDashboardBgImage()"
-                            class="p-1.5 rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30 hover:border-rose-400 transition-all cursor-pointer"
-                            title="Eliminar este fondo">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </template>
-
-                    <!-- Si aún NO hay imagen cargada: Zona de carga limpia -->
-                    <template x-if="!$store.settings.dashboardBgUrl">
-                      <div class="space-y-2">
-                        <div class="flex items-stretch gap-2">
-                          <label for="dashboard-bg-upload"
-                            class="flex-1 py-2.5 px-3 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-400/40 text-cyan-300 hover:text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_12px_rgba(6,182,212,0.15)] transition-all hover:scale-[1.01] active:scale-[0.99]">
-                            <i data-lucide="upload" class="w-4 h-4"></i>
-                            <span>Subir Imagen o GIF</span>
-                          </label>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                          <div class="relative flex-1">
-                            <input type="text" x-model="$store.settings.dashboardBgUrl"
-                              @keydown.enter.prevent="$store.app.openMediaUrl($store.settings.dashboardBgUrl, 'bg_dashboard')"
-                              @input="$store.settings.saveDashboardBgSettings()"
-                              placeholder="O pega URL (Pinterest, ArtStation, Pixiv, Are.na, etc.)"
-                              class="form-input text-xs w-full py-2 pl-8 pr-3 bg-black/60 border border-white/15 text-parchment-cream font-mono rounded-xl focus:outline-none focus:border-cyan-400 placeholder:text-slate-500">
-                            <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                          </div>
-                          <button type="button"
-                            @click="$store.app.openMediaUrl($store.settings.dashboardBgUrl, 'bg_dashboard')"
-                            class="px-3 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400/40 text-cyan-200 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm hover:scale-[1.02] shrink-0"
-                            title="Procesar enlace y encuadrar imagen">
-                            Cargar
-                          </button>
-                        </div>
-                      </div>
-                    </template>
-
-                    <!-- Preajustes Rápidos (1 Clic) -->
-                    <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-1">
-                      <span>Presets Rápidos:</span>
-                      <div class="flex items-center gap-1">
-                        <button type="button" @click="$store.settings.applyPresetToPanel('dashboard', 'nebula')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-cyan-400/50 hover:text-cyan-300 transition-all cursor-pointer" title="Nebulosa Cósmica">
-                          Nebula
-                        </button>
-                        <button type="button" @click="$store.settings.applyPresetToPanel('dashboard', 'cyberpunk')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-cyan-400/50 hover:text-cyan-300 transition-all cursor-pointer" title="Cyberpunk Neón">
-                          Cyber
-                        </button>
-                        <button type="button" @click="$store.settings.applyPresetToPanel('dashboard', 'blueprint')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-cyan-400/50 hover:text-cyan-300 transition-all cursor-pointer" title="Blueprint Técnico">
-                          Blueprint
-                        </button>
-                        <button type="button" @click="$store.settings.applyPresetToPanel('dashboard', 'voidDark')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-cyan-400/50 hover:text-cyan-300 transition-all cursor-pointer" title="Vacío Oscuro">
-                          Void
-                        </button>
-                      </div>
-                    </div>
-
-                    <input id="dashboard-bg-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif"
-                      class="hidden" @change="$store.settings.uploadDashboardBgImage($event)">
-                  </div>
-
-                  <!-- Aviso informativo en Modo Dinámico -->
-                  <div x-show="$store.settings.dashboardBgMode === 'dynamic'" x-cloak
-                    class="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs font-mono flex items-center gap-2">
-                    <i data-lucide="wand-2" class="w-4 h-4 shrink-0 text-cyan-400"></i>
-                    <span>El fondo se adaptará automáticamente a la imagen del personaje que selecciones en el panel.</span>
-                  </div>
-
-                  <!-- ──── LIENZO Y PRUEBA DE CONTRASTE CON ENCUADRE VISUAL LIBRE (CROPPER) ──── -->
-                  <div x-data="{ showMockup: true }" class="space-y-3 pt-2 border-t border-white/10">
-
-                    <!-- Cabecera de Control del Encuadre y Visualización -->
-                    <div class="flex items-center justify-between text-xs font-mono font-bold text-ink-slate flex-wrap gap-2">
-                      <button type="button" @click="$store.settings.openCropperForDashboard()"
-                        class="py-1.5 px-3 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/35 border border-cyan-400/50 text-cyan-200 hover:text-white text-[11px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-[0_0_10px_rgba(6,182,212,0.2)] hover:scale-[1.02] active:scale-[0.98]">
-                        <i data-lucide="crop" class="w-3.5 h-3.5 text-cyan-300"></i>
-                        <span>Encuadrar / Editar Imagen</span>
-                      </button>
-
-                      <div class="flex items-center gap-2 shrink-0">
-                        <!-- Alternar Siluetas HUD -->
-                        <button type="button" @click="showMockup = !showMockup"
-                          class="px-2 py-1 rounded-md border text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
-                          :class="showMockup ? 'text-cyan-300 bg-cyan-500/20 border-cyan-400/40 shadow-[0_0_8px_rgba(6,182,212,0.25)]' : 'text-slate-400 bg-black/60 border-white/10 hover:text-white'"
-                          :title="showMockup ? 'Ocultar siluetas para ver fondo limpio' : 'Mostrar siluetas HUD para probar contraste'">
-                          <i :data-lucide="showMockup ? 'eye' : 'eye-off'" class="w-3 h-3"></i>
-                          <span x-text="showMockup ? 'Siluetas' : 'Limpio'"></span>
-                        </button>
-
-                        <!-- Restablecer -->
-                        <button type="button" @click="$store.settings.resetDashboardBgFrame()"
-                          class="p-1 rounded-md text-cyan-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                          title="Restablecer encuadre">
-                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Lienzo de Vista Previa de Contraste -->
-                    <div class="relative w-full h-48 rounded-xl overflow-hidden border border-cyan-500/30 bg-black/70 shadow-inner select-none transition-colors group">
-
-                      <!-- Fondo en Modo Trama HUD -->
-                      <template x-if="$store.settings.dashboardBgMode === 'pattern'">
-                        <div class="w-full h-full relative overflow-hidden pointer-events-none"
-                          style="background-image: radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.12) 0%, transparent 70%), linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px); background-size: 100% 100%, 24px 24px, 24px 24px;">
-                        </div>
-                      </template>
-
-                      <!-- Fondo en Modo Custom -->
-                      <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
-                        <div class="w-full h-full relative overflow-hidden pointer-events-none">
-                          <img :src="$store.settings.dashboardBgUrl"
-                            class="w-full h-full object-cover transition-all duration-150"
-                            :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo panel" />
-                          <div class="absolute inset-0 bg-[#0a0c0e]"
-                            :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
-                        </div>
-                      </template>
-
-                      <!-- Fallback custom sin imagen -->
-                      <template x-if="$store.settings.dashboardBgMode === 'custom' && !$store.settings.dashboardBgUrl">
-                        <div class="w-full h-full flex flex-col items-center justify-center gap-2 text-ink-slate text-xs font-mono bg-[#0a0c0e] pointer-events-none">
-                          <i data-lucide="image" class="w-6 h-6 opacity-40 text-cyan-400"></i>
-                          <span>Sin imagen seleccionada aún</span>
-                        </div>
-                      </template>
-
-                      <!-- Fondo en Modo Dinámico -->
-                      <template x-if="$store.settings.dashboardBgMode === 'dynamic'">
-                        <div class="w-full h-full relative overflow-hidden pointer-events-none">
-                          <img
-                            :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl || ''"
-                            class="w-full h-full object-cover transition-all duration-150"
-                            :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo dinámico" />
-                          <div class="absolute inset-0 bg-[#0a0c0e]"
-                            :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
-                        </div>
-                      </template>
-
-                      <!-- Siluetas HUD de Contraste Real (Dashboard Mockup) -->
-                      <div x-show="showMockup"
-                        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute inset-0 pointer-events-none p-3 flex flex-col justify-between overflow-hidden select-none">
-                        
-                        <div class="flex items-center justify-between pb-1.5 border-b border-white/15 backdrop-blur-[2px]">
-                          <div class="flex items-center gap-1.5">
-                            <div class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_6px_rgba(6,182,212,0.8)] animate-pulse"></div>
-                            <span class="text-[9px] font-mono font-bold uppercase tracking-wider text-white drop-shadow">ROSTER OPERATIVO</span>
-                          </div>
-                          <span class="px-1.5 py-0.2 rounded bg-black/60 border border-cyan-400/30 text-[8px] font-mono text-cyan-300 font-bold">2 FICHAS</span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-2 my-auto">
-                          <!-- Micro-Tarjeta 1 -->
-                          <div class="p-2 rounded-xl bg-slate-950/80 border border-cyan-400/40 backdrop-blur-md shadow-lg flex flex-col gap-1.5 relative overflow-hidden">
-                            <div class="flex items-center gap-2">
-                              <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500/30 to-blue-600/40 border border-cyan-400/50 flex items-center justify-center shrink-0 shadow-inner">
-                                <i data-lucide="user" class="w-3.5 h-3.5 text-cyan-300"></i>
-                              </div>
-                              <div class="flex-1 min-w-0">
-                                <div class="text-[9px] font-mono font-black text-white truncate leading-tight">AGENTE ALFA</div>
-                                <div class="text-[8px] font-mono text-cyan-300/80 truncate">VANGUARDIA</div>
-                              </div>
-                            </div>
-                            <div class="flex items-center justify-between pt-1 border-t border-white/10">
-                              <span class="text-[8px] font-mono px-1 py-0.2 rounded bg-cyan-500/20 text-cyan-300 font-bold">TIER S</span>
-                              <div class="w-10 h-1 rounded-full bg-white/20 overflow-hidden">
-                                <div class="w-3/4 h-full bg-cyan-400 rounded-full"></div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <!-- Micro-Tarjeta 2 -->
-                          <div class="p-2 rounded-xl bg-slate-950/80 border border-white/20 backdrop-blur-md shadow-lg flex flex-col gap-1.5 relative overflow-hidden">
-                            <div class="flex items-center gap-2">
-                              <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500/30 to-rose-600/40 border border-purple-400/50 flex items-center justify-center shrink-0 shadow-inner">
-                                <i data-lucide="user" class="w-3.5 h-3.5 text-purple-300"></i>
-                              </div>
-                              <div class="flex-1 min-w-0">
-                                <div class="text-[9px] font-mono font-black text-white truncate leading-tight">SPECTRE-09</div>
-                                <div class="text-[8px] font-mono text-purple-300/80 truncate">INFILTRADOR</div>
-                              </div>
-                            </div>
-                            <div class="flex items-center justify-between pt-1 border-t border-white/10">
-                              <span class="text-[8px] font-mono px-1 py-0.2 rounded bg-purple-500/20 text-purple-300 font-bold">TIER A</span>
-                              <div class="w-10 h-1 rounded-full bg-white/20 overflow-hidden">
-                                <div class="w-1/2 h-full bg-purple-400 rounded-full"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="flex items-center justify-between text-[8px] font-mono text-slate-300 backdrop-blur-[2px]">
-                          <span>Legibilidad de Tarjetas</span>
-                          <span class="text-cyan-300 font-bold" x-text="`Oscurecimiento: ${$store.settings.dashboardBgOpacity}%`"></span>
-                        </div>
-                      </div>
-
-                      <!-- Fallback Vista Limpia -->
-                      <div x-show="!showMockup" class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div class="px-3 py-1.5 rounded-lg bg-black/75 border border-cyan-400/30 text-white/90 text-xs font-mono flex items-center gap-2 shadow-lg backdrop-blur-sm">
-                          <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-cyan-400"></i>
-                          <span>Panel Principal (Vista Limpia)</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- ──── CONTROLES SLIDERS (ÚNICAMENTE OSCURECIMIENTO, DESENFOQUE Y FILTROS) ──── -->
-                    <div class="space-y-3 pt-1">
-                      <!-- Oscurecimiento (Scrim Overlay) -->
-                      <div class="flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                          <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="shield" class="w-3.5 h-3.5 text-cyan-400"></i>
-                            <span>Oscurecimiento (Scrim)</span>
-                          </span>
-                          <span class="text-cyan-400 font-bold font-mono text-[11px]" x-text="`${$store.settings.dashboardBgOpacity}%`"></span>
-                        </div>
-                        <input type="range" min="0" max="100" step="5" x-model="$store.settings.dashboardBgOpacity"
-                          @input="$store.settings.saveDashboardBgSettings()"
-                          class="hud-range-slider hud-range-cyan">
-                      </div>
-
-                      <!-- Desenfoque (Backdrop Blur) -->
-                      <div class="flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                          <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="droplet" class="w-3.5 h-3.5 text-cyan-400"></i>
-                            <span>Desenfoque (Blur)</span>
-                          </span>
-                          <span class="text-cyan-400 font-bold font-mono text-[11px]" x-text="`${$store.settings.dashboardBgBlur} px`"></span>
-                        </div>
-                        <input type="range" min="0" max="30" step="1" x-model="$store.settings.dashboardBgBlur"
-                          @input="$store.settings.saveDashboardBgSettings()"
-                          class="hud-range-slider hud-range-cyan">
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              <!-- ══════════════════════════════════════════════════════════
-                   COLUMNA 2: FONDO DE LA TIER LIST
-                   ══════════════════════════════════════════════════════════ -->
-              <div class="p-4 sm:p-5 rounded-2xl border border-purple-500/40 bg-slate-950/90 flex flex-col h-full space-y-3.5 shadow-2xl relative overflow-hidden backdrop-blur-xl group hover:border-purple-400/60 transition-all">
-                <!-- Acento luminoso superior -->
-                <div class="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-75"></div>
-
-                <div class="space-y-2.5">
-                  <!-- Header del Tablero Tier List -->
-                  <div class="flex items-center justify-between border-b border-white/10 pb-2">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-7 h-7 rounded-lg bg-purple-500/15 border border-purple-400/40 text-purple-300 flex items-center justify-center shadow-[0_0_8px_rgba(168,85,247,0.25)]">
-                        <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
-                      </div>
-                      <div>
-                        <h4 class="text-xs sm:text-sm font-bold text-white font-mono uppercase tracking-wider">
-                          Fondo Tier List
-                        </h4>
-                        <span class="text-[10px] font-mono text-purple-400/80 block -mt-0.5">TABLERO // RANK MATRIX</span>
-                      </div>
-                    </div>
-                    <span class="text-[10px] font-mono text-purple-300 px-2 py-0.5 rounded-full bg-purple-500/15 border border-purple-400/30 uppercase font-bold"
-                      x-text="`Modo: ${$store.settings.tierlistBgMode}`"></span>
-                  </div>
-
-                  <!-- Selector Segmentado de Modo (Tabs Modernas) -->
-                  <div class="space-y-1.5">
-                    <label class="text-[11px] font-bold text-slate-300 font-mono uppercase tracking-wider block">
-                      Modo de Fondo:
-                    </label>
-
-                    <div class="p-1 rounded-xl bg-black/70 border border-white/10 grid grid-cols-3 gap-1 select-none shadow-inner">
-                      <!-- Modo 1: Trama HUD -->
-                      <button type="button"
-                        class="py-2 px-1 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
-                        :class="$store.settings.tierlistBgMode === 'pattern'
-                          ? 'bg-purple-500/25 border border-purple-400/60 text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
-                        @click="$store.settings.tierlistBgMode = 'pattern'; $store.settings.saveTierlistBgSettings()">
-                        <div class="flex items-center gap-1">
-                          <i data-lucide="grid" class="w-3.5 h-3.5 text-purple-400"></i>
-                          <span>Trama HUD</span>
-                        </div>
-                        <span class="text-[8px] opacity-70">Rejilla Oscura</span>
-                      </button>
-
-                      <!-- Modo 2: Imagen / GIF -->
-                      <button type="button"
-                        class="py-2 px-1 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
-                        :class="$store.settings.tierlistBgMode === 'custom'
-                          ? 'bg-purple-500/25 border border-purple-400/60 text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
-                        @click="$store.settings.tierlistBgMode = 'custom'; $store.settings.saveTierlistBgSettings()">
-                        <div class="flex items-center gap-1">
-                          <i data-lucide="image" class="w-3.5 h-3.5 text-amber-400"></i>
-                          <span>Imagen/GIF</span>
-                        </div>
-                        <span class="text-[8px] opacity-70">Personalizado</span>
-                      </button>
-
-                      <!-- Modo 3: Sincronizado -->
-                      <button type="button"
-                        class="py-2 px-1 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
-                        :class="$store.settings.tierlistBgMode === 'sync'
-                          ? 'bg-purple-500/25 border border-purple-400/60 text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
-                        @click="$store.settings.tierlistBgMode = 'sync'; $store.settings.saveTierlistBgSettings()">
-                        <div class="flex items-center gap-1">
-                          <i data-lucide="repeat" class="w-3.5 h-3.5 text-purple-300"></i>
-                          <span>Sync Panel</span>
-                        </div>
-                        <span class="text-[8px] opacity-70">Espejo Panel</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Área de Archivo Personalizado (Sin cadenas base64 feas) -->
-                  <div x-show="$store.settings.tierlistBgMode === 'custom'" x-cloak class="space-y-2 pt-1">
-                    <!-- Si ya hay imagen cargada: Pastilla elegante de archivo -->
-                    <template x-if="$store.settings.tierlistBgUrl">
-                      <div class="p-2.5 rounded-xl bg-black/60 border border-purple-400/30 flex items-center justify-between gap-3 shadow-inner">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                          <div class="w-9 h-9 rounded-lg overflow-hidden border border-purple-400/40 shrink-0 bg-slate-900 shadow">
-                            <img :src="$store.settings.tierlistBgUrl" class="w-full h-full object-cover" alt="" />
-                          </div>
-                          <div class="min-w-0">
-                            <div class="text-xs font-mono font-bold text-white truncate flex items-center gap-1.5">
-                              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-purple-400 shrink-0"></i>
-                              <span x-text="$store.settings.tierlistBgUrl.startsWith('data:') ? 'Imagen Local Cargada' : 'Fondo por Enlace Web'"></span>
-                            </div>
-                            <div class="text-[10px] font-mono text-purple-300/70 truncate"
-                              x-text="$store.settings.tierlistBgUrl.startsWith('data:') ? 'En memoria local (WebP/GIF)' : $store.settings.tierlistBgUrl"></div>
-                          </div>
-                        </div>
-
-                        <div class="flex items-center gap-1.5 shrink-0">
-                          <label for="tierlist-bg-upload"
-                            class="px-2.5 py-1 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-300 hover:text-white text-[11px] font-mono font-bold cursor-pointer transition-all flex items-center gap-1">
-                            <i data-lucide="upload" class="w-3 h-3"></i>
-                            <span>Cambiar</span>
-                          </label>
-                          <button type="button" @click="$store.settings.removeTierlistBgImage()"
-                            class="p-1.5 rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30 hover:border-rose-400 transition-all cursor-pointer"
-                            title="Eliminar este fondo">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </template>
-
-                    <!-- Si aún NO hay imagen cargada: Zona de carga limpia -->
-                    <template x-if="!$store.settings.tierlistBgUrl">
-                      <div class="space-y-2">
-                        <div class="flex items-stretch gap-2">
-                          <label for="tierlist-bg-upload"
-                            class="flex-1 py-2.5 px-3 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/40 text-purple-300 hover:text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_12px_rgba(168,85,247,0.15)] transition-all hover:scale-[1.01] active:scale-[0.99]">
-                            <i data-lucide="upload" class="w-4 h-4"></i>
-                            <span>Subir Imagen o GIF</span>
-                          </label>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                          <div class="relative flex-1">
-                            <input type="text" x-model="$store.settings.tierlistBgUrl"
-                              @keydown.enter.prevent="$store.app.openMediaUrl($store.settings.tierlistBgUrl, 'bg_tierlist')"
-                              @input="$store.settings.saveTierlistBgSettings()"
-                              placeholder="O pega URL (Pinterest, ArtStation, Pixiv, Are.na, etc.)"
-                              class="form-input text-xs w-full py-2 pl-8 pr-3 bg-black/60 border border-white/15 text-parchment-cream font-mono rounded-xl focus:outline-none focus:border-purple-400 placeholder:text-slate-500">
-                            <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                          </div>
-                          <button type="button"
-                            @click="$store.app.openMediaUrl($store.settings.tierlistBgUrl, 'bg_tierlist')"
-                            class="px-3 py-2 rounded-xl bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/40 text-purple-200 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm hover:scale-[1.02] shrink-0"
-                            title="Procesar enlace y encuadrar imagen">
-                            Cargar
-                          </button>
-                        </div>
-                      </div>
-                    </template>
-
-                    <!-- Preajustes Rápidos (1 Clic) -->
-                    <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-1">
-                      <span>Presets Rápidos:</span>
-                      <div class="flex items-center gap-1">
-                        <button type="button" @click="$store.settings.applyPresetToPanel('tierlist', 'nebula')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-purple-400/50 hover:text-purple-300 transition-all cursor-pointer" title="Nebulosa Cósmica">
-                          Nebula
-                        </button>
-                        <button type="button" @click="$store.settings.applyPresetToPanel('tierlist', 'cyberpunk')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-purple-400/50 hover:text-purple-300 transition-all cursor-pointer" title="Cyberpunk Neón">
-                          Cyber
-                        </button>
-                        <button type="button" @click="$store.settings.applyPresetToPanel('tierlist', 'blueprint')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-purple-400/50 hover:text-purple-300 transition-all cursor-pointer" title="Blueprint Técnico">
-                          Blueprint
-                        </button>
-                        <button type="button" @click="$store.settings.applyPresetToPanel('tierlist', 'voidDark')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-purple-400/50 hover:text-purple-300 transition-all cursor-pointer" title="Vacío Oscuro">
-                          Void
-                        </button>
-                      </div>
-                    </div>
-
-                    <input id="tierlist-bg-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif"
-                      class="hidden" @change="$store.settings.uploadTierlistBgImage($event)">
-                  </div>
-
-                  <!-- Aviso informativo en Modo Sincronizado -->
-                  <div x-show="$store.settings.tierlistBgMode === 'sync'" x-cloak
-                    class="p-2.5 rounded-xl bg-purple-500/10 border border-purple-400/30 text-purple-300 text-xs font-mono flex items-center gap-2">
-                    <i data-lucide="repeat" class="w-4 h-4 shrink-0 text-purple-400"></i>
-                    <span>Sincronizado: Utiliza automáticamente el fondo y encuadre configurados en el Panel Principal.</span>
-                  </div>
-
-                  <!-- ──── LIENZO Y PRUEBA DE CONTRASTE CON ENCUADRE VISUAL LIBRE (CROPPER) ──── -->
-                  <div x-data="{ showMockup: true }" class="space-y-3 pt-2 border-t border-white/10">
-
-                    <!-- Cabecera de Control del Encuadre y Visualización -->
-                    <div class="flex items-center justify-between text-xs font-mono font-bold text-ink-slate flex-wrap gap-2">
-                      <button type="button" @click="$store.settings.openCropperForTierlist()"
-                        class="py-1.5 px-3 rounded-lg bg-purple-500/20 hover:bg-purple-500/35 border border-purple-400/50 text-purple-200 hover:text-white text-[11px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-[0_0_10px_rgba(168,85,247,0.2)] hover:scale-[1.02] active:scale-[0.98]">
-                        <i data-lucide="crop" class="w-3.5 h-3.5 text-purple-300"></i>
-                        <span>Encuadrar / Editar Imagen</span>
-                      </button>
-
-                      <div class="flex items-center gap-2 shrink-0">
-                        <!-- Alternar Siluetas HUD -->
-                        <button type="button" @click="showMockup = !showMockup"
-                          class="px-2 py-1 rounded-md border text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
-                          :class="showMockup ? 'text-purple-300 bg-purple-500/20 border-purple-400/40 shadow-[0_0_8px_rgba(168,85,247,0.25)]' : 'text-slate-400 bg-black/60 border-white/10 hover:text-white'"
-                          :title="showMockup ? 'Ocultar siluetas para ver fondo limpio' : 'Mostrar siluetas HUD para probar contraste'">
-                          <i :data-lucide="showMockup ? 'eye' : 'eye-off'" class="w-3 h-3"></i>
-                          <span x-text="showMockup ? 'Siluetas' : 'Limpio'"></span>
-                        </button>
-
-                        <!-- Restablecer -->
-                        <button type="button" @click="$store.settings.resetTierlistBgFrame()"
-                          class="p-1 rounded-md text-purple-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                          title="Restablecer encuadre">
-                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Lienzo de Vista Previa de Contraste -->
-                    <div class="relative w-full h-48 rounded-xl overflow-hidden border border-purple-500/30 bg-black/70 shadow-inner select-none transition-colors group">
-
-                      <!-- Fondo en Modo Trama HUD -->
-                      <template x-if="$store.settings.tierlistBgMode === 'pattern'">
-                        <div class="w-full h-full relative overflow-hidden pointer-events-none"
-                          style="background-image: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.12) 0%, transparent 70%), linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px); background-size: 100% 100%, 24px 24px, 24px 24px;">
-                        </div>
-                      </template>
-
-                      <!-- Fondo en Modo Custom -->
-                      <template x-if="$store.settings.tierlistBgMode === 'custom' && $store.settings.tierlistBgUrl">
-                        <div class="w-full h-full relative overflow-hidden pointer-events-none">
-                          <img :src="$store.settings.tierlistBgUrl"
-                            class="w-full h-full object-cover transition-all duration-150"
-                            :style="$store.settings.getTierlistBgStyle()" alt="Preview fondo tierlist" />
-                          <div class="absolute inset-0 bg-[#07090d]"
-                            :style="`opacity: ${($store.settings.tierlistBgOpacity ?? 60) / 100};`"></div>
-                        </div>
-                      </template>
-
-                      <!-- Fallback custom sin imagen -->
-                      <template x-if="$store.settings.tierlistBgMode === 'custom' && !$store.settings.tierlistBgUrl">
-                        <div class="w-full h-full flex flex-col items-center justify-center gap-2 text-ink-slate text-xs font-mono bg-[#07090d] pointer-events-none">
-                          <i data-lucide="image" class="w-6 h-6 opacity-40 text-purple-400"></i>
-                          <span>Sin imagen seleccionada aún</span>
-                        </div>
-                      </template>
-
-                      <!-- Fondo en Modo Sincronizado -->
-                      <template x-if="$store.settings.tierlistBgMode === 'sync'">
-                        <div class="w-full h-full relative overflow-hidden pointer-events-none">
-                          <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
-                            <div class="w-full h-full relative">
-                              <img :src="$store.settings.dashboardBgUrl"
-                                class="w-full h-full object-cover transition-all duration-150"
-                                :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo sync" />
-                              <div class="absolute inset-0 bg-[#07090d]"
-                                :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
-                            </div>
-                          </template>
-                          <template x-if="$store.settings.dashboardBgMode === 'dynamic' && ($store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl)">
-                            <div class="w-full h-full relative">
-                              <img :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl"
-                                class="w-full h-full object-cover transition-all duration-150"
-                                :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo sync dynamic" />
-                              <div class="absolute inset-0 bg-[#07090d]"
-                                :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
-                            </div>
-                          </template>
-                        </div>
-                      </template>
-
-                      <!-- Siluetas HUD de Contraste Real (Tier List Mockup) -->
-                      <div x-show="showMockup"
-                        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute inset-0 pointer-events-none p-2.5 flex flex-col justify-between overflow-hidden select-none">
-                        
-                        <div class="flex items-center justify-between pb-1 border-b border-white/15 backdrop-blur-[2px]">
-                          <div class="flex items-center gap-1.5">
-                            <i data-lucide="trophy" class="w-3 h-3 text-amber-400"></i>
-                            <span class="text-[9px] font-mono font-bold uppercase tracking-wider text-white">RANKING MATRIX</span>
-                          </div>
-                          <span class="text-[8px] font-mono text-purple-300 font-bold"
-                            x-text="`Opacidad Fila: ${$store.tierlist.rowOpacity ?? 40}%`"></span>
-                        </div>
-
-                        <div class="flex flex-col gap-1 my-auto">
-                          <!-- Fila S -->
-                          <div class="flex items-center rounded-lg border border-white/20 overflow-hidden shadow"
-                            :style="`background-color: rgba(6, 8, 11, ${($store.tierlist.rowOpacity ?? 40) / 100}); backdrop-filter: blur(6px);`">
-                            <div class="w-6 h-6 bg-gradient-to-br from-rose-500 to-red-700 text-white font-black font-title text-[11px] flex items-center justify-center shrink-0 shadow">
-                              S
-                            </div>
-                            <div class="flex items-center gap-1 px-1.5 flex-1">
-                              <div class="w-4.5 h-4.5 rounded bg-white/20 border border-white/30 flex items-center justify-center text-[7px] font-mono text-white font-bold">1</div>
-                              <div class="w-4.5 h-4.5 rounded bg-white/20 border border-white/30 flex items-center justify-center text-[7px] font-mono text-white font-bold">2</div>
-                              <div class="w-4.5 h-4.5 rounded bg-white/20 border border-white/30 flex items-center justify-center text-[7px] font-mono text-white font-bold">3</div>
-                            </div>
-                          </div>
-
-                          <!-- Fila A -->
-                          <div class="flex items-center rounded-lg border border-white/20 overflow-hidden shadow"
-                            :style="`background-color: rgba(6, 8, 11, ${($store.tierlist.rowOpacity ?? 40) / 100}); backdrop-filter: blur(6px);`">
-                            <div class="w-6 h-6 bg-gradient-to-br from-amber-500 to-orange-600 text-white font-black font-title text-[11px] flex items-center justify-center shrink-0 shadow">
-                              A
-                            </div>
-                            <div class="flex items-center gap-1 px-1.5 flex-1">
-                              <div class="w-4.5 h-4.5 rounded bg-white/20 border border-white/30 flex items-center justify-center text-[7px] font-mono text-white font-bold">4</div>
-                              <div class="w-4.5 h-4.5 rounded bg-white/20 border border-white/30 flex items-center justify-center text-[7px] font-mono text-white font-bold">5</div>
-                            </div>
-                          </div>
-
-                          <!-- Fila B -->
-                          <div class="flex items-center rounded-lg border border-white/20 overflow-hidden shadow"
-                            :style="`background-color: rgba(6, 8, 11, ${($store.tierlist.rowOpacity ?? 40) / 100}); backdrop-filter: blur(6px);`">
-                            <div class="w-6 h-6 bg-gradient-to-br from-emerald-500 to-teal-700 text-white font-black font-title text-[11px] flex items-center justify-center shrink-0 shadow">
-                              B
-                            </div>
-                            <div class="flex items-center gap-1 px-1.5 flex-1">
-                              <div class="w-4.5 h-4.5 rounded bg-white/20 border border-white/30 flex items-center justify-center text-[7px] font-mono text-white font-bold">6</div>
-                              <div class="w-4.5 h-4.5 rounded bg-white/20 border border-white/30 flex items-center justify-center text-[7px] font-mono text-white font-bold">7</div>
-                              <div class="w-4.5 h-4.5 rounded bg-white/20 border border-white/30 flex items-center justify-center text-[7px] font-mono text-white font-bold">8</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="flex items-center justify-between text-[8px] font-mono text-slate-300 backdrop-blur-[2px]">
-                          <span>Contraste de Filas y Tokens</span>
-                          <span class="text-purple-300 font-bold" x-text="`Oscurecimiento: ${$store.settings.tierlistBgOpacity}%`"></span>
-                        </div>
-                      </div>
-
-                      <!-- Fallback Vista Limpia -->
-                      <div x-show="!showMockup" class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div class="px-3 py-1.5 rounded-lg bg-black/75 border border-purple-400/40 text-white/90 text-xs font-mono flex items-center gap-2 shadow-lg backdrop-blur-sm">
-                          <i data-lucide="trophy" class="w-3.5 h-3.5 text-amber-400"></i>
-                          <span>Tablero Tier List (Vista Limpia)</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- ──── CONTROLES SLIDERS (ÚNICAMENTE OSCURECIMIENTO, DESENFOQUE Y FILTROS) ──── -->
-                    <div class="space-y-3 pt-1">
-                      <!-- Oscurecimiento (Scrim Overlay) -->
-                      <div class="flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                          <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="shield" class="w-3.5 h-3.5 text-purple-400"></i>
-                            <span>Oscurecimiento (Scrim)</span>
-                          </span>
-                          <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.settings.tierlistBgOpacity}%`"></span>
-                        </div>
-                        <input type="range" min="0" max="100" step="5" x-model="$store.settings.tierlistBgOpacity"
-                          @input="$store.settings.saveTierlistBgSettings()"
-                          class="hud-range-slider hud-range-purple">
-                      </div>
-
-                      <!-- Desenfoque (Backdrop Blur) -->
-                      <div class="flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                          <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="droplet" class="w-3.5 h-3.5 text-purple-400"></i>
-                            <span>Desenfoque (Blur)</span>
-                          </span>
-                          <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.settings.tierlistBgBlur} px`"></span>
-                        </div>
-                        <input type="range" min="0" max="30" step="1" x-model="$store.settings.tierlistBgBlur"
-                          @input="$store.settings.saveTierlistBgSettings()"
-                          class="hud-range-slider hud-range-purple">
-                      </div>
-
-                      <!-- Opacidad de Filas / Espacio de Categorías -->
-                      <div class="flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                          <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-400"></i>
-                            <span>Opacidad de Filas de Rango</span>
-                          </span>
-                          <span class="text-purple-300 font-bold font-mono text-[11px]" x-text="`${$store.tierlist.rowOpacity ?? 40}%`"></span>
-                        </div>
-                        <input type="range" min="0" max="100" step="5"
-                          :value="$store.tierlist.rowOpacity ?? 40"
-                          @input="$store.tierlist.setRowOpacity($el.value)"
-                          class="hud-range-slider hud-range-purple">
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              <!-- ══════════════════════════════════════════════════════════
-                   COLUMNA 3: FONDO DE LA FICHA ACTIVA (EDITOR)
-                   ══════════════════════════════════════════════════════════ -->
-              <div class="p-4 sm:p-5 rounded-2xl border border-emerald-500/40 bg-slate-950/90 flex flex-col h-full space-y-3.5 shadow-2xl relative overflow-hidden backdrop-blur-xl group hover:border-emerald-400/60 transition-all">
-                <!-- Acento luminoso superior -->
-                <div class="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent opacity-75"></div>
-
-                <div class="space-y-2.5">
-                  <!-- Header de la Ficha Activa -->
-                  <div class="flex items-center justify-between border-b border-white/10 pb-2">
-                    <div class="flex items-center gap-2.5">
-                      <div class="w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-400/40 text-emerald-300 flex items-center justify-center shadow-[0_0_8px_rgba(16,185,129,0.25)]">
-                        <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i>
-                      </div>
-                      <div>
-                        <h4 class="text-xs sm:text-sm font-bold text-white font-mono uppercase tracking-wider">
-                          Ficha de Personaje
-                        </h4>
-                        <span class="text-[10px] font-mono text-emerald-400/80 block -mt-0.5">EDITOR // FICHA ACTIVA</span>
-                      </div>
-                    </div>
-                    <span class="text-[10px] font-mono text-emerald-300 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 uppercase font-bold"
-                      x-text="`Modo: ${$store.characters.active?.presentation?.background?.mode || 'pattern'}`"></span>
-                  </div>
-
-                  <!-- Selector Segmentado de Modo (Tabs Modernas) -->
-                  <div class="space-y-1.5">
-                    <div class="flex items-center justify-between">
-                      <label class="text-[11px] font-bold text-slate-300 font-mono uppercase tracking-wider block">
-                        Modo de Fondo:
-                      </label>
-                      <template x-if="$store.characters.active">
-                        <span class="text-[9px] text-emerald-400 font-mono truncate max-w-[130px] px-1.5 py-0.2 rounded bg-emerald-500/10 border border-emerald-500/20"
-                          x-text="$store.characters.active.basics?.name || 'Ficha Activa'"></span>
-                      </template>
-                    </div>
-
-                    <div class="p-1 rounded-xl bg-black/70 border border-white/10 grid grid-cols-3 gap-1 select-none shadow-inner">
-                      <!-- Modo 1: Trama HUD -->
-                      <button type="button"
-                        class="py-2 px-1 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
-                        :class="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'pattern'
-                          ? 'bg-emerald-500/25 border border-emerald-400/60 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
-                        @click="$store.characters.updateBackgroundMode('pattern')">
-                        <div class="flex items-center gap-1">
-                          <i data-lucide="grid" class="w-3.5 h-3.5 text-emerald-400"></i>
-                          <span>Trama HUD</span>
-                        </div>
-                        <span class="text-[8px] opacity-70">Rejilla Sci-Fi</span>
-                      </button>
-
-                      <!-- Modo 2: Imagen / GIF -->
-                      <button type="button"
-                        class="py-2 px-1 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
-                        :class="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom'
-                          ? 'bg-emerald-500/25 border border-emerald-400/60 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
-                        @click="$store.characters.updateBackgroundMode('custom')">
-                        <div class="flex items-center gap-1">
-                          <i data-lucide="image" class="w-3.5 h-3.5 text-amber-400"></i>
-                          <span>Imagen/GIF</span>
-                        </div>
-                        <span class="text-[8px] opacity-70">Personalizado</span>
-                      </button>
-
-                      <!-- Modo 3: Sincronizado -->
-                      <button type="button"
-                        class="py-2 px-1 rounded-lg text-xs font-mono font-bold flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer"
-                        :class="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'sync'
-                          ? 'bg-emerald-500/25 border border-emerald-400/60 text-white shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'"
-                        @click="$store.characters.updateBackgroundMode('sync')">
-                        <div class="flex items-center gap-1">
-                          <i data-lucide="repeat" class="w-3.5 h-3.5 text-emerald-300"></i>
-                          <span>Sync Panel</span>
-                        </div>
-                        <span class="text-[8px] opacity-70">Espejo Panel</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Área de Archivo Personalizado (Sin cadenas base64 feas) -->
-                  <div x-show="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom'" x-cloak class="space-y-2 pt-1">
-                    <!-- Si ya hay imagen cargada: Pastilla elegante de archivo -->
-                    <template x-if="$store.characters.active?.presentation?.background?.image">
-                      <div class="p-2.5 rounded-xl bg-black/60 border border-emerald-400/30 flex items-center justify-between gap-3 shadow-inner">
-                        <div class="flex items-center gap-2.5 min-w-0">
-                          <div class="w-9 h-9 rounded-lg overflow-hidden border border-emerald-400/40 shrink-0 bg-slate-900 shadow">
-                            <img :src="$store.characters.active.presentation.background.image" class="w-full h-full object-cover" alt="" />
-                          </div>
-                          <div class="min-w-0">
-                            <div class="text-xs font-mono font-bold text-white truncate flex items-center gap-1.5">
-                              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
-                              <span x-text="$store.characters.active.presentation.background.image.startsWith('data:') ? 'Imagen Local Cargada' : 'Fondo por Enlace Web'"></span>
-                            </div>
-                            <div class="text-[10px] font-mono text-emerald-300/70 truncate"
-                              x-text="$store.characters.active.presentation.background.image.startsWith('data:') ? 'En memoria local (WebP/GIF)' : $store.characters.active.presentation.background.image"></div>
-                          </div>
-                        </div>
-
-                        <div class="flex items-center gap-1.5 shrink-0">
-                          <label for="char-bg-upload"
-                            class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 hover:text-white text-[11px] font-mono font-bold cursor-pointer transition-all flex items-center gap-1">
-                            <i data-lucide="upload" class="w-3 h-3"></i>
-                            <span>Cambiar</span>
-                          </label>
-                          <button type="button" @click="$store.characters.removeBackgroundImage()"
-                            class="p-1.5 rounded-lg bg-rose-500/15 text-rose-400 hover:bg-rose-500/30 border border-rose-500/30 hover:border-rose-400 transition-all cursor-pointer"
-                            title="Eliminar este fondo">
-                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                          </button>
-                        </div>
-                      </div>
-                    </template>
-
-                    <!-- Si aún NO hay imagen cargada: Zona de carga limpia -->
-                    <template x-if="!$store.characters.active?.presentation?.background?.image">
-                      <div class="space-y-2">
-                        <div class="flex items-stretch gap-2">
-                          <label for="char-bg-upload"
-                            class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 hover:text-white font-mono font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_12px_rgba(16,185,129,0.15)] transition-all hover:scale-[1.01] active:scale-[0.99]">
-                            <i data-lucide="upload" class="w-4 h-4"></i>
-                            <span>Subir Imagen o GIF</span>
-                          </label>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                          <div class="relative flex-1">
-                            <input type="text" :value="$store.characters.active?.presentation?.background?.image || ''"
-                              @keydown.enter.prevent="$store.app.openMediaUrl($el.value, 'bg_character')"
-                              @input="$store.characters.setBackgroundUrl($el.value)"
-                              placeholder="O pega URL (Pinterest, ArtStation, Pixiv, Are.na, etc.)"
-                              class="form-input text-xs w-full py-2 pl-8 pr-3 bg-black/60 border border-white/15 text-parchment-cream font-mono rounded-xl focus:outline-none focus:border-emerald-400 placeholder:text-slate-500">
-                            <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                          </div>
-                          <button type="button"
-                            @click="$store.app.openMediaUrl($store.characters.active?.presentation?.background?.image, 'bg_character')"
-                            class="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-200 text-xs font-mono font-bold transition-all cursor-pointer shadow-sm hover:scale-[1.02] shrink-0"
-                            title="Procesar enlace y encuadrar imagen">
-                            Cargar
-                          </button>
-                        </div>
-                      </div>
-                    </template>
-
-                    <!-- Preajustes Rápidos (1 Clic) -->
-                    <div class="flex items-center justify-between text-[10px] font-mono text-slate-400 pt-1">
-                      <span>Presets Rápidos:</span>
-                      <div class="flex items-center gap-1">
-                        <button type="button" @click="$store.settings.applyPresetToPanel('character', 'nebula')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-emerald-400/50 hover:text-emerald-300 transition-all cursor-pointer" title="Nebulosa Cósmica">
-                          Nebula
-                        </button>
-                        <button type="button" @click="$store.settings.applyPresetToPanel('character', 'cyberpunk')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-emerald-400/50 hover:text-emerald-300 transition-all cursor-pointer" title="Cyberpunk Neón">
-                          Cyber
-                        </button>
-                        <button type="button" @click="$store.settings.applyPresetToPanel('character', 'blueprint')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-emerald-400/50 hover:text-emerald-300 transition-all cursor-pointer" title="Blueprint Técnico">
-                          Blueprint
-                        </button>
-                        <button type="button" @click="$store.settings.applyPresetToPanel('character', 'voidDark')"
-                          class="px-1.5 py-0.5 rounded bg-black/50 border border-white/10 hover:border-emerald-400/50 hover:text-emerald-300 transition-all cursor-pointer" title="Vacío Oscuro">
-                          Void
-                        </button>
-                      </div>
-                    </div>
-
-                    <input id="char-bg-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif"
-                      class="hidden" @change="$store.characters.uploadBackgroundImage($event)">
-                  </div>
-
-                  <!-- Aviso informativo en Modo Sincronizado -->
-                  <div x-show="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'sync'" x-cloak
-                    class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-400/30 text-emerald-300 text-xs font-mono flex items-center gap-2">
-                    <i data-lucide="repeat" class="w-4 h-4 shrink-0 text-emerald-400"></i>
-                    <span>Sincronizado: Esta ficha hereda el fondo configurado en el Panel Principal.</span>
-                  </div>
-
-                  <!-- ──── LIENZO Y PRUEBA DE CONTRASTE CON ENCUADRE VISUAL LIBRE (CROPPER) ──── -->
-                  <div x-data="{ showMockup: true }" class="space-y-3 pt-2 border-t border-white/10">
-
-                    <!-- Cabecera de Control del Encuadre y Visualización -->
-                    <div class="flex items-center justify-between text-xs font-mono font-bold text-ink-slate flex-wrap gap-2">
-                      <button type="button" @click="$store.characters.openCropperForCharacterBg()"
-                        class="py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/50 text-emerald-200 hover:text-white text-[11px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-[0_0_10px_rgba(16,185,129,0.2)] hover:scale-[1.02] active:scale-[0.98]">
-                        <i data-lucide="crop" class="w-3.5 h-3.5 text-emerald-300"></i>
-                        <span>Encuadrar / Editar Imagen</span>
-                      </button>
-
-                      <div class="flex items-center gap-2 shrink-0">
-                        <!-- Alternar Siluetas HUD -->
-                        <button type="button" @click="showMockup = !showMockup"
-                          class="px-2 py-1 rounded-md border text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
-                          :class="showMockup ? 'text-emerald-300 bg-emerald-500/20 border-emerald-400/40 shadow-[0_0_8px_rgba(16,185,129,0.25)]' : 'text-slate-400 bg-black/60 border-white/10 hover:text-white'"
-                          :title="showMockup ? 'Ocultar siluetas para ver fondo limpio' : 'Mostrar siluetas HUD para probar contraste'">
-                          <i :data-lucide="showMockup ? 'eye' : 'eye-off'" class="w-3 h-3"></i>
-                          <span x-text="showMockup ? 'Siluetas' : 'Limpio'"></span>
-                        </button>
-
-                        <!-- Restablecer -->
-                        <button type="button" @click="$store.characters.resetBackgroundFrame()"
-                          class="p-1 rounded-md text-emerald-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                          title="Restablecer encuadre">
-                          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Lienzo de Vista Previa de Contraste -->
-                    <div class="relative w-full h-48 rounded-xl overflow-hidden border border-emerald-500/30 bg-black/70 shadow-inner select-none transition-colors group">
-
-                      <!-- Fondo en Modo Trama HUD -->
-                      <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'pattern'">
-                        <div class="w-full h-full relative overflow-hidden pointer-events-none"
-                          style="background-image: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, transparent 70%), linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px); background-size: 100% 100%, 24px 24px, 24px 24px;">
-                        </div>
-                      </template>
-
-                      <!-- Fondo en Modo Custom -->
-                      <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom' && $store.characters.active?.presentation?.background?.image">
-                        <div class="w-full h-full relative overflow-hidden pointer-events-none">
-                          <img :src="$store.characters.active.presentation.background.image"
-                            class="w-full h-full object-cover transition-all duration-150"
-                            :style="$store.characters.getBackgroundStyle()" alt="Preview fondo ficha" />
-                          <div class="absolute inset-0 bg-[#080a0d]"
-                            :style="`opacity: ${($store.characters.active?.presentation?.background?.scrim ?? 20) / 100};`"></div>
-                        </div>
-                      </template>
-
-                      <!-- Fallback custom sin imagen -->
-                      <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom' && !$store.characters.active?.presentation?.background?.image">
-                        <div class="w-full h-full flex flex-col items-center justify-center gap-2 text-ink-slate text-xs font-mono bg-[#080a0d] pointer-events-none">
-                          <i data-lucide="image" class="w-6 h-6 opacity-40 text-emerald-400"></i>
-                          <span>Sin imagen asignada aún</span>
-                        </div>
-                      </template>
-
-                      <!-- Fondo en Modo Sincronizado -->
-                      <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'sync'">
-                        <div class="w-full h-full relative overflow-hidden pointer-events-none">
-                          <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
-                            <div class="w-full h-full relative">
-                              <img :src="$store.settings.dashboardBgUrl"
-                                class="w-full h-full object-cover transition-all duration-150"
-                                :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo sync" />
-                              <div class="absolute inset-0 bg-[#080a0d]"
-                                :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
-                            </div>
-                          </template>
-                          <template x-if="$store.settings.dashboardBgMode === 'dynamic' && ($store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl)">
-                            <div class="w-full h-full relative">
-                              <img :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl"
-                                class="w-full h-full object-cover transition-all duration-150"
-                                :style="$store.settings.getDashboardBgStyle()" alt="Preview fondo sync dynamic" />
-                              <div class="absolute inset-0 bg-[#080a0d]"
-                                :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
-                            </div>
-                          </template>
-                        </div>
-                      </template>
-
-                      <!-- Siluetas HUD de Contraste Real (Character Sheet Mockup) -->
-                      <div x-show="showMockup"
-                        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                        class="absolute inset-0 pointer-events-none p-3 flex flex-col justify-between overflow-hidden select-none">
-                        
-                        <div class="flex items-center justify-between pb-1 border-b border-white/15 backdrop-blur-[2px]">
-                          <div class="flex items-center gap-1.5">
-                            <i data-lucide="file-text" class="w-3 h-3 text-emerald-400"></i>
-                            <span class="text-[9px] font-mono font-bold uppercase tracking-wider text-white truncate max-w-[140px]"
-                              x-text="$store.characters.active?.basics?.name || 'OPERATIVO ACTIVO'"></span>
-                          </div>
-                          <span class="text-[8px] font-mono text-emerald-300 font-bold"
-                            x-text="`Opacidad: ${$store.characters.active?.presentation?.background?.opacity ?? 50}%`"></span>
-                        </div>
-
-                        <div class="grid grid-cols-12 gap-2 my-auto">
-                          <!-- Micro Identidad / Perfil (Columna Izq) -->
-                          <div class="col-span-5 p-2 rounded-xl bg-slate-950/80 border border-emerald-400/40 backdrop-blur-md shadow-lg flex flex-col items-center text-center gap-1">
-                            <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-600/30 to-teal-500/40 border border-emerald-400/60 flex items-center justify-center shrink-0 shadow overflow-hidden">
-                              <template x-if="$store.characters.active?.basics?.avatarDataUrl">
-                                <img :src="$store.characters.active.basics.avatarDataUrl" class="w-full h-full object-cover" alt="" />
-                              </template>
-                              <template x-if="!$store.characters.active?.basics?.avatarDataUrl">
-                                <i data-lucide="user" class="w-3.5 h-3.5 text-emerald-300"></i>
-                              </template>
-                            </div>
-                            <div class="text-[8px] font-mono font-bold text-white truncate w-full"
-                              x-text="$store.characters.active?.basics?.name || 'Nombre'"></div>
-                            <div class="w-full h-1 bg-emerald-400/25 rounded-full overflow-hidden">
-                              <div class="h-full bg-emerald-400 w-3/4"></div>
-                            </div>
-                          </div>
-
-                          <!-- Micro Módulo de Atributos y Biografía (Columna Der) -->
-                          <div class="col-span-7 p-2 rounded-xl bg-slate-950/80 border border-white/15 backdrop-blur-md shadow-lg flex flex-col justify-between gap-1 text-[8px] font-mono">
-                            <div class="flex items-center justify-between text-emerald-300 font-bold border-b border-white/10 pb-0.5">
-                              <span>DATOS // BIO</span>
-                              <span class="text-[7px] text-white/50">NIVEL 50</span>
-                            </div>
-                            <div class="space-y-1 py-0.5">
-                              <div class="w-full h-1 rounded bg-white/25"></div>
-                              <div class="w-4/5 h-1 rounded bg-white/15"></div>
-                              <div class="w-3/5 h-1 rounded bg-emerald-400/30"></div>
-                            </div>
-                            <div class="flex items-center justify-between text-[7px] text-slate-300">
-                              <span>ATK: 850</span>
-                              <span>DEF: 620</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div class="flex items-center justify-between text-[8px] font-mono text-slate-300 backdrop-blur-[2px]">
-                          <span>Legibilidad de Módulos</span>
-                          <span class="text-emerald-300 font-bold" x-text="`Scrim: ${$store.characters.active?.presentation?.background?.scrim ?? 20}%`"></span>
-                        </div>
-                      </div>
-
-                      <!-- Fallback Vista Limpia -->
-                      <div x-show="!showMockup" class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div class="px-3 py-1.5 rounded-lg bg-black/75 border border-emerald-400/40 text-white/90 text-xs font-mono flex items-center gap-2 shadow-lg backdrop-blur-sm">
-                          <i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-400"></i>
-                          <span>Ficha de Personaje (Vista Limpia)</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- ──── CONTROLES SLIDERS (ÚNICAMENTE OSCURECIMIENTO, DESENFOQUE Y OPACIDAD) ──── -->
-                    <div class="space-y-3 pt-1">
-                      <!-- Oscurecimiento (Scrim Overlay) -->
-                      <div class="flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                          <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="shield" class="w-3.5 h-3.5 text-emerald-400"></i>
-                            <span>Oscurecimiento (Scrim)</span>
-                          </span>
-                          <span class="text-emerald-300 font-bold font-mono text-[11px]"
-                            x-text="`${$store.characters.active?.presentation?.background?.scrim ?? 20}%`"></span>
-                        </div>
-                        <input type="range" min="0" max="100" step="5"
-                          :value="$store.characters.active?.presentation?.background?.scrim ?? 20"
-                          @input="$store.characters.updateBackgroundScrim($el.value)"
-                          class="hud-range-slider hud-range-emerald">
-                      </div>
-
-                      <!-- Desenfoque (Backdrop Blur) -->
-                      <div class="flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                          <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="droplet" class="w-3.5 h-3.5 text-emerald-400"></i>
-                            <span>Desenfoque (Blur)</span>
-                          </span>
-                          <span class="text-emerald-300 font-bold font-mono text-[11px]"
-                            x-text="`${$store.characters.active?.presentation?.background?.blur || 0} px`"></span>
-                        </div>
-                        <input type="range" min="0" max="30" step="1"
-                          :value="$store.characters.active?.presentation?.background?.blur || 0"
-                          @input="$store.characters.updateBackgroundBlur($el.value)"
-                          class="hud-range-slider hud-range-emerald">
-                      </div>
-
-                      <!-- Opacidad General de la Capa de Fondo -->
-                      <div class="flex flex-col gap-1">
-                        <div class="flex justify-between items-center text-xs font-mono text-slate-300">
-                          <span class="flex items-center gap-1.5 text-[11px]">
-                            <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-400"></i>
-                            <span>Opacidad de Capa de Fondo</span>
-                          </span>
-                          <span class="text-emerald-300 font-bold font-mono text-[11px]"
-                            x-text="`${$store.characters.active?.presentation?.background?.opacity ?? 50}%`"></span>
-                        </div>
-                        <input type="range" min="0" max="100" step="5"
-                          :value="$store.characters.active?.presentation?.background?.opacity ?? 50"
-                          @input="$store.characters.updateBackgroundOpacity($el.value)"
-                          class="hud-range-slider hud-range-emerald">
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Alerta amigable cuando no hay ficha activa -->
-                  <template x-if="!$store.characters.active">
-                    <div class="p-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-300 text-[11px] font-mono flex items-center gap-2">
-                      <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
-                      <span>Nota: Selecciona un personaje en el panel para personalizar su fondo individual.</span>
-                    </div>
-                  </template>
-
-                </div>
-              </div>
-
+            <div class="flex items-center gap-1.5 shrink-0">
+              <label for="dashboard-bg-upload" class="souls-btn !px-2.5 !py-1 text-xs cursor-pointer">Cambiar</label>
+              <button type="button" @click="$store.settings.removeDashboardBgImage()" class="souls-btn souls-btn-danger !p-1.5" title="Quitar">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
             </div>
           </div>
+        </template>
+
+        <template x-if="!$store.settings.dashboardBgUrl">
+          <div class="space-y-2.5">
+            <label for="dashboard-bg-upload" class="souls-btn souls-btn-primary w-full cursor-pointer">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+              <span>Subir imagen o GIF desde tu equipo</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <input type="text" x-model="$store.settings.dashboardBgUrl"
+                @keydown.enter.prevent="$store.app.openMediaUrl($store.settings.dashboardBgUrl, 'bg_dashboard')"
+                @input="$store.settings.saveDashboardBgSettings()"
+                placeholder="O pega el enlace directo de una imagen..."
+                class="souls-input text-xs flex-1">
+              <button type="button" @click="$store.app.openMediaUrl($store.settings.dashboardBgUrl, 'bg_dashboard')"
+                class="souls-btn shrink-0">Usar</button>
+            </div>
+          </div>
+        </template>
+
+        <div class="flex items-center justify-between gap-2 text-xs pt-1 flex-wrap">
+          <span style="color: var(--wiki-text-muted);">O prueba un fondo incluido:</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" @click="$store.settings.applyPresetToPanel('dashboard', 'nebula')" class="souls-btn !px-2.5 !py-1 text-xs">Nebula</button>
+            <button type="button" @click="$store.settings.applyPresetToPanel('dashboard', 'cyberpunk')" class="souls-btn !px-2.5 !py-1 text-xs">Cyber</button>
+            <button type="button" @click="$store.settings.applyPresetToPanel('dashboard', 'blueprint')" class="souls-btn !px-2.5 !py-1 text-xs">Blueprint</button>
+            <button type="button" @click="$store.settings.applyPresetToPanel('dashboard', 'voidDark')" class="souls-btn !px-2.5 !py-1 text-xs">Void</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slider básico de oscurecimiento -->
+      <div class="space-y-1.5 pt-2 border-t" style="border-color: var(--wiki-border);">
+        <div class="flex justify-between text-xs">
+          <span class="font-medium" style="color: var(--wiki-text-main);">Oscurecer fondo (para leer mejor el texto)</span>
+          <span class="font-mono font-semibold" x-text="`${$store.settings.dashboardBgOpacity}%`"></span>
+        </div>
+        <input type="range" min="0" max="100" step="5" x-model="$store.settings.dashboardBgOpacity"
+          @input="$store.settings.saveDashboardBgSettings()" class="wiki-range">
+      </div>
+    </section>
+  </div>
+
+  <!-- ════════ 2. TIER LIST ════════ -->
+  <div x-show="activeSurface === 'tierlist'" class="space-y-4">
+    <div class="relative w-full h-44 overflow-hidden border select-none"
+      style="background: var(--wiki-bg-outer); border-color: var(--wiki-border);">
+      <template x-if="$store.settings.tierlistBgMode === 'pattern'">
+        <div class="w-full h-full pointer-events-none"
+          style="background-image: linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 24px 24px;"></div>
+      </template>
+      <template x-if="$store.settings.tierlistBgMode === 'custom' && $store.settings.tierlistBgUrl">
+        <div class="w-full h-full relative overflow-hidden pointer-events-none">
+          <img :src="$store.settings.tierlistBgUrl" class="w-full h-full object-cover" :style="$store.settings.getTierlistBgStyle()" alt="" />
+          <div class="absolute inset-0 bg-[#07090d]" :style="`opacity: ${($store.settings.tierlistBgOpacity ?? 60) / 100};`"></div>
+        </div>
+      </template>
+      <template x-if="$store.settings.tierlistBgMode === 'custom' && !$store.settings.tierlistBgUrl">
+        <div class="w-full h-full flex flex-col items-center justify-center gap-1.5 text-xs pointer-events-none" style="color: var(--wiki-text-dim);">
+          <i data-lucide="image" class="w-6 h-6 opacity-50"></i>
+          <span>Sube una imagen o elige un estilo abajo</span>
+        </div>
+      </template>
+      <template x-if="$store.settings.tierlistBgMode === 'sync'">
+        <div class="w-full h-full relative overflow-hidden pointer-events-none">
+          <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
+            <div class="w-full h-full relative">
+              <img :src="$store.settings.dashboardBgUrl" class="w-full h-full object-cover" :style="$store.settings.getDashboardBgStyle()" alt="" />
+              <div class="absolute inset-0 bg-[#07090d]" :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+            </div>
+          </template>
+          <template x-if="$store.settings.dashboardBgMode === 'dynamic' && ($store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl)">
+            <div class="w-full h-full relative">
+              <img :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl"
+                class="w-full h-full object-cover" :style="$store.settings.getDashboardBgStyle()" alt="" />
+              <div class="absolute inset-0 bg-[#07090d]" :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <div x-show="$store.settings.tierlistBgMode === 'custom' && $store.settings.tierlistBgUrl"
+        class="absolute bottom-2.5 right-2.5 flex items-center gap-1.5">
+        <button type="button" @click="$store.settings.openCropperForTierlist()" class="souls-btn !px-2.5 !py-1 text-xs">
+          <i data-lucide="crop" class="w-3.5 h-3.5"></i>
+          <span>Encuadrar</span>
+        </button>
+        <button type="button" @click="$store.settings.resetTierlistBgFrame()" class="souls-btn !p-1.5" title="Restablecer encuadre">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+
+    <section class="wiki-settings-section space-y-4">
+      <div class="space-y-2">
+        <label class="text-sm font-semibold block" style="color: var(--wiki-text-main);">Tipo de fondo</label>
+        <div class="wiki-segmented w-full">
+          <button type="button" @click="$store.settings.tierlistBgMode = 'pattern'; $store.settings.saveTierlistBgSettings()"
+            :class="{ 'is-active': $store.settings.tierlistBgMode === 'pattern' }"
+            class="wiki-segmented-btn flex-1 justify-center">Cuadrícula simple</button>
+          <button type="button" @click="$store.settings.tierlistBgMode = 'custom'; $store.settings.saveTierlistBgSettings()"
+            :class="{ 'is-active': $store.settings.tierlistBgMode === 'custom' }"
+            class="wiki-segmented-btn flex-1 justify-center">Imagen o GIF</button>
+          <button type="button" @click="$store.settings.tierlistBgMode = 'sync'; $store.settings.saveTierlistBgSettings()"
+            :class="{ 'is-active': $store.settings.tierlistBgMode === 'sync' }"
+            class="wiki-segmented-btn flex-1 justify-center">Igual que el Panel</button>
+        </div>
+      </div>
+
+      <div x-show="$store.settings.tierlistBgMode === 'sync'" x-cloak class="text-xs" style="color: var(--wiki-text-muted);">
+        Usa automáticamente el mismo fondo configurado para el Panel Principal.
+      </div>
+
+      <div x-show="$store.settings.tierlistBgMode === 'custom'" x-cloak class="space-y-3 pt-2 border-t" style="border-color: var(--wiki-border);">
+        <input id="tierlist-bg-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif"
+          class="hidden" @change="$store.settings.uploadTierlistBgImage($event)">
+
+        <template x-if="$store.settings.tierlistBgUrl">
+          <div class="wiki-settings-card flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img :src="$store.settings.tierlistBgUrl" class="w-9 h-9 object-cover border shrink-0"
+                style="border-color: var(--wiki-border);" alt="" />
+              <div class="min-w-0">
+                <div class="text-xs font-semibold truncate"
+                  x-text="$store.settings.tierlistBgUrl.startsWith('data:') ? 'Imagen cargada' : 'Imagen por enlace'"></div>
+                <div class="text-[11px] truncate" style="color: var(--wiki-text-muted);"
+                  x-text="$store.settings.tierlistBgUrl.startsWith('data:') ? 'Guardada localmente' : $store.settings.tierlistBgUrl"></div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <label for="tierlist-bg-upload" class="souls-btn !px-2.5 !py-1 text-xs cursor-pointer">Cambiar</label>
+              <button type="button" @click="$store.settings.removeTierlistBgImage()" class="souls-btn souls-btn-danger !p-1.5" title="Quitar">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <template x-if="!$store.settings.tierlistBgUrl">
+          <div class="space-y-2.5">
+            <label for="tierlist-bg-upload" class="souls-btn souls-btn-primary w-full cursor-pointer">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+              <span>Subir imagen o GIF desde tu equipo</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <input type="text" x-model="$store.settings.tierlistBgUrl"
+                @keydown.enter.prevent="$store.app.openMediaUrl($store.settings.tierlistBgUrl, 'bg_tierlist')"
+                @input="$store.settings.saveTierlistBgSettings()"
+                placeholder="O pega el enlace directo de una imagen..."
+                class="souls-input text-xs flex-1">
+              <button type="button" @click="$store.app.openMediaUrl($store.settings.tierlistBgUrl, 'bg_tierlist')"
+                class="souls-btn shrink-0">Usar</button>
+            </div>
+          </div>
+        </template>
+
+        <div class="flex items-center justify-between gap-2 text-xs pt-1 flex-wrap">
+          <span style="color: var(--wiki-text-muted);">O prueba un fondo incluido:</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" @click="$store.settings.applyPresetToPanel('tierlist', 'nebula')" class="souls-btn !px-2.5 !py-1 text-xs">Nebula</button>
+            <button type="button" @click="$store.settings.applyPresetToPanel('tierlist', 'cyberpunk')" class="souls-btn !px-2.5 !py-1 text-xs">Cyber</button>
+            <button type="button" @click="$store.settings.applyPresetToPanel('tierlist', 'blueprint')" class="souls-btn !px-2.5 !py-1 text-xs">Blueprint</button>
+            <button type="button" @click="$store.settings.applyPresetToPanel('tierlist', 'voidDark')" class="souls-btn !px-2.5 !py-1 text-xs">Void</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-1.5 pt-2 border-t" style="border-color: var(--wiki-border);">
+        <div class="flex justify-between text-xs">
+          <span class="font-medium" style="color: var(--wiki-text-main);">Oscurecer fondo</span>
+          <span class="font-mono font-semibold" x-text="`${$store.settings.tierlistBgOpacity}%`"></span>
+        </div>
+        <input type="range" min="0" max="100" step="5" x-model="$store.settings.tierlistBgOpacity"
+          @input="$store.settings.saveTierlistBgSettings()" class="wiki-range">
+      </div>
+    </section>
+  </div>
+
+  <!-- ════════ 3. FICHA ABIERTA ════════ -->
+  <div x-show="activeSurface === 'character'" class="space-y-4">
+    <template x-if="!$store.characters.active">
+      <div class="wiki-settings-card flex items-center gap-2.5 text-xs" style="color: var(--wiki-text-main);">
+        <i data-lucide="alert-circle" class="w-4 h-4 shrink-0" style="color: var(--wiki-accent);"></i>
+        <span>Primero abre o selecciona un personaje en el Panel para poder cambiar su fondo individual.</span>
+      </div>
+    </template>
+
+    <div class="relative w-full h-44 overflow-hidden border select-none"
+      style="background: var(--wiki-bg-outer); border-color: var(--wiki-border);">
+      <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'pattern'">
+        <div class="w-full h-full pointer-events-none"
+          style="background-image: linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px); background-size: 24px 24px;"></div>
+      </template>
+      <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom' && $store.characters.active?.presentation?.background?.image">
+        <div class="w-full h-full relative overflow-hidden pointer-events-none">
+          <img :src="$store.characters.active.presentation.background.image" class="w-full h-full object-cover" :style="$store.characters.getBackgroundStyle()" alt="" />
+          <div class="absolute inset-0 bg-[#080a0d]" :style="`opacity: ${($store.characters.active?.presentation?.background?.scrim ?? 20) / 100};`"></div>
+        </div>
+      </template>
+      <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom' && !$store.characters.active?.presentation?.background?.image">
+        <div class="w-full h-full flex flex-col items-center justify-center gap-1.5 text-xs pointer-events-none" style="color: var(--wiki-text-dim);">
+          <i data-lucide="image" class="w-6 h-6 opacity-50"></i>
+          <span>Sube una imagen o elige un estilo abajo</span>
+        </div>
+      </template>
+      <template x-if="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'sync'">
+        <div class="w-full h-full relative overflow-hidden pointer-events-none">
+          <template x-if="$store.settings.dashboardBgMode === 'custom' && $store.settings.dashboardBgUrl">
+            <div class="w-full h-full relative">
+              <img :src="$store.settings.dashboardBgUrl" class="w-full h-full object-cover" :style="$store.settings.getDashboardBgStyle()" alt="" />
+              <div class="absolute inset-0 bg-[#080a0d]" :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+            </div>
+          </template>
+          <template x-if="$store.settings.dashboardBgMode === 'dynamic' && ($store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl)">
+            <div class="w-full h-full relative">
+              <img :src="$store.characters.active?.presentation?.background?.image || $store.characters.active?.basics?.bannerDataUrl"
+                class="w-full h-full object-cover" :style="$store.settings.getDashboardBgStyle()" alt="" />
+              <div class="absolute inset-0 bg-[#080a0d]" :style="`opacity: ${($store.settings.dashboardBgOpacity ?? 60) / 100};`"></div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <div x-show="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom' && $store.characters.active?.presentation?.background?.image"
+        class="absolute bottom-2.5 right-2.5 flex items-center gap-1.5">
+        <button type="button" @click="$store.characters.openCropperForCharacterBg()" class="souls-btn !px-2.5 !py-1 text-xs">
+          <i data-lucide="crop" class="w-3.5 h-3.5"></i>
+          <span>Encuadrar</span>
+        </button>
+        <button type="button" @click="$store.characters.resetBackgroundFrame()" class="souls-btn !p-1.5" title="Restablecer encuadre">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+
+    <section class="wiki-settings-section space-y-4">
+      <div class="space-y-2">
+        <div class="flex items-center justify-between gap-2">
+          <label class="text-sm font-semibold" style="color: var(--wiki-text-main);">Tipo de fondo</label>
+          <span class="text-xs truncate" style="color: var(--wiki-text-muted);"
+            x-text="$store.characters.active?.basics?.name || $store.characters.active?.name || ''"></span>
+        </div>
+        <div class="wiki-segmented w-full">
+          <button type="button" @click="$store.characters.updateBackgroundMode('pattern')"
+            :class="{ 'is-active': ($store.characters.active?.presentation?.background?.mode || 'pattern') === 'pattern' }"
+            class="wiki-segmented-btn flex-1 justify-center">Cuadrícula simple</button>
+          <button type="button" @click="$store.characters.updateBackgroundMode('custom')"
+            :class="{ 'is-active': ($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom' }"
+            class="wiki-segmented-btn flex-1 justify-center">Imagen o GIF</button>
+          <button type="button" @click="$store.characters.updateBackgroundMode('sync')"
+            :class="{ 'is-active': ($store.characters.active?.presentation?.background?.mode || 'pattern') === 'sync' }"
+            class="wiki-segmented-btn flex-1 justify-center">Igual que el Panel</button>
+        </div>
+      </div>
+
+      <div x-show="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'sync'" x-cloak class="text-xs" style="color: var(--wiki-text-muted);">
+        Esta ficha usará el mismo fondo configurado para el Panel Principal.
+      </div>
+
+      <div x-show="($store.characters.active?.presentation?.background?.mode || 'pattern') === 'custom'" x-cloak class="space-y-3 pt-2 border-t" style="border-color: var(--wiki-border);">
+        <input id="char-bg-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif"
+          class="hidden" @change="$store.characters.uploadBackgroundImage($event)">
+
+        <template x-if="$store.characters.active?.presentation?.background?.image">
+          <div class="wiki-settings-card flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <img :src="$store.characters.active.presentation.background.image" class="w-9 h-9 object-cover border shrink-0"
+                style="border-color: var(--wiki-border);" alt="" />
+              <div class="min-w-0">
+                <div class="text-xs font-semibold truncate"
+                  x-text="$store.characters.active.presentation.background.image.startsWith('data:') ? 'Imagen cargada' : 'Imagen por enlace'"></div>
+                <div class="text-[11px] truncate" style="color: var(--wiki-text-muted);"
+                  x-text="$store.characters.active.presentation.background.image.startsWith('data:') ? 'Guardada en ficha' : $store.characters.active.presentation.background.image"></div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <label for="char-bg-upload" class="souls-btn !px-2.5 !py-1 text-xs cursor-pointer">Cambiar</label>
+              <button type="button" @click="$store.characters.removeBackgroundImage()" class="souls-btn souls-btn-danger !p-1.5" title="Quitar">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <template x-if="!$store.characters.active?.presentation?.background?.image">
+          <div class="space-y-2.5">
+            <label for="char-bg-upload" class="souls-btn souls-btn-primary w-full cursor-pointer">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+              <span>Subir imagen o GIF desde tu equipo</span>
+            </label>
+            <div class="flex items-center gap-2">
+              <input type="text" :value="$store.characters.active?.presentation?.background?.image || ''"
+                @keydown.enter.prevent="$store.app.openMediaUrl($el.value, 'bg_character')"
+                @input="$store.characters.setBackgroundUrl($el.value)"
+                placeholder="O pega el enlace directo de una imagen..."
+                class="souls-input text-xs flex-1">
+              <button type="button" @click="$store.app.openMediaUrl($store.characters.active?.presentation?.background?.image, 'bg_character')"
+                class="souls-btn shrink-0">Usar</button>
+            </div>
+          </div>
+        </template>
+
+        <div class="flex items-center justify-between gap-2 text-xs pt-1 flex-wrap">
+          <span style="color: var(--wiki-text-muted);">O prueba un fondo incluido:</span>
+          <div class="flex flex-wrap gap-1.5">
+            <button type="button" @click="$store.settings.applyPresetToPanel('character', 'nebula')" class="souls-btn !px-2.5 !py-1 text-xs">Nebula</button>
+            <button type="button" @click="$store.settings.applyPresetToPanel('character', 'cyberpunk')" class="souls-btn !px-2.5 !py-1 text-xs">Cyber</button>
+            <button type="button" @click="$store.settings.applyPresetToPanel('character', 'blueprint')" class="souls-btn !px-2.5 !py-1 text-xs">Blueprint</button>
+            <button type="button" @click="$store.settings.applyPresetToPanel('character', 'voidDark')" class="souls-btn !px-2.5 !py-1 text-xs">Void</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-1.5 pt-2 border-t" style="border-color: var(--wiki-border);">
+        <div class="flex justify-between text-xs">
+          <span class="font-medium" style="color: var(--wiki-text-main);">Oscurecer fondo</span>
+          <span class="font-mono font-semibold" x-text="`${$store.characters.active?.presentation?.background?.scrim ?? 20}%`"></span>
+        </div>
+        <input type="range" min="0" max="100" step="5"
+          :value="$store.characters.active?.presentation?.background?.scrim ?? 20"
+          @input="$store.characters.updateBackgroundScrim($el.value)" class="wiki-range">
+      </div>
+    </section>
+  </div>
+
+  <!-- Acordeón colapsado: Desenfoque, opacidad extra y acciones globales -->
+  <div>
+    <button type="button" @click="showAdvBg = !showAdvBg" class="wiki-accordion-header">
+      <div class="flex items-center gap-2.5">
+        <i data-lucide="sliders" class="w-4 h-4 text-[var(--wiki-accent)]"></i>
+        <div>
+          <span class="text-sm font-semibold block">Ajustes avanzados de imagen</span>
+          <span class="text-xs text-[var(--wiki-text-muted)] font-normal block">Desenfoque, opacidad extra y aplicar a toda la app</span>
+        </div>
+      </div>
+      <i data-lucide="chevron-down" class="w-4 h-4 text-[var(--wiki-text-muted)] transition-transform shrink-0"
+        :class="showAdvBg ? 'rotate-180' : ''"></i>
+    </button>
+
+    <div x-show="showAdvBg" x-collapse class="wiki-accordion-body space-y-4">
+      <div x-show="activeSurface === 'dashboard'" class="space-y-1.5">
+        <div class="flex justify-between text-xs">
+          <span>Desenfoque del Panel</span>
+          <span class="font-mono font-semibold" x-text="`${$store.settings.dashboardBgBlur} px`"></span>
+        </div>
+        <input type="range" min="0" max="30" step="1" x-model="$store.settings.dashboardBgBlur"
+          @input="$store.settings.saveDashboardBgSettings()" class="wiki-range">
+      </div>
+
+      <div x-show="activeSurface === 'tierlist'" class="space-y-3">
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span>Desenfoque en Tier List</span>
+            <span class="font-mono font-semibold" x-text="`${$store.settings.tierlistBgBlur} px`"></span>
+          </div>
+          <input type="range" min="0" max="30" step="1" x-model="$store.settings.tierlistBgBlur"
+            @input="$store.settings.saveTierlistBgSettings()" class="wiki-range">
+        </div>
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span>Opacidad de las filas</span>
+            <span class="font-mono font-semibold" x-text="`${$store.tierlist.rowOpacity ?? 40}%`"></span>
+          </div>
+          <input type="range" min="0" max="100" step="5" :value="$store.tierlist.rowOpacity ?? 40"
+            @input="$store.tierlist.setRowOpacity($el.value)" class="wiki-range">
+        </div>
+      </div>
+
+      <div x-show="activeSurface === 'character'" class="space-y-3">
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span>Desenfoque en Ficha</span>
+            <span class="font-mono font-semibold" x-text="`${$store.characters.active?.presentation?.background?.blur || 0} px`"></span>
+          </div>
+          <input type="range" min="0" max="30" step="1"
+            :value="$store.characters.active?.presentation?.background?.blur || 0"
+            @input="$store.characters.updateBackgroundBlur($el.value)" class="wiki-range">
+        </div>
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span>Transparencia del fondo</span>
+            <span class="font-mono font-semibold" x-text="`${$store.characters.active?.presentation?.background?.opacity ?? 50}%`"></span>
+          </div>
+          <input type="range" min="0" max="100" step="5"
+            :value="$store.characters.active?.presentation?.background?.opacity ?? 50"
+            @input="$store.characters.updateBackgroundOpacity($el.value)" class="wiki-range">
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 pt-3 border-t" style="border-color: var(--wiki-border);">
+        <button type="button" @click="$store.settings.cloneDashboardBgToAll()" class="souls-btn">
+          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+          <span>Usar fondo del Panel en toda la app</span>
+        </button>
+        <button type="button" @click="$store.settings.resetAllBackgrounds()" class="souls-btn souls-btn-danger">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span>Quitar todos los fondos</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -309,6 +309,7 @@ export function createEmptyCharacter(overrides = {}) {
       inventory: [],
     },
     ...overrides,
+    sheetType: overrides.sheetType === 'classic' ? 'classic' : 'unified',
   };
 }
 
@@ -503,6 +504,7 @@ export function ensureCharacterDefaults(char) {
 
   const finalChar = {
     ...char,
+    sheetType: char.sheetType === 'classic' ? 'classic' : 'unified',
     folderId: char.folderId || null,
     isFavorite: Boolean(char.isFavorite || char.favorite),
     isLocked: Boolean(char.isLocked || char.locked),

@@ -142,6 +142,7 @@ export function createModalMethods() {
             { isOpen: () => Boolean(charStore?.customTabModalOpen), close: () => charStore.closeCustomTabModal() },
             { isOpen: () => Boolean(charStore?.blockBuilderModalOpen), close: () => charStore.closeBlockBuilder() },
             { isOpen: () => Boolean(charStore?.showImportPreview), close: () => charStore.closeImportPreview() },
+            { isOpen: () => Boolean(charStore?.createSheetModalOpen), close: () => charStore.closeCreateSheetModal() },
             { isOpen: () => Boolean(charStore?.renameTarget), close: () => { charStore.renameTarget = null; } },
             { isOpen: () => Boolean(charStore?.deleteTarget), close: () => charStore.cancelDelete() },
             { isOpen: () => Boolean(charStore?.deleteFolderTarget), close: () => charStore.cancelDeleteFolder() },

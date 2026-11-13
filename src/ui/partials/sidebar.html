@@ -1,7 +1,7 @@
 <!-- ==============================================================
        SIDEBAR — Lista de pestañas activas (Solo en Modo Editor)
        ============================================================== -->
-    <nav id="app-sidebar" aria-label="Pestañas de ficha" x-show="$store.app.activeView === 'editor'" x-cloak
+    <nav id="app-sidebar" aria-label="Pestañas de ficha" x-show="$store.app.activeView === 'editor' && $store.characters.active?.sheetType === 'classic'" x-cloak
       :style="{ width: ($store.app.sidebarWidth || 210) + 'px' }"
       @dragover.prevent
       @drop.prevent="$store.app.onSidebarDrop($event)">

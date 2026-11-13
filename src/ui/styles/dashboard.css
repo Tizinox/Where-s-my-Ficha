@@ -486,11 +486,11 @@
 }
 
 .dashboard-char-card.is-favorite-card {
-  border-color: rgba(200, 170, 110, 0.4);
+  border-color: color-mix(in srgb, var(--char-accent, var(--wiki-accent, #C8AA6E)) 45%, transparent);
 }
 
 .dashboard-char-card.is-favorite-card:hover {
-  border-color: rgba(217, 185, 118, 0.7);
+  border-color: color-mix(in srgb, var(--char-accent, var(--wiki-accent, #C8AA6E)) 75%, transparent);
 }
 
 .dashboard-char-card.is-favorite-card::before {

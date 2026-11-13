@@ -1,1907 +1,627 @@
-<!-- ═════════════════════════════════════════════════════════
-     SUB-TAB 1: IDENTIDAD VISUAL (OVERHAUL DE ARQUITECTURA y BALANCE)
-     ═════════════════════════════════════════════════════════ -->
-<div x-show="$store.settings.activeSubTab === 'identity'"
-  x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2"
-  x-transition:enter-end="opacity-100 translate-y-0"
-  class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- SUB-PESTAÑA 1: APARIENCIA (SIMPLE PRIMERO + AVANZADO COLAPSADO) -->
+<div class="space-y-6"
+  x-data="{
+    showAdvancedIdentity: false,
+    advColorChannel: 'secondary',
+    fontCategory: 'display',
+    fontCats: [
+      {
+        id: 'display',
+        tabLabel: 'Títulos',
+        title: 'Títulos y encabezados',
+        desc: 'Nombres de personaje, secciones principales y títulos de tarjetas.',
+        prop: 'fontDisplay',
+        weightProp: 'fontWeightDisplay',
+        resetFn: 'resetFontDisplay',
+        placeholder: 'Ej: Barlow Condensed, Cinzel, Orbitron...',
+        weights: [
+          { val: '300', label: '300 Fina' },
+          { val: '400', label: '400 Normal' },
+          { val: '700', label: '700 Negrita' },
+          { val: '900', label: '900 Gruesa' }
+        ],
+        presets: ['Barlow Condensed', 'Orbitron', 'Teko', 'Bebas Neue', 'Cinzel', 'Montserrat', 'Rajdhani']
+      },
+      {
+        id: 'hud',
+        tabLabel: 'Botones',
+        title: 'Botones, pestañas y etiquetas',
+        desc: 'Pestañas de navegación, botones e indicadores cortos.',
+        prop: 'fontHud',
+        weightProp: 'fontWeightHud',
+        resetFn: 'resetFontHud',
+        placeholder: 'Ej: Inter Tight, Chakra Petch, Rajdhani...',
+        weights: [
+          { val: '400', label: '400 Normal' },
+          { val: '600', label: '600 Semi' },
+          { val: '700', label: '700 Negrita' },
+          { val: '800', label: '800 Extra' }
+        ],
+        presets: ['Chakra Petch', 'Rajdhani', 'Titillium Web', 'Exo 2', 'Share Tech Mono', 'Inter Tight']
+      },
+      {
+        id: 'body',
+        tabLabel: 'Lectura',
+        title: 'Texto general y descripciones',
+        desc: 'Párrafos largos, trasfondo, historia y textos explicativos.',
+        prop: 'fontBody',
+        weightProp: 'fontWeightBody',
+        resetFn: 'resetFontBody',
+        placeholder: 'Ej: Inter Tight, Inter, EB Garamond...',
+        weights: [
+          { val: '300', label: '300 Fina' },
+          { val: '400', label: '400 Normal' },
+          { val: '600', label: '600 Semi' },
+          { val: '700', label: '700 Negrita' }
+        ],
+        presets: ['Inter Tight', 'Inter', 'Roboto', 'Open Sans', 'EB Garamond']
+      },
+      {
+        id: 'input',
+        tabLabel: 'Campos',
+        title: 'Campos de escritura y datos',
+        desc: 'Cajas de texto al editar fichas, números y notas.',
+        prop: 'fontInput',
+        weightProp: 'fontWeightInput',
+        resetFn: 'resetFontInput',
+        placeholder: 'Ej: Inter Tight, JetBrains Mono, Fira Code...',
+        weights: [
+          { val: '400', label: '400 Normal' },
+          { val: '500', label: '500 Media' },
+          { val: '600', label: '600 Semi' },
+          { val: '700', label: '700 Negrita' }
+        ],
+        presets: ['JetBrains Mono', 'Fira Code', 'Share Tech Mono', 'Source Code Pro', 'Space Mono']
+      },
+      {
+        id: 'tierlist',
+        tabLabel: 'Tier List',
+        title: 'Letras de filas en Tier List',
+        desc: 'Siglas S, A, B, C y nombres de cada fila.',
+        prop: 'fontTierlist',
+        weightProp: 'fontWeightTierlist',
+        resetFn: 'resetFontTierlist',
+        placeholder: 'Ej: Barlow Condensed, Anton, Oswald...',
+        weights: [
+          { val: '400', label: '400 Normal' },
+          { val: '700', label: '700 Negrita' },
+          { val: '800', label: '800 Extra' },
+          { val: '900', label: '900 Gruesa' }
+        ],
+        presets: ['Barlow Condensed', 'Teko', 'Bebas Neue', 'Anton', 'Oswald', 'Orbitron', 'Montserrat']
+      }
+    ],
+    extraUiToggles: [
+      { prop: 'hidePowerScalingTierBadge', toggle: 'toggleHidePowerScalingTierBadge', title: 'Ocultar etiqueta de Tier de Poder', desc: 'Esconde el rango en las tarjetas y cabecera de cada ficha.' },
+      { prop: 'hideCompletenessBar', toggle: 'toggleHideCompletenessBar', title: 'Ocultar barra de completitud', desc: 'Esconde el porcentaje de progreso dentro de las fichas.' },
+      { prop: 'hideRecentSheetButton', toggle: 'toggleHideRecentSheetButton', title: 'Ocultar botón de última ficha abierta', desc: 'Quita el acceso rápido a la ficha editada recientemente.' },
+      { prop: 'hideTabFieldCounters', toggle: 'toggleHideTabFieldCounters', title: 'Ocultar contadores en pestañas', desc: 'Quita el número de campos llenos en las pestañas de ficha clásica.' },
+      { prop: 'disableSettingsInteractiveGrid', toggle: 'toggleDisableSettingsInteractiveGrid', title: 'Desactivar grilla interactiva (temas clásicos)', desc: 'Mantiene fijo el fondo en estilos clásicos.' }
+    ]
+  }">
 
-  <!-- ═════════════════════════════════════════════════════════
-       COLUMNA IZQUIERDA (5 COLS):
-       1. LIVE HUD PREVIEW
-       2. DENSIDAD VISUAL DE INTERFAZ
-       3. COLOR DE ACENTO PRINCIPAL
-       4. COLOR SECUNDARIO y RESPLANDOR (GLOW)
-       ═════════════════════════════════════════════════════════ -->
-  <div class="lg:col-span-5 space-y-6">
-
-    <!-- 1. MINI FICHA MOCKUP EN VIVO (HUD PREVIEW CON LOS 6 CANALES EN ACCIÓN) -->
-    <div
-      x-data="{ testClicks: 0, testSecClicks: 0, testTertClicks: 0, activeMiniTab: 'perfil', sampleInput: 'EXP-9042 // Autorización Nivel Alfa' }"
-      class="p-4 sm:p-5 rounded-2xl border space-y-3.5 shadow-2xl transition-all relative overflow-hidden"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; box-shadow: 0 0 20px ' + ($store.settings.activeGlowColor) + '25;'">
-
-      <!-- Cabecera de la Previsualización -->
-      <div class="flex items-center justify-between border-b border-white/10 pb-2.5">
-        <span
-          class="text-xs uppercase font-mono font-bold tracking-wider text-parchment-cream flex items-center gap-2"
-          :style="'font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + $store.settings.fontWeightHud">
-          <i data-lucide="scan" class="w-4 h-4" :style="'color: ' + $store.settings.accentColor"></i>
-          Previsualización de Ficha en Vivo
-        </span>
-        <div class="flex items-center gap-2">
-          <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded border font-bold"
-            :style="'background: rgba(' + $store.settings.rgbChannels + ', 0.15); color: ' + $store.settings.accentColor + '; border-color: ' + $store.settings.accentColor + '; font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif;'">
-            HUD EN VIVO
-          </span>
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded border font-bold"
-            :style="'background: rgba(' + $store.settings.rgbChannels + ', 0.15); color: ' + $store.settings.accentColor + '; border-color: rgba(' + $store.settings.rgbChannels + ', 0.4); font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif'">
-            DENSIDAD: <span x-text="$store.settings.density.toUpperCase()"></span>
-          </span>
-        </div>
-      </div>
-
-      <!-- Contenedor del Mockup de Ficha (Fluido sin duplicar marcos externos) -->
-      <div class="space-y-3.5 relative overflow-hidden transition-colors"
-        :class="$store.settings.density === 'compact' ? 'space-y-2.5' : ($store.settings.density === 'comfortable' ? 'space-y-4' : 'space-y-3.5')">
-
-        <!-- A. Cabecera del Personaje: Avatar + Nombre (--font-display) + Rol / Arquetipo -->
-        <div class="flex items-center gap-3">
-          <!-- Contenedor del Avatar (Dimensionado dinámico 3:4 Retrato o 1:1 Cuadrado con icono) -->
-          <div class="shrink-0 overflow-hidden border relative bg-black shadow-md transition-all"
-            :class="($store.characters.getAvatarAspect ? $store.characters.getAvatarAspect() : ($store.characters.active?.basics?.avatarAspect || 'square')) === 'portrait' ? 'w-12 h-16' : 'w-12 h-12'"
-            :style="'border-radius: ' + ($store.characters.getAvatarRadiusCss ? $store.characters.getAvatarRadiusCss($store.characters.active) : '8px') + '; border-color: ' + $store.settings.accentColor + '; box-shadow: 0 0 10px ' + ($store.settings.activeGlowColor) + '40;'">
-            <img x-show="Boolean($store.characters.active?.basics?.avatarDataUrl || $store.characters.active?.basics?.iconDataUrl)"
-              :src="(($store.characters.getAvatarAspect ? $store.characters.getAvatarAspect() : $store.characters.active?.basics?.avatarAspect) === 'portrait' ? ($store.characters.active?.basics?.avatarDataUrl || $store.characters.active?.basics?.iconDataUrl) : ($store.characters.active?.basics?.iconDataUrl || $store.characters.active?.basics?.avatarDataUrl)) || ''"
-              class="w-full h-full object-cover absolute inset-0" alt="Avatar">
-            <div x-show="!Boolean($store.characters.active?.basics?.avatarDataUrl || $store.characters.active?.basics?.iconDataUrl)"
-              class="w-full h-full flex items-center justify-center absolute inset-0 text-white/50">
-              <i data-lucide="user" class="w-6 h-6" :style="'color: ' + $store.settings.accentColor"></i>
-            </div>
-          </div>
-
-          <div class="flex-1 min-w-0 space-y-0.5">
-            <div class="flex items-center justify-between gap-2">
-              <h3 class="text-lg sm:text-xl uppercase tracking-wider truncate leading-tight transition-all"
-                :style="'font-family: \'' + ($store.settings.fontDisplay || 'Barlow Condensed') + '\', var(--font-display), sans-serif; font-weight: ' + ($store.settings.fontWeightDisplay || '700') + '; color: ' + $store.settings.accentColor + '; text-shadow: none;'"
-                x-text="$store.characters.active?.name || 'V-07 // VALKYRIE'">
-              </h3>
-              <span class="px-2 py-0.5 rounded text-[9px] font-mono font-bold tracking-wider uppercase border shrink-0"
-                :style="'background: rgba(' + $store.settings.rgbChannels + ', 0.12); color: ' + $store.settings.accentColor + '; border-color: ' + $store.settings.accentColor + '50;'">
-                ACTIVO
-              </span>
-            </div>
-            <p class="text-[11px] font-mono text-white/80 truncate uppercase"
-              :style="'font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600')"
-              x-text="$store.characters.active?.basics?.archetype || 'Operativo Especial // Clase S'">
-            </p>
-          </div>
-        </div>
-
-        <!-- B. Mini-Pestañas de Navegación (--font-hud) -->
-        <div class="grid grid-cols-3 gap-1.5 pt-1 border-t"
-          :style="'border-color: ' + ($store.settings.borderColor || 'rgba(255,255,255,0.08)')">
-          <button type="button" @click="activeMiniTab = 'perfil'"
-            class="px-2 py-1 rounded-md text-xs uppercase flex items-center justify-center gap-1.5 transition-all select-none cursor-pointer shadow-sm"
-            :style="activeMiniTab === 'perfil' ? ('font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600') + '; background: ' + $store.settings.accentColor + '; color: #000; box-shadow: 0 0 10px ' + $store.settings.accentColor + '60;') : ('font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600') + '; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1);')">
-            <i data-lucide="user" class="w-3.5 h-3.5"></i>
-            <span>Perfil</span>
-          </button>
-          <button type="button" @click="activeMiniTab = 'atributos'"
-            class="px-2 py-1 rounded-md text-xs uppercase flex items-center justify-center gap-1.5 transition-all select-none cursor-pointer"
-            :style="activeMiniTab === 'atributos' ? ('font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600') + '; background: ' + $store.settings.secondaryColor + '; color: #000; box-shadow: 0 0 10px ' + $store.settings.secondaryColor + '60;') : ('font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600') + '; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1);')">
-            <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-            <span>Atributos</span>
-          </button>
-          <button type="button" @click="activeMiniTab = 'arsenal'"
-            class="px-2 py-1 rounded-md text-xs uppercase flex items-center justify-center gap-1.5 transition-all select-none cursor-pointer"
-            :style="activeMiniTab === 'arsenal' ? ('font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600') + '; background: ' + $store.settings.tertiaryColor + '; color: #000; box-shadow: 0 0 10px ' + $store.settings.tertiaryColor + '60;') : ('font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600') + '; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.1);')">
-            <i data-lucide="shield" class="w-3.5 h-3.5"></i>
-            <span>Arsenal</span>
-          </button>
-        </div>
-
-        <!-- Línea Gradiente Tricolor (Acento Primario + Secundario + Terciario) -->
-        <div class="h-0.5 w-full rounded"
-          :style="'background: linear-gradient(90deg, ' + $store.settings.accentColor + ' 0%, ' + $store.settings.secondaryColor + ' 50%, ' + $store.settings.tertiaryColor + ' 100%); box-shadow: 0 0 8px ' + $store.settings.accentColor + '50;'">
-        </div>
-
-        <!-- C. Extracto Narrativo / Biografía (--font-body) -->
-        <div class="space-y-1 p-2.5 sm:p-3 rounded-lg border"
-          :style="'background: rgba(0,0,0,0.5); border-color: ' + ($store.settings.borderColor || 'rgba(255,255,255,0.08)')">
-          <div class="flex items-center justify-between text-[10px] text-ink-slate font-mono uppercase">
-            <span>Registro Biográfico (--font-body)</span>
-            <span class="font-semibold" :style="'color: ' + $store.settings.tertiaryColor" x-text="$store.settings.fontBody || 'Inter Tight'"></span>
-          </div>
-          <p class="text-xs text-parchment-cream/90 leading-relaxed transition-all"
-            :style="'font-family: \'' + ($store.settings.fontBody || 'Inter Tight') + '\', var(--font-body), sans-serif; font-weight: ' + ($store.settings.fontWeightBody || '400') + ';'">
-            Especialista en reconocimiento y operaciones encubiertas. Su fisiología ha sido optimizada para soportar sobrecargas de energía y sincronización neural directa.
-          </p>
-        </div>
-
-        <!-- D. Campo de Entrada / Formulario (--font-input) -->
-        <div class="space-y-1 p-2.5 sm:p-3 rounded-lg border"
-          :style="'background: rgba(0,0,0,0.5); border-color: ' + ($store.settings.borderColor || 'rgba(255,255,255,0.08)')">
-          <div class="flex items-center justify-between text-[10px] text-ink-slate font-mono uppercase">
-            <span>Entrada de Datos (--font-input)</span>
-            <span class="font-semibold" :style="'color: ' + $store.settings.secondaryColor" x-text="$store.settings.fontInput || 'JetBrains Mono'"></span>
-          </div>
-          <input type="text" x-model="sampleInput"
-            class="form-input text-xs w-full transition-all focus:ring-1 py-1.5 rounded-md"
-            :style="'font-family: \'' + ($store.settings.fontInput || 'JetBrains Mono') + '\', var(--font-input), monospace; font-weight: ' + ($store.settings.fontWeightInput || '400') + '; border-color: rgba(' + $store.settings.rgbChannels + ', 0.35); --tw-ring-color: ' + $store.settings.accentColor"
-            placeholder="Escribe aquí para probar la tipografía de campos...">
-        </div>
-
-        <!-- E. Botones de Acción Tricolor (Cuadrícula simétrica 3 columnas) -->
-        <div class="grid grid-cols-3 gap-2 pt-1">
-          <!-- Botón 1: Primario -->
-          <button type="button"
-            @click="testClicks++; $store.app.toast('Acción primaria ejecutada. Clics: ' + testClicks, 'info')"
-            class="header-btn header-btn-accent text-xs py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-md uppercase font-bold"
-            :style="'font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600') + '; background: ' + $store.settings.accentColor + '; color: #000; box-shadow: 0 0 10px ' + $store.settings.accentColor + '60;'"
-            title="Probar color de acento principal">
-            <i data-lucide="zap" class="w-3.5 h-3.5 shrink-0"></i>
-            <span class="truncate">PRIMARIO</span>
-            <span class="px-1.5 py-0.2 rounded bg-black/40 text-white font-mono text-[9px] shrink-0"
-              x-text="testClicks > 0 ? (testClicks + 'X') : 'CLICK'"></span>
-          </button>
-
-          <!-- Botón 2: Secundario -->
-          <button type="button"
-            @click="testSecClicks++; $store.app.toast('Acción secundaria ejecutada. Clics: ' + testSecClicks, 'success')"
-            class="header-btn header-btn-secondary text-xs py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-md uppercase font-bold"
-            :style="'font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600') + '; background: ' + $store.settings.secondaryColor + '; color: #000; box-shadow: 0 0 10px ' + $store.settings.secondaryColor + '60;'"
-            title="Probar color secundario alterno">
-            <i data-lucide="shield" class="w-3.5 h-3.5 shrink-0"></i>
-            <span class="truncate">SECUNDARIO</span>
-            <span class="px-1.5 py-0.2 rounded bg-black/40 text-white font-mono text-[9px] shrink-0"
-              x-text="testSecClicks > 0 ? (testSecClicks + 'X') : 'CLICK'"></span>
-          </button>
-
-          <!-- Botón 3: Terciario -->
-          <button type="button"
-            @click="testTertClicks++; $store.app.toast('Acción terciaria ejecutada. Clics: ' + testTertClicks, 'warning')"
-            class="header-btn text-xs py-1.5 px-2 rounded-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 transition-all shadow-md border uppercase font-bold"
-            :style="'font-family: \'' + ($store.settings.fontHud || 'Chakra Petch') + '\', var(--font-hud), sans-serif; font-weight: ' + ($store.settings.fontWeightHud || '600') + '; background: ' + $store.settings.tertiaryColor + '; color: #000; border-color: ' + $store.settings.tertiaryColor + '; box-shadow: 0 0 10px ' + $store.settings.tertiaryColor + '60;'"
-            title="Probar color terciario / auxiliar">
-            <i data-lucide="circle-dot" class="w-3.5 h-3.5 shrink-0"></i>
-            <span class="truncate">TERCIARIO</span>
-            <span class="px-1.5 py-0.2 rounded bg-black/40 text-white font-mono text-[9px] shrink-0"
-              x-text="testTertClicks > 0 ? (testTertClicks + 'X') : 'CLICK'"></span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 2. DENSIDAD VISUAL DE INTERFAZ -->
-    <div class="p-4 sm:p-5 rounded-2xl border space-y-3.5 shadow-xl transition-colors"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + ';'">
-      <div class="flex items-center justify-between">
-        <label class="text-sm font-bold text-parchment-peach flex items-center gap-2">
-          <i data-lucide="layout-template" class="w-4 h-4 text-ink-teal"></i>
-          Densidad Visual de Interfaz
-        </label>
-        <button type="button"
-          class="text-xs text-ink-slate hover:text-accent-ruby transition-colors flex items-center gap-1 cursor-pointer font-mono"
-          @click="$store.settings.resetDensity()" title="Restablecer densidad predeterminada">
-          <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-        </button>
-      </div>
-
-      <div class="grid grid-cols-3 gap-2.5">
-        <button type="button"
-          class="py-3 px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer"
-          :class="$store.settings.density === 'compact' ? 'font-bold shadow-md' : 'border-white/10 bg-black/40 text-text-muted hover:border-white/30'"
-          :style="$store.settings.density === 'compact' ? ('border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.15);') : ''"
-          @click="$store.settings.setDensity('compact')">
-          <i data-lucide="layout-list" class="w-4 h-4"></i>
-          <span class="text-xs font-semibold">Compacta</span>
-        </button>
-        <button type="button"
-          class="py-3 px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer"
-          :class="($store.settings.density || 'normal') === 'normal' ? 'font-bold shadow-md' : 'border-white/10 bg-black/40 text-text-muted hover:border-white/30'"
-          :style="($store.settings.density || 'normal') === 'normal' ? ('border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.15);') : ''"
-          @click="$store.settings.setDensity('normal')">
-          <i data-lucide="layout-grid" class="w-4 h-4"></i>
-          <span class="text-xs font-semibold">Normal</span>
-        </button>
-        <button type="button"
-          class="py-3 px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer"
-          :class="$store.settings.density === 'comfortable' ? 'font-bold shadow-md' : 'border-white/10 bg-black/40 text-text-muted hover:border-white/30'"
-          :style="$store.settings.density === 'comfortable' ? ('border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.15);') : ''"
-          @click="$store.settings.setDensity('comfortable')">
-          <i data-lucide="maximize-2" class="w-4 h-4"></i>
-          <span class="text-xs font-semibold">Cómoda</span>
-        </button>
-      </div>
-      <p class="text-xs text-ink-slate">Ajusta márgenes y espaciados para optimizar el área de trabajo.</p>
-    </div>
-
-    <!-- 3. MÓDULO A: TRÍADA DE ACENTOS CROMÁTICOS (CANALES 1, 2 Y 3) -->
-    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-4 shadow-xl transition-all"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid; box-shadow: 0 0 16px ' + ($store.settings.activeGlowColor) + '15;'"
-      x-data="{ activeAccentChannel: 'primary' }">
-      
-      <!-- Cabecera del Módulo de Acentos -->
-      <div class="flex items-center justify-between border-b border-white/10 pb-3">
-        <div>
-          <label class="text-sm font-bold text-parchment-peach flex items-center gap-2">
-            <i data-lucide="palette" class="w-4 h-4 text-ink-teal"></i>
-            Tríada de Acentos Cromáticos (3 Canales)
-          </label>
-          <p class="text-xs text-ink-slate mt-0.5">Controla la jerarquía visual activa: Primario, Secundario y Terciario.</p>
-        </div>
-        <button type="button"
-          class="text-xs text-ink-slate hover:text-accent-ruby transition-colors flex items-center gap-1 cursor-pointer font-mono"
-          @click="activeAccentChannel === 'primary' ? $store.settings.resetColor() : (activeAccentChannel === 'secondary' ? $store.settings.resetSecondaryColor() : $store.settings.resetTertiaryColor())"
-          :title="'Restablecer canal ' + activeAccentChannel">
-          <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-        </button>
-      </div>
-
-      <!-- Selector de Pestañas de Canales de Acento -->
-      <div class="grid grid-cols-3 gap-2">
-        <!-- Canal 1: Primario -->
-        <button type="button" @click="activeAccentChannel = 'primary'"
-          class="p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer text-center relative overflow-hidden"
-          :class="activeAccentChannel === 'primary' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 text-ink-slate hover:text-white'"
-          :style="activeAccentChannel === 'primary' ? ('border-color: ' + $store.settings.accentColor + '; box-shadow: 0 0 10px ' + $store.settings.accentColor + '40;') : ''">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" :style="'background-color: ' + $store.settings.accentColor"></span>
-            <span class="text-xs font-bold text-parchment-cream">1. Primario</span>
-          </div>
-          <span class="text-[10px] font-mono font-semibold" :style="'color: ' + $store.settings.accentColor" x-text="$store.settings.accentColor.toUpperCase()"></span>
-        </button>
-
-        <!-- Canal 2: Secundario -->
-        <button type="button" @click="activeAccentChannel = 'secondary'"
-          class="p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer text-center relative overflow-hidden"
-          :class="activeAccentChannel === 'secondary' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 text-ink-slate hover:text-white'"
-          :style="activeAccentChannel === 'secondary' ? ('border-color: ' + $store.settings.secondaryColor + '; box-shadow: 0 0 10px ' + $store.settings.secondaryColor + '40;') : ''">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" :style="'background-color: ' + $store.settings.secondaryColor"></span>
-            <span class="text-xs font-bold text-parchment-cream">2. Secundario</span>
-          </div>
-          <span class="text-[10px] font-mono font-semibold" :style="'color: ' + $store.settings.secondaryColor" x-text="$store.settings.secondaryColor.toUpperCase()"></span>
-        </button>
-
-        <!-- Canal 3: Terciario -->
-        <button type="button" @click="activeAccentChannel = 'tertiary'"
-          class="p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer text-center relative overflow-hidden"
-          :class="activeAccentChannel === 'tertiary' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 text-ink-slate hover:text-white'"
-          :style="activeAccentChannel === 'tertiary' ? ('border-color: ' + $store.settings.tertiaryColor + '; box-shadow: 0 0 10px ' + $store.settings.tertiaryColor + '40;') : ''">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" :style="'background-color: ' + $store.settings.tertiaryColor"></span>
-            <span class="text-xs font-bold text-parchment-cream">3. Terciario</span>
-          </div>
-          <span class="text-[10px] font-mono font-semibold" :style="'color: ' + $store.settings.tertiaryColor" x-text="$store.settings.tertiaryColor.toUpperCase()"></span>
-        </button>
-      </div>
-
-      <!-- Editor del Canal Activo -->
-      <!-- ── CANAL 1: PRIMARIO ── -->
-      <div x-show="activeAccentChannel === 'primary'" x-transition.opacity.duration.150ms class="space-y-3">
-        <div class="space-y-1">
-          <span class="text-xs font-bold text-parchment-cream flex items-center gap-1.5">
-            <i data-lucide="zap" class="w-3.5 h-3.5 text-accent-cyan"></i>
-            Color de Acento Principal (--accent-primary)
-          </span>
-          <p class="text-[11px] text-ink-slate">Botones primarios, indicadores de foco, bordes activos y elementos emblemáticos.</p>
-        </div>
-
-        <!-- Selector Profesional Cyber HUD: Primario -->
-        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
-          x-data="cyberColorPicker({ label: 'Color Primario', defaultColor: '#00F0FF', value: () => $store.settings.accentColor, onSelect: (hex) => { $store.settings.accentColor = hex; }, swatches: $store.settings.popularAccentSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
-          <button type="button" @click="toggle()"
-            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 transition-transform active:scale-95"
-            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
-            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
-              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
-          </button>
-          <div class="flex-1 flex items-center gap-1 px-1">
-            <span class="text-xs font-mono text-ink-slate font-bold">#</span>
-            <input type="text"
-              :value="(currentHex || '').replace('#', '').toUpperCase()"
-              @input="setFromHex('#' + $event.target.value, false)"
-              class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
-              placeholder="00F0FF" maxlength="6">
-          </div>
-          <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="currentHex.toUpperCase()"></span>
-
-          <!-- Popover Flotante Cyber HUD -->
-          <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
-        </div>
-
-        <!-- Muestrarios Rápidos Cromáticos -->
-        <div class="space-y-1.5 pt-0.5">
-          <span class="text-[10px] font-mono uppercase tracking-wider text-ink-slate block">Paleta Rápida de Acento:</span>
-          <div class="flex items-center gap-2 flex-wrap">
-            <template x-for="swatch in $store.settings.popularAccentSwatches" :key="swatch.name">
-              <button type="button" @click="$store.settings.accentColor = swatch.color"
-                class="w-7 h-7 rounded-md transition-all cursor-pointer relative group flex items-center justify-center border shadow-sm"
-                :class="($store.settings.accentColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-110 border-white' : 'border-white/15 hover:scale-110 hover:border-white/40'"
-                :style="'background-color: ' + swatch.color + '; box-shadow: 0 0 8px ' + swatch.color + '50;'"
-                :title="swatch.name + ' (' + swatch.color + ')'">
-                <template x-if="($store.settings.accentColor || '').toUpperCase() === swatch.color.toUpperCase()">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                    :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(swatch.color.toUpperCase()) ? 'text-black' : 'text-white'">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </template>
-              </button>
-            </template>
-          </div>
-        </div>
-
-        <!-- Alerta de accesibilidad WCAG -->
-        <template x-if="$store.settings.contrastInfo.warning">
-          <div class="p-3 rounded-lg border border-accent-ruby/40 bg-accent-ruby/10 flex items-start gap-2.5 text-xs text-parchment-cream font-sans animate-fadeIn">
-            <i data-lucide="alert-triangle" class="w-4 h-4 text-accent-ruby shrink-0 mt-0.5"></i>
-            <div class="space-y-0.5">
-              <span class="font-bold text-accent-ruby block">Advertencia de Accesibilidad (WCAG)</span>
-              <p class="text-[11px] text-parchment-cream/90 leading-tight" x-text="$store.settings.contrastInfo.warning"></p>
-            </div>
-          </div>
-        </template>
-      </div>
-
-      <!-- ── CANAL 2: SECUNDARIO ── -->
-      <div x-show="activeAccentChannel === 'secondary'" x-transition.opacity.duration.150ms class="space-y-3">
-        <div class="space-y-1">
-          <span class="text-xs font-bold text-parchment-cream flex items-center gap-1.5">
-            <i data-lucide="palette" class="w-3.5 h-3.5 text-purple-400"></i>
-            Color Secundario (--accent-secondary)
-          </span>
-          <p class="text-[11px] text-ink-slate">Habilidades pasivas, metas secundarias, enlaces, gradientes y acentos de relación.</p>
-        </div>
-
-        <!-- Selector Profesional Cyber HUD: Secundario -->
-        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
-          x-data="cyberColorPicker({ label: 'Color Secundario', defaultColor: '#FF0077', value: () => $store.settings.secondaryColor, onSelect: (hex) => { $store.settings.secondaryColor = hex; }, swatches: $store.settings.popularSecondarySwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
-          <button type="button" @click="toggle()"
-            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-transform active:scale-95"
-            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
-            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
-              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
-          </button>
-          <div class="flex-1 flex items-center gap-1 px-1">
-            <span class="text-xs font-mono text-ink-slate font-bold">#</span>
-            <input type="text"
-              :value="(currentHex || '').replace('#', '').toUpperCase()"
-              @input="setFromHex('#' + $event.target.value, false)"
-              class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
-              placeholder="FF0077" maxlength="6">
-          </div>
-          <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="currentHex.toUpperCase()"></span>
-
-          <!-- Popover Flotante Cyber HUD -->
-          <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
-        </div>
-
-        <!-- Muestrarios Rápidos Cromáticos Secundarios -->
-        <div class="space-y-1.5 pt-0.5">
-          <span class="text-[10px] font-mono uppercase tracking-wider text-ink-slate block">Paleta Rápida Secundaria:</span>
-          <div class="flex items-center gap-2 flex-wrap">
-            <template x-for="swatch in $store.settings.popularSecondarySwatches" :key="'sec-' + swatch.name">
-              <button type="button" @click="$store.settings.secondaryColor = swatch.color"
-                class="w-7 h-7 rounded-md transition-all cursor-pointer relative group flex items-center justify-center border shadow-sm"
-                :class="($store.settings.secondaryColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-110 border-white' : 'border-white/15 hover:scale-110 hover:border-white/40'"
-                :style="'background-color: ' + swatch.color + '; box-shadow: 0 0 8px ' + swatch.color + '50;'"
-                :title="swatch.name + ' (' + swatch.color + ')'">
-                <template x-if="($store.settings.secondaryColor || '').toUpperCase() === swatch.color.toUpperCase()">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                    :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(swatch.color.toUpperCase()) ? 'text-black' : 'text-white'">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </template>
-              </button>
-            </template>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── CANAL 3: TERCIARIO ── -->
-      <div x-show="activeAccentChannel === 'tertiary'" x-transition.opacity.duration.150ms class="space-y-3">
-        <div class="space-y-1">
-          <span class="text-xs font-bold text-parchment-cream flex items-center gap-1.5">
-            <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i>
-            Color Terciario / Oro (--accent-tertiary)
-          </span>
-          <p class="text-[11px] text-ink-slate">Hitos especiales, atributos auxiliares, tags de arsenal e items de soporte.</p>
-        </div>
-
-        <!-- Selector Profesional Cyber HUD: Terciario -->
-        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
-          x-data="cyberColorPicker({ label: 'Color Terciario / Oro', defaultColor: '#D4AF37', value: () => $store.settings.tertiaryColor, onSelect: (hex) => { $store.settings.tertiaryColor = hex; }, swatches: $store.settings.popularTertiarySwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
-          <button type="button" @click="toggle()"
-            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-amber-400/50 transition-transform active:scale-95"
-            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
-            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
-              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
-          </button>
-          <div class="flex-1 flex items-center gap-1 px-1">
-            <span class="text-xs font-mono text-ink-slate font-bold">#</span>
-            <input type="text"
-              :value="(currentHex || '').replace('#', '').toUpperCase()"
-              @input="setFromHex('#' + $event.target.value, false)"
-              class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
-              placeholder="D4AF37" maxlength="6">
-          </div>
-          <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="currentHex.toUpperCase()"></span>
-
-          <!-- Popover Flotante Cyber HUD -->
-          <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
-        </div>
-
-        <!-- Muestrarios Rápidos Cromáticos Terciarios -->
-        <div class="space-y-1.5 pt-0.5">
-          <span class="text-[10px] font-mono uppercase tracking-wider text-ink-slate block">Paleta Rápida Terciaria:</span>
-          <div class="flex items-center gap-2 flex-wrap">
-            <template x-for="swatch in $store.settings.popularTertiarySwatches" :key="'tert-' + swatch.name">
-              <button type="button" @click="$store.settings.tertiaryColor = swatch.color"
-                class="w-7 h-7 rounded-md transition-all cursor-pointer relative group flex items-center justify-center border shadow-sm"
-                :class="($store.settings.tertiaryColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-110 border-white' : 'border-white/15 hover:scale-110 hover:border-white/40'"
-                :style="'background-color: ' + swatch.color + '; box-shadow: 0 0 8px ' + swatch.color + '50;'"
-                :title="swatch.name + ' (' + swatch.color + ')'">
-                <template x-if="($store.settings.tertiaryColor || '').toUpperCase() === swatch.color.toUpperCase()">
-                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
-                    :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(swatch.color.toUpperCase()) ? 'text-black' : 'text-white'">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </template>
-              </button>
-            </template>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. MÓDULO B: ATMÓSFERA, ILUMINACIÓN y SUPERFICIES (CANALES 4, 5 Y 6) -->
-    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-4 shadow-xl transition-all"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid; box-shadow: 0 0 16px ' + ($store.settings.activeGlowColor) + '15;'"
-      x-data="{ activeAtmosChannel: 'glow' }">
-      
-      <!-- Cabecera del Módulo de Atmósfera -->
-      <div class="flex items-center justify-between border-b border-white/10 pb-3">
-        <div>
-          <label class="text-sm font-bold text-parchment-peach flex items-center gap-2">
-            <i data-lucide="layers" class="w-4 h-4 text-purple-400"></i>
-            Atmósfera, Superficie y Bordes (3 Canales)
-          </label>
-          <p class="text-xs text-ink-slate mt-0.5">Controla la ambientación espacial: Resplandor, tinte de tarjetas y contornos.</p>
-        </div>
-        <button type="button"
-          class="text-xs text-ink-slate hover:text-accent-ruby transition-colors flex items-center gap-1 cursor-pointer font-mono"
-          @click="activeAtmosChannel === 'glow' ? $store.settings.resetGlowColor() : (activeAtmosChannel === 'surface' ? $store.settings.resetSurfaceColor() : $store.settings.resetBorderColor())"
-          :title="'Restablecer canal ' + activeAtmosChannel">
-          <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-        </button>
-      </div>
-
-      <!-- Selector de Pestañas de Canales Atmosféricos -->
-      <div class="grid grid-cols-3 gap-2">
-        <!-- Canal 4: Glow -->
-        <button type="button" @click="activeAtmosChannel = 'glow'"
-          class="p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer text-center relative overflow-hidden"
-          :class="activeAtmosChannel === 'glow' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 text-ink-slate hover:text-white'"
-          :style="activeAtmosChannel === 'glow' ? ('border-color: ' + $store.settings.activeGlowColor + '; box-shadow: 0 0 10px ' + $store.settings.activeGlowColor + '40;') : ''">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm" :style="'background-color: ' + $store.settings.activeGlowColor"></span>
-            <span class="text-xs font-bold text-parchment-cream">4. Resplandor</span>
-          </div>
-          <span class="text-[10px] font-mono font-semibold" :style="'color: ' + $store.settings.activeGlowColor" x-text="$store.settings.glowMode === 'auto' ? 'AUTO' : $store.settings.glowColor.toUpperCase()"></span>
-        </button>
-
-        <!-- Canal 5: Superficie -->
-        <button type="button" @click="activeAtmosChannel = 'surface'"
-          class="p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer text-center relative overflow-hidden"
-          :class="activeAtmosChannel === 'surface' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 text-ink-slate hover:text-white'"
-          :style="activeAtmosChannel === 'surface' ? ('border-color: ' + $store.settings.surfaceColor + '; box-shadow: 0 0 10px ' + $store.settings.surfaceColor + '40;') : ''">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm border border-white/30" :style="'background-color: ' + $store.settings.surfaceColor"></span>
-            <span class="text-xs font-bold text-parchment-cream">5. Superficie</span>
-          </div>
-          <span class="text-[10px] font-mono font-semibold text-parchment-cream/80" x-text="$store.settings.surfaceColor.toUpperCase()"></span>
-        </button>
-
-        <!-- Canal 6: Bordes -->
-        <button type="button" @click="activeAtmosChannel = 'border'"
-          class="p-2 rounded-xl border flex flex-col items-center justify-center gap-1 transition-all cursor-pointer text-center relative overflow-hidden"
-          :class="activeAtmosChannel === 'border' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 text-ink-slate hover:text-white'"
-          :style="activeAtmosChannel === 'border' ? ('border-color: ' + $store.settings.borderColor + '; box-shadow: 0 0 10px ' + $store.settings.borderColor + '40;') : ''">
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm border border-white/30" :style="'background-color: ' + $store.settings.borderColor"></span>
-            <span class="text-xs font-bold text-parchment-cream">6. Bordes</span>
-          </div>
-          <span class="text-[10px] font-mono font-semibold text-parchment-cream/80" x-text="$store.settings.borderColor.toUpperCase()"></span>
-        </button>
-      </div>
-
-      <!-- Editor del Canal Activo -->
-      <!-- ── CANAL 4: GLOW ── -->
-      <div x-show="activeAtmosChannel === 'glow'" x-transition.opacity.duration.150ms class="space-y-3">
-        <div class="space-y-1">
-          <span class="text-xs font-bold text-parchment-cream flex items-center gap-1.5">
-            <i data-lucide="sun" class="w-3.5 h-3.5 text-amber-400"></i>
-            Resplandor de Neón (--accent-glow)
-          </span>
-          <p class="text-[11px] text-ink-slate">Iluminación difusa, sombras proyectadas y halos luminiscentes de interfaz.</p>
-        </div>
-
-        <!-- Selector Modo Glow: Auto vs Personalizado -->
-        <div class="grid grid-cols-2 gap-2">
-          <button type="button" @click="$store.settings.glowMode = 'auto'"
-            class="py-2 px-3 rounded-lg border text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
-            :class="$store.settings.glowMode === 'auto' ? 'bg-accent-cyan/20 border-accent-cyan text-accent-cyan shadow-md' : 'bg-black/40 border-white/10 text-ink-slate hover:text-white'">
-            <i data-lucide="sparkle" class="w-3.5 h-3.5"></i>
-            <span>Automático (Acento)</span>
-          </button>
-          <button type="button" @click="$store.settings.glowMode = 'custom'"
-            class="py-2 px-3 rounded-lg border text-xs font-mono font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
-            :class="$store.settings.glowMode === 'custom' ? 'bg-purple-500/20 border-purple-400 text-purple-300 shadow-md' : 'bg-black/40 border-white/10 text-ink-slate hover:text-white'">
-            <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
-            <span>Personalizado</span>
-          </button>
-        </div>
-
-        <!-- Selector Profesional Cyber HUD: Resplandor (si Custom) -->
-        <template x-if="$store.settings.glowMode === 'custom'">
-          <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner animate-fadeIn"
-            x-data="cyberColorPicker({ label: 'Color de Resplandor', defaultColor: '#00F0FF', value: () => $store.settings.glowColor, onSelect: (hex) => { $store.settings.glowColor = hex; }, swatches: $store.settings.popularAccentSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
-            <button type="button" @click="toggle()"
-              class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-purple-400/50 transition-transform active:scale-95"
-              :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
-              :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
-              <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
-                :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
-            </button>
-            <div class="flex-1 flex items-center gap-1 px-1">
-              <span class="text-xs font-mono text-ink-slate font-bold">#</span>
-              <input type="text"
-                :value="(currentHex || '').replace('#', '').toUpperCase()"
-                @input="setFromHex('#' + $event.target.value, false)"
-                class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
-                placeholder="00F0FF" maxlength="6">
-            </div>
-            <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-              x-text="currentHex.toUpperCase()"></span>
-
-            <!-- Popover Flotante Cyber HUD -->
-            <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
-          </div>
-        </template>
-      </div>
-
-      <!-- ── CANAL 5: SUPERFICIE ── -->
-      <div x-show="activeAtmosChannel === 'surface'" x-transition.opacity.duration.150ms class="space-y-3">
-        <div class="space-y-1">
-          <span class="text-xs font-bold text-parchment-cream flex items-center gap-1.5">
-            <i data-lucide="box" class="w-3.5 h-3.5 text-blue-400"></i>
-            Color de Fondo de Paneles (--bg-panel-custom)
-          </span>
-          <p class="text-[11px] text-ink-slate">Tinte de fondo oscuro de tarjetas, paneles y modales (Obsidiana, Marino, Vacío, etc.).</p>
-        </div>
-
-        <!-- Selector Profesional Cyber HUD: Superficie -->
-        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
-          x-data="cyberColorPicker({ label: 'Color de Superficie', defaultColor: '#0A0D14', value: () => $store.settings.surfaceColor, onSelect: (hex) => { $store.settings.surfaceColor = hex; }, swatches: $store.settings.popularSurfaceSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
-          <button type="button" @click="toggle()"
-            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-blue-400/50 transition-transform active:scale-95"
-            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
-            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
-              :class="['#FFFFFF', '#BBB7AD', '#E2E8F0', '#F8FAFC'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
-          </button>
-          <div class="flex-1 flex items-center gap-1 px-1">
-            <span class="text-xs font-mono text-ink-slate font-bold">#</span>
-            <input type="text"
-              :value="(currentHex || '').replace('#', '').toUpperCase()"
-              @input="setFromHex('#' + $event.target.value, false)"
-              class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
-              placeholder="0A0D14" maxlength="6">
-          </div>
-          <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="currentHex.toUpperCase()"></span>
-
-          <!-- Popover Flotante Cyber HUD -->
-          <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
-        </div>
-
-        <!-- Muestrarios Rápidos Cromáticos Superficie -->
-        <div class="space-y-1.5 pt-0.5">
-          <span class="text-[10px] font-mono uppercase tracking-wider text-ink-slate block">Paleta Rápida de Superficie:</span>
-          <div class="flex items-center gap-2 flex-wrap">
-            <template x-for="swatch in $store.settings.popularSurfaceSwatches" :key="'surf-' + swatch.name">
-              <button type="button" @click="$store.settings.surfaceColor = swatch.color"
-                class="w-7 h-7 rounded-md transition-all cursor-pointer relative group flex items-center justify-center border shadow-sm"
-                :class="($store.settings.surfaceColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-110 border-white' : 'border-white/15 hover:scale-110 hover:border-white/40'"
-                :style="'background-color: ' + swatch.color + '; box-shadow: 0 0 8px ' + swatch.color + '50;'"
-                :title="swatch.name + ' (' + swatch.color + ')'">
-                <template x-if="($store.settings.surfaceColor || '').toUpperCase() === swatch.color.toUpperCase()">
-                  <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </template>
-              </button>
-            </template>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── CANAL 6: BORDES ── -->
-      <div x-show="activeAtmosChannel === 'border'" x-transition.opacity.duration.150ms class="space-y-3">
-        <div class="space-y-1">
-          <span class="text-xs font-bold text-parchment-cream flex items-center gap-1.5">
-            <i data-lucide="frame" class="w-3.5 h-3.5 text-emerald-400"></i>
-            Color de Bordes y Contornos (--border-custom)
-          </span>
-          <p class="text-[11px] text-ink-slate">Marcos de tarjetas, cuadrículas de fondo, líneas divisorias y delimitadores.</p>
-        </div>
-
-        <!-- Selector Profesional Cyber HUD: Bordes -->
-        <div class="relative flex items-center gap-2.5 p-1.5 rounded-lg border border-white/10 bg-black/60 shadow-inner"
-          x-data="cyberColorPicker({ label: 'Color de Bordes', defaultColor: '#222A36', value: () => $store.settings.borderColor, onSelect: (hex) => { $store.settings.borderColor = hex; }, swatches: $store.settings.popularBorderSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
-          <button type="button" @click="toggle()"
-            class="relative w-10 h-10 rounded-md overflow-hidden shrink-0 border border-white/20 shadow-md flex items-center justify-center cursor-pointer group focus:outline-none focus:ring-2 focus:ring-emerald-400/50 transition-transform active:scale-95"
-            :style="'background-color: ' + currentHex + '; box-shadow: 0 0 12px ' + currentHex + '50;'"
-            :title="'Abrir selector de color: ' + currentHex.toUpperCase()">
-            <i data-lucide="pipette" class="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-shadow"
-              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
-          </button>
-          <div class="flex-1 flex items-center gap-1 px-1">
-            <span class="text-xs font-mono text-ink-slate font-bold">#</span>
-            <input type="text"
-              :value="(currentHex || '').replace('#', '').toUpperCase()"
-              @input="setFromHex('#' + $event.target.value, false)"
-              class="bg-transparent text-sm font-mono uppercase font-bold text-parchment-cream tracking-wider focus:outline-none w-full"
-              placeholder="222A36" maxlength="6">
-          </div>
-          <span class="text-[11px] font-mono px-2 py-0.5 rounded text-ink-slate bg-white/5 border border-white/5 font-semibold shrink-0"
-            x-text="currentHex.toUpperCase()"></span>
-
-          <!-- Popover Flotante Cyber HUD -->
-          <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
-        </div>
-
-        <!-- Muestrarios Rápidos Cromáticos Bordes -->
-        <div class="space-y-1.5 pt-0.5">
-          <span class="text-[10px] font-mono uppercase tracking-wider text-ink-slate block">Paleta Rápida de Bordes:</span>
-          <div class="flex items-center gap-2 flex-wrap">
-            <template x-for="swatch in $store.settings.popularBorderSwatches" :key="'bord-' + swatch.name">
-              <button type="button" @click="$store.settings.borderColor = swatch.color"
-                class="w-7 h-7 rounded-md transition-all cursor-pointer relative group flex items-center justify-center border shadow-sm"
-                :class="($store.settings.borderColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-white ring-offset-2 ring-offset-black scale-110 border-white' : 'border-white/15 hover:scale-110 hover:border-white/40'"
-                :style="'background-color: ' + swatch.color + '; box-shadow: 0 0 8px ' + swatch.color + '50;'"
-                :title="swatch.name + ' (' + swatch.color + ')'">
-                <template x-if="($store.settings.borderColor || '').toUpperCase() === swatch.color.toUpperCase()">
-                  <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                </template>
-              </button>
-            </template>
-          </div>
-        </div>
-
-        <!-- Control de Grosor de Bordes (Border Width) -->
-        <div class="pt-3 border-t border-white/10 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-parchment-cream flex items-center gap-1.5">
-              <i data-lucide="square" class="w-3.5 h-3.5 text-emerald-400"></i>
-              Grosor de Bordes de Interfaz (--border-width)
-            </span>
-            <span class="text-xs font-mono font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30"
-              x-text="($store.settings.borderWidth || 1) + 'px'"></span>
-          </div>
-          <p class="text-[11px] text-ink-slate">Ajusta el grosor y presencia de los bordes estructurales de tarjetas, paneles y divisores.</p>
-
-          <!-- Botones de Preajustes Rápidos -->
-          <div class="grid grid-cols-4 gap-2 pt-1">
-            <button type="button" @click="$store.settings.setBorderWidth(1)"
-              class="px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 cursor-pointer"
-              :class="($store.settings.borderWidth || 1) === 1 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-black/30 border-white/10 text-ink-slate hover:text-white hover:border-white/20'">
-              <span class="w-6 h-0.5 bg-current rounded-full"></span>
-              <span>1px Fino</span>
-            </button>
-            <button type="button" @click="$store.settings.setBorderWidth(2)"
-              class="px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 cursor-pointer"
-              :class="($store.settings.borderWidth || 1) === 2 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-black/30 border-white/10 text-ink-slate hover:text-white hover:border-white/20'">
-              <span class="w-6 h-1 bg-current rounded-full"></span>
-              <span>2px Medio</span>
-            </button>
-            <button type="button" @click="$store.settings.setBorderWidth(3)"
-              class="px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 cursor-pointer"
-              :class="($store.settings.borderWidth || 1) === 3 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-black/30 border-white/10 text-ink-slate hover:text-white hover:border-white/20'">
-              <span class="w-6 h-1.5 bg-current rounded-full"></span>
-              <span>3px Grueso</span>
-            </button>
-            <button type="button" @click="$store.settings.setBorderWidth(4)"
-              class="px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all flex flex-col items-center justify-center gap-1 cursor-pointer"
-              :class="($store.settings.borderWidth || 1) === 4 ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-sm' : 'bg-black/30 border-white/10 text-ink-slate hover:text-white hover:border-white/20'">
-              <span class="w-6 h-2 bg-current rounded-full"></span>
-              <span>4px Ultra</span>
-            </button>
-          </div>
-
-          <!-- Slider de Precisión con Vista Previa en Vivo -->
-          <div class="flex items-center gap-3 pt-1.5">
-            <span class="text-[10px] font-mono text-ink-slate">1px</span>
-            <input type="range" min="1" max="5" step="1"
-              :value="$store.settings.borderWidth || 1"
-              @input="$store.settings.setBorderWidth(parseInt($event.target.value, 10))"
-              @change="$store.settings.setBorderWidth(parseInt($event.target.value, 10))"
-              class="w-full accent-emerald-400 cursor-pointer h-1.5 bg-black/40 rounded-lg appearance-none">
-            <span class="text-[10px] font-mono text-ink-slate">5px</span>
-
-            <!-- Mini Caja de Previsualización Dinámica -->
-            <div class="w-8 h-8 rounded shrink-0 flex items-center justify-center text-[10px] font-mono font-bold transition-all"
-              :style="`border: ${$store.settings.borderWidth || 1}px solid ${$store.settings.borderColor || '#222A36'}; background-color: ${$store.settings.surfaceColor || '#0a0c0e'}; color: ${$store.settings.accentColor || '#00F0FF'};`">
-              BOX
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
+  <!-- Cabecera de sección -->
+  <div class="wiki-settings-pane-head">
+    <h2 class="wiki-settings-pane-title">Apariencia</h2>
+    <p class="wiki-settings-pane-desc">Elige un estilo rápido o ajusta el color, espaciado y tipografía de toda la aplicación.</p>
   </div>
 
-  <!-- ═════════════════════════════════════════════════════════
-       COLUMNA DERECHA (7 COLS):
-       1. JERARQUÍAS TIPOGRÁFICAS (GOOGLE FONTS)
-       2. GEOMETRÍA DE BORDES Y ESQUINAS
-       3. PREFERENCIAS DE RENDERIZADO y MODOS VISUALES
-       ═════════════════════════════════════════════════════════ -->
-  <div class="lg:col-span-7 space-y-6">
+  <!-- 1. ESTILO RÁPIDO EN 1 CLIC -->
+  <section class="wiki-settings-section space-y-3">
+    <div class="flex items-center justify-between gap-2 flex-wrap">
+      <div>
+        <div class="text-sm font-semibold text-[var(--wiki-text-main)]">Estilo rápido</div>
+        <div class="text-xs text-[var(--wiki-text-muted)]">Cambia toda la estética al instante.</div>
+      </div>
+      <button type="button" @click="$store.settings.setSubTab('presets')"
+        class="text-xs text-[var(--wiki-accent)] hover:underline cursor-pointer">
+        Ver todos los temas →
+      </button>
+    </div>
 
-    <!-- 1. JERARQUÍAS TIPOGRÁFICAS (GOOGLE FONTS) -->
-    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-5 shadow-xl transition-colors"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid;'"
-      x-data="{ fontCategory: 'display' }">
-      <div
-        class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+      <template x-for="kit in ($store.settings.themeKits || []).slice(0, 6)" :key="kit.id || kit.name">
+        <button type="button"
+          @click="$store.settings.applyThemeKit(kit)"
+          class="wiki-settings-card !p-2.5 flex items-center justify-between gap-2 text-left cursor-pointer transition-colors"
+          :style="$store.settings.isKitActive(kit) ? 'border-color: var(--wiki-accent); background: var(--wiki-accent-dim);' : ''">
+          <span class="flex items-center gap-2 min-w-0">
+            <span class="w-3 h-3 rounded-full border border-black/30 shrink-0" :style="'background-color:' + kit.color"></span>
+            <span class="text-xs font-medium truncate text-[var(--wiki-text-main)]" x-text="kit.name"></span>
+          </span>
+          <i x-show="$store.settings.isKitActive(kit)" data-lucide="check" class="w-3.5 h-3.5 text-[var(--wiki-accent)] shrink-0"></i>
+        </button>
+      </template>
+    </div>
+  </section>
+
+  <!-- 2. AJUSTES ESENCIALES (LISTA ÚNICA CLARA) -->
+  <section class="wiki-settings-section space-y-5">
+
+    <!-- Color principal -->
+    <div class="space-y-2.5">
+      <div class="flex items-center justify-between gap-2">
         <div>
-          <label class="block text-sm font-bold text-parchment-peach flex items-center gap-2">
-            <i data-lucide="type" class="w-4.5 h-4.5" :style="'color: ' + $store.settings.accentColor"></i>
-            Jerarquías Tipográficas (Google Fonts)
-          </label>
-          <p class="text-xs text-ink-slate mt-0.5">Controla las 5 familias tipográficas y grosores universales
-            de la interfaz.</p>
+          <div class="text-sm font-semibold text-[var(--wiki-text-main)]">Color principal</div>
+          <div class="text-xs text-[var(--wiki-text-muted)]">Define el color de botones, pestañas activas y detalles destacados.</div>
+        </div>
+        <button type="button" @click="$store.settings.resetColor()"
+          class="text-xs text-[var(--wiki-text-muted)] hover:text-[var(--wiki-accent)] inline-flex items-center gap-1 cursor-pointer shrink-0">
+          <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
+        </button>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Picker compacto -->
+        <div class="relative flex items-center gap-2 p-1.5 border border-[var(--wiki-border)] bg-[var(--wiki-bg-canvas)] w-52"
+          x-data="cyberColorPicker({ label: 'Color principal', defaultColor: '#00F0FF', value: () => $store.settings.accentColor, onSelect: (hex) => { $store.settings.accentColor = hex; }, swatches: $store.settings.popularAccentSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+          <button type="button" @click="toggle()"
+            class="relative w-7 h-7 border border-[var(--wiki-border-strong)] shrink-0 flex items-center justify-center cursor-pointer group"
+            :style="'background-color: ' + currentHex + ';'"
+            :title="'Elegir color: ' + currentHex.toUpperCase()">
+            <i data-lucide="pipette" class="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+              :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37', '#F8FAFC'].includes(currentHex.toUpperCase()) ? 'text-black' : 'text-white'"></i>
+          </button>
+          <span class="text-xs font-mono text-[var(--wiki-text-muted)]">#</span>
+          <input type="text" :value="(currentHex || '').replace('#', '').toUpperCase()"
+            @input="setFromHex('#' + $event.target.value, false)"
+            class="bg-transparent text-xs font-mono uppercase font-bold text-[var(--wiki-text-main)] focus:outline-none w-full"
+            placeholder="00F0FF" maxlength="6">
+          <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
         </div>
 
-        <!-- Indicador unificado de estado de fuentes -->
-        <div class="flex items-center gap-2 shrink-0">
-          <template x-if="$store.settings.fontStatus === 'loading'">
-            <div class="flex items-center gap-1.5 text-xs text-accent-cyan animate-pulse font-mono">
-              <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
-              <span>Cargando fuentes...</span>
-            </div>
-          </template>
-          <template x-if="$store.settings.fontStatus === 'success'">
-            <div class="flex items-center gap-1.5 text-xs text-emerald-400 font-mono font-semibold">
-              <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
-              <span x-text="$store.settings.fontStatusMessage"></span>
-            </div>
-          </template>
-          <template x-if="$store.settings.fontStatus === 'error'">
-            <div class="flex items-center gap-1.5 text-xs text-amber-400 font-mono">
-              <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
-              <span x-text="$store.settings.fontStatusMessage"></span>
-            </div>
+        <!-- Paleta rápida -->
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <template x-for="swatch in $store.settings.popularAccentSwatches" :key="swatch.name">
+            <button type="button" @click="$store.settings.accentColor = swatch.color"
+              class="w-6 h-6 border flex items-center justify-center cursor-pointer transition-transform hover:scale-110"
+              :class="($store.settings.accentColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-[var(--wiki-accent)] scale-110 border-white' : 'border-[var(--wiki-border)]'"
+              :style="'background-color: ' + swatch.color + ';'"
+              :title="swatch.name">
+              <template x-if="($store.settings.accentColor || '').toUpperCase() === swatch.color.toUpperCase()">
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+                  :class="['#FFFFFF', '#00FF66', '#00F0FF', '#D4AF37'].includes(swatch.color.toUpperCase()) ? 'text-black' : 'text-white'">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </template>
+            </button>
           </template>
         </div>
       </div>
 
-      <!-- Historial de Fuentes Personalizadas -->
-      <template x-if="$store.settings.recentCustomFonts && $store.settings.recentCustomFonts.length > 0">
-        <div class="p-3.5 rounded-xl border border-purple-500/30 bg-purple-950/20 space-y-2.5">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-mono font-bold text-purple-300 flex items-center gap-1.5">
-              <i data-lucide="history" class="w-3.5 h-3.5 text-purple-400"></i>
-              Historial de Fuentes Personalizadas
-            </span>
-            <button type="button" @click="$store.settings.clearRecentCustomFonts()"
-              class="px-2.5 py-1 rounded-md text-[11px] font-mono text-rose-300 hover:text-white bg-rose-500/10 hover:bg-rose-500/30 border border-rose-500/30 hover:border-rose-500/50 transition-all cursor-pointer flex items-center gap-1.5 shadow-sm active:scale-95"
-              title="Vaciar todo el historial de fuentes">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-              </svg>
-              <span>Vaciar historial</span>
-            </button>
-          </div>
-          <div class="flex flex-wrap gap-1.5">
-            <template x-for="rf in $store.settings.recentCustomFonts" :key="rf">
-              <div
-                class="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-md bg-purple-500/20 border border-purple-500/40 text-purple-200 text-xs font-mono shadow-sm hover:border-purple-400/80 transition-all">
-                <button type="button"
-                  @click="fontCategory === 'display' ? ($store.settings.fontDisplay = rf) : (fontCategory === 'hud' ? ($store.settings.fontHud = rf) : (fontCategory === 'body' ? ($store.settings.fontBody = rf) : (fontCategory === 'tierlist' ? ($store.settings.fontTierlist = rf) : ($store.settings.fontInput = rf))))"
-                  class="font-medium hover:text-white cursor-pointer transition-colors"
-                  :title="'Aplicar ' + rf + ' a la pestaña activa'">
-                  <span x-text="rf"></span>
-                </button>
-                <button type="button" @click.stop="$store.settings.removeRecentCustomFont(rf)"
-                  class="w-4 h-4 rounded flex items-center justify-center text-purple-300 hover:text-white hover:bg-rose-500/80 transition-all cursor-pointer shrink-0"
-                  title="Eliminar esta fuente del historial">
-                  <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </div>
-            </template>
-          </div>
+      <template x-if="$store.settings.contrastInfo.warning">
+        <div class="p-2.5 border border-amber-500/40 bg-amber-500/10 flex items-start gap-2 text-xs text-[var(--wiki-text-main)]">
+          <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+          <p class="m-0 leading-snug" x-text="$store.settings.contrastInfo.warning"></p>
         </div>
       </template>
-
-      <!-- Barra de Pestañas de Selección de Categoría -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-        <!-- Pestaña Títulos -->
-        <button type="button" @click="fontCategory = 'display'"
-          class="p-2.5 rounded-xl border flex flex-col items-start gap-1 transition-all cursor-pointer text-left relative overflow-hidden"
-          :class="fontCategory === 'display' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 hover:border-white/20 text-ink-slate hover:text-parchment-cream'"
-          :style="fontCategory === 'display' ? ('border-color: ' + $store.settings.accentColor + '; box-shadow: 0 0 12px ' + ($store.settings.activeGlowColor) + '40;') : ''">
-          <div class="flex items-center gap-1.5 w-full">
-            <i data-lucide="heading" class="w-3.5 h-3.5 shrink-0"
-              :style="fontCategory === 'display' ? ('color: ' + $store.settings.accentColor) : ''"></i>
-            <span class="text-xs font-bold text-parchment-cream">Títulos</span>
-          </div>
-          <span class="text-[10px] font-mono truncate w-full text-ink-slate"
-            :style="fontCategory === 'display' ? ('color: ' + $store.settings.accentColor + '; font-weight: 600;') : ''"
-            x-text="$store.settings.fontDisplay || 'Barlow Condensed'"></span>
-        </button>
-
-        <!-- Pestaña Menús y HUD -->
-        <button type="button" @click="fontCategory = 'hud'"
-          class="p-2.5 rounded-xl border flex flex-col items-start gap-1 transition-all cursor-pointer text-left relative overflow-hidden"
-          :class="fontCategory === 'hud' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 hover:border-white/20 text-ink-slate hover:text-parchment-cream'"
-          :style="fontCategory === 'hud' ? ('border-color: ' + $store.settings.accentColor + '; box-shadow: 0 0 12px ' + ($store.settings.activeGlowColor) + '40;') : ''">
-          <div class="flex items-center gap-1.5 w-full">
-            <i data-lucide="layout-grid" class="w-3.5 h-3.5 shrink-0"
-              :style="fontCategory === 'hud' ? ('color: ' + $store.settings.accentColor) : ''"></i>
-            <span class="text-xs font-bold text-parchment-cream">Menús y Pestañas</span>
-          </div>
-          <span class="text-[10px] font-mono truncate w-full text-ink-slate"
-            :style="fontCategory === 'hud' ? ('color: ' + $store.settings.accentColor + '; font-weight: 600;') : ''"
-            x-text="$store.settings.fontHud || 'Chakra Petch'"></span>
-        </button>
-
-        <!-- Pestaña Lectura y Lore -->
-        <button type="button" @click="fontCategory = 'body'"
-          class="p-2.5 rounded-xl border flex flex-col items-start gap-1 transition-all cursor-pointer text-left relative overflow-hidden"
-          :class="fontCategory === 'body' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 hover:border-white/20 text-ink-slate hover:text-parchment-cream'"
-          :style="fontCategory === 'body' ? ('border-color: ' + $store.settings.accentColor + '; box-shadow: 0 0 12px ' + ($store.settings.activeGlowColor) + '40;') : ''">
-          <div class="flex items-center gap-1.5 w-full">
-            <i data-lucide="book-open" class="w-3.5 h-3.5 shrink-0"
-              :style="fontCategory === 'body' ? ('color: ' + $store.settings.accentColor) : ''"></i>
-            <span class="text-xs font-bold text-parchment-cream">Lectura y Lore</span>
-          </div>
-          <span class="text-[10px] font-mono truncate w-full text-ink-slate"
-            :style="fontCategory === 'body' ? ('color: ' + $store.settings.accentColor + '; font-weight: 600;') : ''"
-            x-text="$store.settings.fontBody || 'Inter Tight'"></span>
-        </button>
-
-        <!-- Pestaña Inputs y Formularios -->
-        <button type="button" @click="fontCategory = 'input'"
-          class="p-2.5 rounded-xl border flex flex-col items-start gap-1 transition-all cursor-pointer text-left relative overflow-hidden"
-          :class="fontCategory === 'input' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 hover:border-white/20 text-ink-slate hover:text-parchment-cream'"
-          :style="fontCategory === 'input' ? ('border-color: ' + $store.settings.accentColor + '; box-shadow: 0 0 12px ' + ($store.settings.activeGlowColor) + '40;') : ''">
-          <div class="flex items-center gap-1.5 w-full">
-            <i data-lucide="terminal" class="w-3.5 h-3.5 shrink-0"
-              :style="fontCategory === 'input' ? ('color: ' + $store.settings.accentColor) : ''"></i>
-            <span class="text-xs font-bold text-parchment-cream">Campos e Inputs</span>
-          </div>
-          <span class="text-[10px] font-mono truncate w-full text-ink-slate"
-            :style="fontCategory === 'input' ? ('color: ' + $store.settings.accentColor + '; font-weight: 600;') : ''"
-            x-text="$store.settings.fontInput || 'JetBrains Mono'"></span>
-        </button>
-
-        <!-- Pestaña Tier List y Rangos -->
-        <button type="button" @click="fontCategory = 'tierlist'"
-          class="p-2.5 rounded-xl border flex flex-col items-start gap-1 transition-all cursor-pointer text-left relative overflow-hidden"
-          :class="fontCategory === 'tierlist' ? 'bg-white/10 border-white shadow-md' : 'bg-black/40 border-white/10 hover:border-white/20 text-ink-slate hover:text-parchment-cream'"
-          :style="fontCategory === 'tierlist' ? ('border-color: ' + $store.settings.accentColor + '; box-shadow: 0 0 12px ' + ($store.settings.activeGlowColor) + '40;') : ''">
-          <div class="flex items-center gap-1.5 w-full">
-            <i data-lucide="trophy" class="w-3.5 h-3.5 shrink-0"
-              :style="fontCategory === 'tierlist' ? ('color: ' + $store.settings.accentColor) : ''"></i>
-            <span class="text-xs font-bold text-parchment-cream">Tier List</span>
-          </div>
-          <span class="text-[10px] font-mono truncate w-full text-ink-slate"
-            :style="fontCategory === 'tierlist' ? ('color: ' + $store.settings.accentColor + '; font-weight: 600;') : ''"
-            x-text="$store.settings.fontTierlist || 'Barlow Condensed'"></span>
-        </button>
-      </div>
-
-      <!-- ──── CONTENIDO DE LA CATEGORÍA ACTIVA ──── -->
-
-      <!-- 1. Categoría: Títulos (--font-display) -->
-      <div x-show="fontCategory === 'display'" x-transition.opacity.duration.150ms
-        class="p-4 rounded-xl border border-white/10 bg-black/40 space-y-3.5">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold flex items-center gap-1.5"
-              :style="'color: ' + $store.settings.accentColor">
-              <i data-lucide="heading" class="w-4 h-4"></i>
-              Títulos de Sección y Módulos
-            </span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 border border-white/10 text-ink-slate">
-              --font-display
-            </span>
-          </div>
-          <button type="button"
-            class="text-xs text-ink-slate hover:text-accent-ruby transition-colors flex items-center gap-1 cursor-pointer font-mono"
-            @click="$store.settings.resetFontDisplay()">
-            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-          </button>
-        </div>
-
-        <p class="text-[11px] text-ink-slate font-sans leading-tight">
-          Encabezados principales, títulos de tarjetas, modales y nombres de sección.
-        </p>
-
-        <input type="text" x-model="$store.settings.fontDisplay"
-          class="form-input w-full text-xs font-mono py-2"
-          placeholder="Ej: Barlow Condensed, Orbitron, Teko, Bebas Neue, Cinzel, Montserrat, Rajdhani...">
-
-        <!-- Selector de Grosor -->
-        <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5">
-          <span class="text-[11px] font-mono text-ink-slate flex items-center gap-1">
-            <i data-lucide="sliders-horizontal" class="w-3 h-3 text-accent-gold"></i> Grosor:
-          </span>
-          <div class="flex items-center gap-1 bg-black/60 p-1 rounded-lg border border-white/10">
-            <button type="button" @click="$store.settings.fontWeightDisplay = '300'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightDisplay === '300' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              300 Light
-            </button>
-            <button type="button" @click="$store.settings.fontWeightDisplay = '400'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightDisplay === '400' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              400 Regular
-            </button>
-            <button type="button" @click="$store.settings.fontWeightDisplay = '700'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightDisplay === '700' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              700 Bold
-            </button>
-            <button type="button" @click="$store.settings.fontWeightDisplay = '900'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightDisplay === '900' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              900 Black
-            </button>
-          </div>
-        </div>
-
-        <!-- Presets Recomendados -->
-        <div class="space-y-1.5 pt-1">
-          <span class="text-[10px] font-mono uppercase text-ink-slate tracking-wider block">Fuentes recomendadas:</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontDisplay = 'Barlow Condensed'">Barlow Condensed</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontDisplay = 'Orbitron'">Orbitron</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontDisplay = 'Teko'">Teko</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontDisplay = 'Bebas Neue'">Bebas Neue</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontDisplay = 'Cinzel'">Cinzel</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontDisplay = 'Montserrat'">Montserrat</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontDisplay = 'Rajdhani'">Rajdhani</button>
-          </div>
-        </div>
-
-        <!-- Chips de Historial Reciente para este campo -->
-        <template x-if="$store.settings.recentCustomFonts && $store.settings.recentCustomFonts.length > 0">
-          <div class="flex items-center gap-1.5 flex-wrap pt-1 text-[11px] font-mono text-purple-300">
-            <span class="text-[10px] text-ink-slate">Recientes:</span>
-            <template x-for="rf in $store.settings.recentCustomFonts" :key="'disp-' + rf">
-              <button type="button" @click="$store.settings.fontDisplay = rf"
-                class="px-2 py-0.5 rounded bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer"
-                x-text="rf"></button>
-            </template>
-          </div>
-        </template>
-      </div>
-
-      <!-- 2. Categoría: Menús y Pestañas (--font-hud) -->
-      <div x-show="fontCategory === 'hud'" x-transition.opacity.duration.150ms
-        class="p-4 rounded-xl border border-white/10 bg-black/40 space-y-3.5">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold flex items-center gap-1.5"
-              :style="'color: ' + $store.settings.accentColor">
-              <i data-lucide="layout-grid" class="w-4 h-4"></i>
-              Menús de Navegación y Pestañas
-            </span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 border border-white/10 text-ink-slate">
-              --font-hud
-            </span>
-          </div>
-          <button type="button"
-            class="text-xs text-ink-slate hover:text-accent-ruby transition-colors flex items-center gap-1 cursor-pointer font-mono"
-            @click="$store.settings.resetFontHud()">
-            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-          </button>
-        </div>
-
-        <p class="text-[11px] text-ink-slate font-sans leading-tight">
-          Pestañas del menú lateral, botones de acción, badges y elementos de navegación.
-        </p>
-
-        <input type="text" x-model="$store.settings.fontHud" class="form-input w-full text-xs font-mono py-2"
-          placeholder="Ej: Chakra Petch, Rajdhani, Titillium Web, Exo 2, Share Tech Mono, Inter Tight...">
-
-        <!-- Selector de Grosor -->
-        <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5">
-          <span class="text-[11px] font-mono text-ink-slate flex items-center gap-1">
-            <i data-lucide="sliders-horizontal" class="w-3 h-3 text-accent-gold"></i> Grosor:
-          </span>
-          <div class="flex items-center gap-1 bg-black/60 p-1 rounded-lg border border-white/10">
-            <button type="button" @click="$store.settings.fontWeightHud = '400'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightHud === '400' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              400 Regular
-            </button>
-            <button type="button" @click="$store.settings.fontWeightHud = '600'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightHud === '600' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              600 Semi
-            </button>
-            <button type="button" @click="$store.settings.fontWeightHud = '700'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightHud === '700' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              700 Bold
-            </button>
-            <button type="button" @click="$store.settings.fontWeightHud = '800'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightHud === '800' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              800 Extra
-            </button>
-          </div>
-        </div>
-
-        <!-- Presets Recomendados -->
-        <div class="space-y-1.5 pt-1">
-          <span class="text-[10px] font-mono uppercase text-ink-slate tracking-wider block">Fuentes recomendadas:</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontHud = 'Chakra Petch'">Chakra Petch</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontHud = 'Rajdhani'">Rajdhani</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontHud = 'Titillium Web'">Titillium Web</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontHud = 'Exo 2'">Exo 2</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontHud = 'Share Tech Mono'">Share Tech Mono</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontHud = 'Inter Tight'">Inter Tight</button>
-          </div>
-        </div>
-
-        <!-- Chips de Historial Reciente para este campo -->
-        <template x-if="$store.settings.recentCustomFonts && $store.settings.recentCustomFonts.length > 0">
-          <div class="flex items-center gap-1.5 flex-wrap pt-1 text-[11px] font-mono text-purple-300">
-            <span class="text-[10px] text-ink-slate">Recientes:</span>
-            <template x-for="rf in $store.settings.recentCustomFonts" :key="'hud-' + rf">
-              <button type="button" @click="$store.settings.fontHud = rf"
-                class="px-2 py-0.5 rounded bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer"
-                x-text="rf"></button>
-            </template>
-          </div>
-        </template>
-      </div>
-
-      <!-- 3. Categoría: Lectura y Lore (--font-body) -->
-      <div x-show="fontCategory === 'body'" x-transition.opacity.duration.150ms
-        class="p-4 rounded-xl border border-white/10 bg-black/40 space-y-3.5">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold flex items-center gap-1.5"
-              :style="'color: ' + $store.settings.accentColor">
-              <i data-lucide="book-open" class="w-4 h-4"></i>
-              Cuerpo de Texto y Lore
-            </span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 border border-white/10 text-ink-slate">
-              --font-body
-            </span>
-          </div>
-          <button type="button"
-            class="text-xs text-ink-slate hover:text-accent-ruby transition-colors flex items-center gap-1 cursor-pointer font-mono"
-            @click="$store.settings.resetFontBody()">
-            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-          </button>
-        </div>
-
-        <p class="text-[11px] text-ink-slate font-sans leading-tight">
-          Texto narrativo continuo para biografías, notas psicológicas y descripciones en modo lectura.
-        </p>
-
-        <input type="text" x-model="$store.settings.fontBody" class="form-input w-full text-xs font-mono py-2"
-          placeholder="Ej: Inter Tight, Inter, Roboto, Open Sans, EB Garamond, Cormorant Garamond...">
-
-        <!-- Selector de Grosor -->
-        <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5">
-          <span class="text-[11px] font-mono text-ink-slate flex items-center gap-1">
-            <i data-lucide="sliders-horizontal" class="w-3 h-3 text-accent-gold"></i> Grosor:
-          </span>
-          <div class="flex items-center gap-1 bg-black/60 p-1 rounded-lg border border-white/10">
-            <button type="button" @click="$store.settings.fontWeightBody = '300'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightBody === '300' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              300 Light
-            </button>
-            <button type="button" @click="$store.settings.fontWeightBody = '400'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightBody === '400' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              400 Regular
-            </button>
-            <button type="button" @click="$store.settings.fontWeightBody = '600'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightBody === '600' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              600 Semi
-            </button>
-            <button type="button" @click="$store.settings.fontWeightBody = '700'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightBody === '700' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              700 Bold
-            </button>
-          </div>
-        </div>
-
-        <!-- Presets Recomendados -->
-        <div class="space-y-1.5 pt-1">
-          <span class="text-[10px] font-mono uppercase text-ink-slate tracking-wider block">Fuentes recomendadas:</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontBody = 'Inter Tight'">Inter Tight</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontBody = 'Inter'">Inter</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontBody = 'Roboto'">Roboto</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontBody = 'Open Sans'">Open Sans</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontBody = 'EB Garamond'">EB Garamond</button>
-          </div>
-        </div>
-
-        <!-- Chips de Historial Reciente para este campo -->
-        <template x-if="$store.settings.recentCustomFonts && $store.settings.recentCustomFonts.length > 0">
-          <div class="flex items-center gap-1.5 flex-wrap pt-1 text-[11px] font-mono text-purple-300">
-            <span class="text-[10px] text-ink-slate">Recientes:</span>
-            <template x-for="rf in $store.settings.recentCustomFonts" :key="'body-' + rf">
-              <button type="button" @click="$store.settings.fontBody = rf"
-                class="px-2 py-0.5 rounded bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer"
-                x-text="rf"></button>
-            </template>
-          </div>
-        </template>
-      </div>
-
-      <!-- 4. Categoría: Campos y Formularios (--font-input) -->
-      <div x-show="fontCategory === 'input'" x-transition.opacity.duration.150ms
-        class="p-4 rounded-xl border border-white/10 bg-black/40 space-y-3.5">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold flex items-center gap-1.5"
-              :style="'color: ' + $store.settings.accentColor">
-              <i data-lucide="terminal" class="w-4 h-4"></i>
-              Campos de Formulario y Entradas
-            </span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 border border-white/10 text-ink-slate">
-              --font-input
-            </span>
-          </div>
-          <button type="button"
-            class="text-xs text-ink-slate hover:text-accent-ruby transition-colors flex items-center gap-1 cursor-pointer font-mono"
-            @click="$store.settings.resetFontInput()">
-            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-          </button>
-        </div>
-
-        <p class="text-[11px] text-ink-slate font-sans leading-tight">
-          Cajas de texto de formulario, valores numéricos, inputs de habilidades y editores.
-        </p>
-
-        <input type="text" x-model="$store.settings.fontInput"
-          class="form-input w-full text-xs font-mono py-2"
-          placeholder="Ej: JetBrains Mono, Fira Code, Share Tech Mono, Source Code Pro, Space Mono...">
-
-        <!-- Selector de Grosor -->
-        <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5">
-          <span class="text-[11px] font-mono text-ink-slate flex items-center gap-1">
-            <i data-lucide="sliders-horizontal" class="w-3 h-3 text-accent-gold"></i> Grosor:
-          </span>
-          <div class="flex items-center gap-1 bg-black/60 p-1 rounded-lg border border-white/10">
-            <button type="button" @click="$store.settings.fontWeightInput = '400'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightInput === '400' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              400 Regular
-            </button>
-            <button type="button" @click="$store.settings.fontWeightInput = '500'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightInput === '500' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              500 Medium
-            </button>
-            <button type="button" @click="$store.settings.fontWeightInput = '600'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightInput === '600' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              600 Semi
-            </button>
-            <button type="button" @click="$store.settings.fontWeightInput = '700'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightInput === '700' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              700 Bold
-            </button>
-          </div>
-        </div>
-
-        <!-- Presets Recomendados -->
-        <div class="space-y-1.5 pt-1">
-          <span class="text-[10px] font-mono uppercase text-ink-slate tracking-wider block">Fuentes recomendadas:</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontInput = 'JetBrains Mono'">JetBrains Mono</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontInput = 'Fira Code'">Fira Code</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontInput = 'Share Tech Mono'">Share Tech Mono</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontInput = 'Source Code Pro'">Source Code Pro</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontInput = 'Space Mono'">Space Mono</button>
-          </div>
-        </div>
-
-        <!-- Chips de Historial Reciente para este campo -->
-        <template x-if="$store.settings.recentCustomFonts && $store.settings.recentCustomFonts.length > 0">
-          <div class="flex items-center gap-1.5 flex-wrap pt-1 text-[11px] font-mono text-purple-300">
-            <span class="text-[10px] text-ink-slate">Recientes:</span>
-            <template x-for="rf in $store.settings.recentCustomFonts" :key="'input-' + rf">
-              <button type="button" @click="$store.settings.fontInput = rf"
-                class="px-2 py-0.5 rounded bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer"
-                x-text="rf"></button>
-            </template>
-          </div>
-        </template>
-      </div>
-
-      <!-- 5. Categoría: Tier List y Rangos (--font-tierlist) -->
-      <div x-show="fontCategory === 'tierlist'" x-transition.opacity.duration.150ms
-        class="p-4 rounded-xl border border-white/10 bg-black/40 space-y-3.5">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold flex items-center gap-1.5"
-              :style="'color: ' + $store.settings.accentColor">
-              <i data-lucide="trophy" class="w-4 h-4"></i>
-              Tier List y Letras de Rango
-            </span>
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-white/5 border border-white/10 text-ink-slate">
-              --font-tierlist
-            </span>
-          </div>
-          <button type="button"
-            class="text-xs text-ink-slate hover:text-accent-ruby transition-colors flex items-center gap-1 cursor-pointer font-mono"
-            @click="$store.settings.resetFontTierlist()">
-            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-          </button>
-        </div>
-
-        <p class="text-[11px] text-ink-slate font-sans leading-tight">
-          Tipografía principal para las etiquetas de rango y monumentos visuales en el creador de Tier List (letras S, A, B, o frases completas).
-        </p>
-
-        <input type="text" x-model="$store.settings.fontTierlist"
-          class="form-input w-full text-xs font-mono py-2"
-          placeholder="Ej: Barlow Condensed, Teko, Bebas Neue, Anton, Oswald, Orbitron, Montserrat...">
-
-        <!-- Selector de Grosor -->
-        <div class="flex items-center justify-between gap-2 pt-1 border-t border-white/5">
-          <span class="text-[11px] font-mono text-ink-slate flex items-center gap-1">
-            <i data-lucide="sliders-horizontal" class="w-3 h-3 text-accent-gold"></i> Grosor:
-          </span>
-          <div class="flex items-center gap-1 bg-black/60 p-1 rounded-lg border border-white/10">
-            <button type="button" @click="$store.settings.fontWeightTierlist = '400'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightTierlist === '400' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              400 Regular
-            </button>
-            <button type="button" @click="$store.settings.fontWeightTierlist = '700'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightTierlist === '700' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              700 Bold
-            </button>
-            <button type="button" @click="$store.settings.fontWeightTierlist = '800'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightTierlist === '800' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              800 Extra
-            </button>
-            <button type="button" @click="$store.settings.fontWeightTierlist = '900'"
-              class="px-2.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer"
-              :class="$store.settings.fontWeightTierlist === '900' ? 'bg-accent-cyan text-black font-bold' : 'text-text-muted hover:text-white'">
-              900 Black
-            </button>
-          </div>
-        </div>
-
-        <!-- Presets Recomendados -->
-        <div class="space-y-1.5 pt-1">
-          <span class="text-[10px] font-mono uppercase text-ink-slate tracking-wider block">Fuentes recomendadas para Tier List:</span>
-          <div class="flex flex-wrap gap-1.5">
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontTierlist = 'Barlow Condensed'">Barlow Condensed</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontTierlist = 'Teko'">Teko</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontTierlist = 'Bebas Neue'">Bebas Neue</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontTierlist = 'Anton'">Anton</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontTierlist = 'Oswald'">Oswald</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontTierlist = 'Orbitron'">Orbitron</button>
-            <button type="button"
-              class="text-xs bg-parchment-brown/20 hover:bg-accent-cyan/20 text-parchment-cream px-2.5 py-1 rounded-lg transition-colors border border-parchment-brown/30 cursor-pointer"
-              @click="$store.settings.fontTierlist = 'Montserrat'">Montserrat</button>
-          </div>
-        </div>
-
-        <!-- Chips de Historial Reciente para este campo -->
-        <template x-if="$store.settings.recentCustomFonts && $store.settings.recentCustomFonts.length > 0">
-          <div class="flex items-center gap-1.5 flex-wrap pt-1 text-[11px] font-mono text-purple-300">
-            <span class="text-[10px] text-ink-slate">Recientes:</span>
-            <template x-for="rf in $store.settings.recentCustomFonts" :key="'tier-' + rf">
-              <button type="button" @click="$store.settings.fontTierlist = rf"
-                class="px-2 py-0.5 rounded bg-purple-500/20 hover:bg-purple-500/40 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer"
-                x-text="rf"></button>
-            </template>
-          </div>
-        </template>
-      </div>
-
     </div>
 
-    <!-- 2. GEOMETRÍA DE BORDES Y ESQUINAS -->
-    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-3.5 shadow-xl transition-colors"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid;'">
-      <div class="flex items-center justify-between">
-        <label class="text-sm font-bold text-parchment-peach flex items-center gap-2">
-          <i data-lucide="shapes" class="w-4 h-4 text-accent-cyan"></i>
-          Geometría de Bordes y Esquinas
-        </label>
-        <button type="button"
-          class="text-xs text-ink-slate hover:text-accent-ruby transition-colors flex items-center gap-1 cursor-pointer font-mono"
-          @click="$store.settings.resetCornerStyle()" title="Restablecer geometría predeterminada">
-          <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-        </button>
+    <!-- Espaciado y forma -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t" style="border-color: var(--wiki-border);">
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-[var(--wiki-text-main)]">Espaciado</span>
+          <button type="button" @click="$store.settings.resetDensity()"
+            class="text-[11px] text-[var(--wiki-text-muted)] hover:text-[var(--wiki-accent)] cursor-pointer">
+            Normal
+          </button>
+        </div>
+        <div class="wiki-segmented w-full">
+          <button type="button" @click="$store.settings.setDensity('compact')"
+            class="wiki-segmented-btn flex-1 justify-center"
+            :class="$store.settings.density === 'compact' ? 'is-active' : ''">Compacto</button>
+          <button type="button" @click="$store.settings.setDensity('normal')"
+            class="wiki-segmented-btn flex-1 justify-center"
+            :class="$store.settings.density === 'normal' ? 'is-active' : ''">Normal</button>
+          <button type="button" @click="$store.settings.setDensity('comfortable')"
+            class="wiki-segmented-btn flex-1 justify-center"
+            :class="$store.settings.density === 'comfortable' ? 'is-active' : ''">Amplio</button>
+        </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-2.5">
-        <!-- Opción 1: Bisel Triangular (Chamfer Sci-Fi) -->
-        <button type="button"
-          class="py-3 px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer text-center group"
-          :class="($store.settings.cornerStyle || 'chamfer') === 'chamfer' ? 'font-bold shadow-md' : 'border-white/10 bg-black/40 text-text-muted hover:border-white/30'"
-          :style="($store.settings.cornerStyle || 'chamfer') === 'chamfer' ? ('border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.15);') : ''"
-          @click="$store.settings.setCornerStyle('chamfer')">
-          <svg class="w-5 h-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="6 3 18 3 21 6 21 18 18 21 6 21 3 18 3 6" />
-          </svg>
-          <span class="text-xs font-semibold leading-tight">Bisel Triangular</span>
-          <span class="text-[9px] font-mono opacity-70">Sci-Fi / Biselado</span>
-        </button>
-
-        <!-- Opción 2: Angular Recto (0px / Sharp 90°) -->
-        <button type="button"
-          class="py-3 px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer text-center group"
-          :class="$store.settings.cornerStyle === 'sharp' ? 'font-bold shadow-md' : 'border-white/10 bg-black/40 text-text-muted hover:border-white/30'"
-          :style="$store.settings.cornerStyle === 'sharp' ? ('border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.15);') : ''"
-          @click="$store.settings.setCornerStyle('sharp')">
-          <svg class="w-5 h-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="0" />
-          </svg>
-          <span class="text-xs font-semibold leading-tight">Angular Recto</span>
-          <span class="text-[9px] font-mono opacity-70">90° Afilado</span>
-        </button>
-
-        <!-- Opción 3: Redondeado Clásico (Curvo) -->
-        <button type="button"
-          class="py-3 px-2 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer text-center group"
-          :class="$store.settings.cornerStyle === 'rounded' ? 'font-bold shadow-md' : 'border-white/10 bg-black/40 text-text-muted hover:border-white/30'"
-          :style="$store.settings.cornerStyle === 'rounded' ? ('border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.15);') : ''"
-          @click="$store.settings.setCornerStyle('rounded')">
-          <svg class="w-5 h-5 transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="6" />
-          </svg>
-          <span class="text-xs font-semibold leading-tight">Redondeado</span>
-          <span class="text-[9px] font-mono opacity-70">Curvo Suave</span>
-        </button>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-semibold text-[var(--wiki-text-main)]">Bordes</span>
+          <button type="button" @click="$store.settings.resetCornerStyle()"
+            class="text-[11px] text-[var(--wiki-text-muted)] hover:text-[var(--wiki-accent)] cursor-pointer">
+            Restablecer
+          </button>
+        </div>
+        <div class="wiki-segmented w-full">
+          <button type="button" @click="$store.settings.setCornerStyle('rounded')"
+            class="wiki-segmented-btn flex-1 justify-center"
+            :class="$store.settings.cornerStyle === 'rounded' ? 'is-active' : ''">Suaves</button>
+          <button type="button" @click="$store.settings.setCornerStyle('sharp')"
+            class="wiki-segmented-btn flex-1 justify-center"
+            :class="$store.settings.cornerStyle === 'sharp' ? 'is-active' : ''">Rectos</button>
+          <button type="button" @click="$store.settings.setCornerStyle('chamfer')"
+            class="wiki-segmented-btn flex-1 justify-center"
+            :class="$store.settings.cornerStyle === 'chamfer' ? 'is-active' : ''">Biselados</button>
+        </div>
       </div>
-      <p class="text-xs text-ink-slate leading-relaxed">
-        Transforma los bordes de paneles, tarjetas, banners de personaje, botones y modales. El estilo de los avatares se mantiene siempre respetando tu configuración individual.
-      </p>
     </div>
 
-    <!-- 3. PREFERENCIAS DE RENDERIZADO y MODOS VISUALES (PANEL UNIFICADO DE INTERRUPTORES) -->
-    <div class="settings-card p-4 sm:p-5 rounded-2xl border space-y-4 shadow-xl transition-colors"
-      :style="'background-color: ' + ($store.settings.surfaceColor || '#0a0c0e') + '; border-color: ' + ($store.settings.borderColor || '#222A36') + '; border-width: ' + ($store.settings.borderWidth || 1) + 'px; border-style: solid;'">
+    <!-- Tipografía simple -->
+    <div class="space-y-3 pt-4 border-t" style="border-color: var(--wiki-border);">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <div>
+          <div class="text-sm font-semibold text-[var(--wiki-text-main)]">Tipografía</div>
+          <div class="text-xs text-[var(--wiki-text-muted)]">Puedes escribir cualquier fuente de Google Fonts.</div>
+        </div>
+        <span class="text-[11px] font-mono"
+          :class="$store.settings.fontStatus === 'error' ? 'text-rose-400' : ($store.settings.fontStatus === 'success' ? 'text-emerald-400' : 'text-amber-400')"
+          x-text="$store.settings.fontStatusMessage || ''"></span>
+      </div>
 
-      <!-- A) Visibilidad de Íconos en Interfaz -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-2">
+          <label class="text-xs font-medium text-[var(--wiki-text-muted)] block">Fuente de títulos</label>
+          <input type="text" x-model="$store.settings.fontDisplay" class="souls-input text-xs" placeholder="Barlow Condensed">
+          <div class="flex flex-wrap gap-1">
+            <template x-for="f in ['Barlow Condensed', 'Cinzel', 'Orbitron', 'Montserrat']" :key="'qf-d-' + f">
+              <button type="button" @click="$store.settings.fontDisplay = f"
+                class="souls-btn !px-2 !py-0.5 text-[11px]"
+                :style="$store.settings.fontDisplay === f ? 'border-color: var(--wiki-accent); color: var(--wiki-accent);' : ''"
+                x-text="f"></button>
+            </template>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-xs font-medium text-[var(--wiki-text-muted)] block">Fuente de lectura</label>
+          <input type="text" x-model="$store.settings.fontBody" class="souls-input text-xs" placeholder="Inter Tight">
+          <div class="flex flex-wrap gap-1">
+            <template x-for="f in ['Inter Tight', 'Inter', 'EB Garamond', 'Roboto']" :key="'qf-b-' + f">
+              <button type="button" @click="$store.settings.fontBody = f"
+                class="souls-btn !px-2 !py-0.5 text-[11px]"
+                :style="$store.settings.fontBody === f ? 'border-color: var(--wiki-accent); color: var(--wiki-accent);' : ''"
+                x-text="f"></button>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preferencias cotidianas -->
+    <div class="pt-4 border-t" style="border-color: var(--wiki-border);">
+      <div class="wiki-settings-row">
+        <div>
+          <div class="text-sm font-medium text-[var(--wiki-text-main)]">Estilo sin brillos neón (mate)</div>
+          <div class="text-xs text-[var(--wiki-text-muted)]">Desactiva resplandores llamativos en bordes y botones.</div>
+        </div>
+        <button type="button" role="switch" :aria-checked="$store.settings.disableGlowEffects"
+          class="wiki-switch" :class="$store.settings.disableGlowEffects ? 'is-on' : ''"
+          @click="$store.settings.toggleDisableGlowEffects()">
+          <span class="wiki-switch-thumb"></span>
+        </button>
+      </div>
+
+      <div class="wiki-settings-row">
+        <div>
+          <div class="text-sm font-medium text-[var(--wiki-text-main)]">Mostrar textos de ejemplo en campos vacíos</div>
+          <div class="text-xs text-[var(--wiki-text-muted)]">Muestra sugerencias dentro de las casillas vacías de las fichas.</div>
+        </div>
+        <button type="button" role="switch" :aria-checked="$store.settings.showPlaceholders"
+          class="wiki-switch" :class="$store.settings.showPlaceholders ? 'is-on' : ''"
+          @click="$store.settings.toggleShowPlaceholders()">
+          <span class="wiki-switch-thumb"></span>
+        </button>
+      </div>
+
+      <div class="wiki-settings-row">
+        <div>
+          <div class="text-sm font-medium text-[var(--wiki-text-main)]">Ocultar etiquetas de atajos de teclado</div>
+          <div class="text-xs text-[var(--wiki-text-muted)]">Esconde indicaciones como Ctrl+K o Esc en botones.</div>
+        </div>
+        <button type="button" role="switch" :aria-checked="$store.settings.hideKeyboardBadges"
+          class="wiki-switch" :class="$store.settings.hideKeyboardBadges ? 'is-on' : ''"
+          @click="$store.settings.toggleHideKeyboardBadges()">
+          <span class="wiki-switch-thumb"></span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. AJUSTES AVANZADOS (COLAPSADO POR DEFECTO) -->
+  <div>
+    <button type="button" @click="showAdvancedIdentity = !showAdvancedIdentity" class="wiki-accordion-header">
+      <div class="flex items-center gap-2.5">
+        <i data-lucide="sliders" class="w-4 h-4 text-[var(--wiki-accent)]"></i>
+        <div>
+          <span class="text-sm font-semibold block">Personalización avanzada</span>
+          <span class="text-xs text-[var(--wiki-text-muted)] font-normal block">Colores por zona, grosor de fuentes, visibilidad de íconos y barras</span>
+        </div>
+      </div>
+      <i data-lucide="chevron-down" class="w-4 h-4 text-[var(--wiki-text-muted)] transition-transform shrink-0"
+        :class="showAdvancedIdentity ? 'rotate-180' : ''"></i>
+    </button>
+
+    <div x-show="showAdvancedIdentity" x-collapse class="wiki-accordion-body space-y-6">
+
+      <!-- Colores adicionales por zona -->
       <div class="space-y-3">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Visibilidad de Íconos en Interfaz
-            </label>
-            <p class="text-xs text-ink-slate">
-              Oculta o muestra los íconos de forma global o personalizada por nivel de jerarquía visual.
-            </p>
-          </div>
-
-          <!-- Master Switch: Deshabilitar Todos -->
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.hideAllIcons ? 'ring-1' : ''"
-              :style="$store.settings.hideAllIcons ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.hideAllIcons ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.hideAllIcons ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.hideAllIcons"
-                @change="$store.settings.toggleHideAllIcons()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.hideAllIcons ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.hideAllIcons ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.hideAllIcons ? 'OCULTOS' : 'VISIBLES'">
-            </span>
-          </label>
-        </div>
-
-        <!-- Botón Desplegable / Acordeón para Ajustes Granulares -->
-        <div class="space-y-2.5">
-          <button type="button" @click="$store.settings.toggleIconHierarchyExpanded()"
-            class="w-full py-2 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-mono text-parchment-cream flex items-center justify-between transition-colors cursor-pointer">
-            <span class="flex items-center gap-2 font-bold text-accent-gold">
-              <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
-              <span>Ajustes Granulares por Jerarquía (4 Niveles)</span>
-            </span>
-            <div class="flex items-center gap-1.5 text-[11px] text-ink-slate">
-              <span x-text="$store.settings.iconHierarchyExpanded ? 'Ocultar Opciones' : 'Desplegar 4 Niveles'"></span>
-              <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-200"
-                :class="$store.settings.iconHierarchyExpanded ? 'rotate-180' : ''"></i>
-            </div>
+        <div class="flex items-center justify-between gap-2 flex-wrap">
+          <div class="text-xs font-semibold uppercase tracking-wider text-[var(--wiki-accent)]">Colores por zona</div>
+          <button type="button"
+            @click="advColorChannel === 'secondary' ? $store.settings.resetSecondaryColor() : (advColorChannel === 'tertiary' ? $store.settings.resetTertiaryColor() : (advColorChannel === 'surface' ? $store.settings.resetSurfaceColor() : (advColorChannel === 'border' ? $store.settings.resetBorderColor() : $store.settings.resetGlowColor())))"
+            class="text-[11px] text-[var(--wiki-text-muted)] hover:text-[var(--wiki-accent)] cursor-pointer inline-flex items-center gap-1">
+            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer zona
           </button>
+        </div>
 
-          <!-- 4 Opciones Granulares Desplegables -->
-          <div x-show="$store.settings.iconHierarchyExpanded" x-collapse class="space-y-2 pt-1">
-            <!-- Nivel 1: H1 Categorías Principales -->
-            <div
-              class="p-3 rounded-xl border border-white/10 bg-black/40 flex items-center justify-between gap-3">
-              <div class="space-y-0.5">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30">H1</span>
-                  <span class="text-xs font-bold text-parchment-cream">Categorías Principales / Vista</span>
-                </div>
-                <p class="text-[11px] text-ink-slate">Oculta el ícono del título superior de la pestaña activa (ej: <em>SOCIAL</em>, <em>CUERPO</em>, <em>MENTE</em>).</p>
+        <div class="wiki-segmented w-full">
+          <button type="button" @click="advColorChannel = 'secondary'" class="wiki-segmented-btn flex-1 justify-center" :class="advColorChannel === 'secondary' ? 'is-active' : ''">Secundario</button>
+          <button type="button" @click="advColorChannel = 'tertiary'" class="wiki-segmented-btn flex-1 justify-center" :class="advColorChannel === 'tertiary' ? 'is-active' : ''">Terciario</button>
+          <button type="button" @click="advColorChannel = 'surface'" class="wiki-segmented-btn flex-1 justify-center" :class="advColorChannel === 'surface' ? 'is-active' : ''">Paneles</button>
+          <button type="button" @click="advColorChannel = 'border'" class="wiki-segmented-btn flex-1 justify-center" :class="advColorChannel === 'border' ? 'is-active' : ''">Bordes</button>
+          <button type="button" @click="advColorChannel = 'glow'" class="wiki-segmented-btn flex-1 justify-center" :class="advColorChannel === 'glow' ? 'is-active' : ''">Brillo</button>
+        </div>
+
+        <!-- Secundario -->
+        <div x-show="advColorChannel === 'secondary'" class="space-y-2.5">
+          <div class="relative flex items-center gap-2 p-1.5 border border-[var(--wiki-border)] bg-[var(--wiki-bg-canvas)] max-w-xs"
+            x-data="cyberColorPicker({ label: 'Color Secundario', defaultColor: '#FF0077', value: () => $store.settings.secondaryColor, onSelect: (hex) => { $store.settings.secondaryColor = hex; }, swatches: $store.settings.popularSecondarySwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+            <button type="button" @click="toggle()" class="relative w-7 h-7 border border-[var(--wiki-border-strong)] shrink-0 cursor-pointer"
+              :style="'background-color: ' + currentHex + ';'"></button>
+            <span class="text-xs font-mono text-[var(--wiki-text-muted)]">#</span>
+            <input type="text" :value="(currentHex || '').replace('#', '').toUpperCase()"
+              @input="setFromHex('#' + $event.target.value, false)"
+              class="bg-transparent text-xs font-mono uppercase font-bold text-[var(--wiki-text-main)] focus:outline-none w-full" maxlength="6">
+            <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <template x-for="swatch in $store.settings.popularSecondarySwatches" :key="'sec-' + swatch.name">
+              <button type="button" @click="$store.settings.secondaryColor = swatch.color"
+                class="w-6 h-6 border cursor-pointer"
+                :class="($store.settings.secondaryColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-[var(--wiki-accent)] border-white' : 'border-[var(--wiki-border)]'"
+                :style="'background-color: ' + swatch.color + ';'" :title="swatch.name"></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Terciario -->
+        <div x-show="advColorChannel === 'tertiary'" class="space-y-2.5">
+          <div class="relative flex items-center gap-2 p-1.5 border border-[var(--wiki-border)] bg-[var(--wiki-bg-canvas)] max-w-xs"
+            x-data="cyberColorPicker({ label: 'Color Terciario', defaultColor: '#D4AF37', value: () => $store.settings.tertiaryColor, onSelect: (hex) => { $store.settings.tertiaryColor = hex; }, swatches: $store.settings.popularTertiarySwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+            <button type="button" @click="toggle()" class="relative w-7 h-7 border border-[var(--wiki-border-strong)] shrink-0 cursor-pointer"
+              :style="'background-color: ' + currentHex + ';'"></button>
+            <span class="text-xs font-mono text-[var(--wiki-text-muted)]">#</span>
+            <input type="text" :value="(currentHex || '').replace('#', '').toUpperCase()"
+              @input="setFromHex('#' + $event.target.value, false)"
+              class="bg-transparent text-xs font-mono uppercase font-bold text-[var(--wiki-text-main)] focus:outline-none w-full" maxlength="6">
+            <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <template x-for="swatch in $store.settings.popularTertiarySwatches" :key="'tert-' + swatch.name">
+              <button type="button" @click="$store.settings.tertiaryColor = swatch.color"
+                class="w-6 h-6 border cursor-pointer"
+                :class="($store.settings.tertiaryColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-[var(--wiki-accent)] border-white' : 'border-[var(--wiki-border)]'"
+                :style="'background-color: ' + swatch.color + ';'" :title="swatch.name"></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Superficie / Paneles -->
+        <div x-show="advColorChannel === 'surface'" class="space-y-2.5">
+          <div class="relative flex items-center gap-2 p-1.5 border border-[var(--wiki-border)] bg-[var(--wiki-bg-canvas)] max-w-xs"
+            x-data="cyberColorPicker({ label: 'Color de Paneles', defaultColor: '#0A0D14', value: () => $store.settings.surfaceColor, onSelect: (hex) => { $store.settings.surfaceColor = hex; }, swatches: $store.settings.popularSurfaceSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+            <button type="button" @click="toggle()" class="relative w-7 h-7 border border-[var(--wiki-border-strong)] shrink-0 cursor-pointer"
+              :style="'background-color: ' + currentHex + ';'"></button>
+            <span class="text-xs font-mono text-[var(--wiki-text-muted)]">#</span>
+            <input type="text" :value="(currentHex || '').replace('#', '').toUpperCase()"
+              @input="setFromHex('#' + $event.target.value, false)"
+              class="bg-transparent text-xs font-mono uppercase font-bold text-[var(--wiki-text-main)] focus:outline-none w-full" maxlength="6">
+            <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <template x-for="swatch in $store.settings.popularSurfaceSwatches" :key="'surf-' + swatch.name">
+              <button type="button" @click="$store.settings.surfaceColor = swatch.color"
+                class="w-6 h-6 border cursor-pointer"
+                :class="($store.settings.surfaceColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-[var(--wiki-accent)] border-white' : 'border-[var(--wiki-border)]'"
+                :style="'background-color: ' + swatch.color + ';'" :title="swatch.name"></button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Bordes y grosor -->
+        <div x-show="advColorChannel === 'border'" class="space-y-3">
+          <div class="relative flex items-center gap-2 p-1.5 border border-[var(--wiki-border)] bg-[var(--wiki-bg-canvas)] max-w-xs"
+            x-data="cyberColorPicker({ label: 'Color de Bordes', defaultColor: '#222A36', value: () => $store.settings.borderColor, onSelect: (hex) => { $store.settings.borderColor = hex; }, swatches: $store.settings.popularBorderSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+            <button type="button" @click="toggle()" class="relative w-7 h-7 border border-[var(--wiki-border-strong)] shrink-0 cursor-pointer"
+              :style="'background-color: ' + currentHex + ';'"></button>
+            <span class="text-xs font-mono text-[var(--wiki-text-muted)]">#</span>
+            <input type="text" :value="(currentHex || '').replace('#', '').toUpperCase()"
+              @input="setFromHex('#' + $event.target.value, false)"
+              class="bg-transparent text-xs font-mono uppercase font-bold text-[var(--wiki-text-main)] focus:outline-none w-full" maxlength="6">
+            <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <template x-for="swatch in $store.settings.popularBorderSwatches" :key="'bord-' + swatch.name">
+              <button type="button" @click="$store.settings.borderColor = swatch.color"
+                class="w-6 h-6 border cursor-pointer"
+                :class="($store.settings.borderColor || '').toUpperCase() === swatch.color.toUpperCase() ? 'ring-2 ring-[var(--wiki-accent)] border-white' : 'border-[var(--wiki-border)]'"
+                :style="'background-color: ' + swatch.color + ';'" :title="swatch.name"></button>
+            </template>
+          </div>
+          <div class="flex items-center gap-3 pt-1">
+            <span class="text-xs text-[var(--wiki-text-muted)] shrink-0">Grosor (<span x-text="($store.settings.borderWidth || 1) + 'px'"></span>):</span>
+            <input type="range" min="1" max="5" step="1" class="wiki-range flex-1 max-w-xs"
+              :value="$store.settings.borderWidth || 1"
+              @input="$store.settings.setBorderWidth(parseInt($event.target.value, 10))"
+              @change="$store.settings.setBorderWidth(parseInt($event.target.value, 10))">
+          </div>
+        </div>
+
+        <!-- Brillo -->
+        <div x-show="advColorChannel === 'glow'" class="space-y-2.5">
+          <div class="wiki-segmented max-w-sm">
+            <button type="button" @click="$store.settings.glowMode = 'auto'" class="wiki-segmented-btn flex-1 justify-center" :class="$store.settings.glowMode === 'auto' ? 'is-active' : ''">Igual al color principal</button>
+            <button type="button" @click="$store.settings.glowMode = 'custom'" class="wiki-segmented-btn flex-1 justify-center" :class="$store.settings.glowMode === 'custom' ? 'is-active' : ''">Color aparte</button>
+          </div>
+          <template x-if="$store.settings.glowMode === 'custom'">
+            <div class="relative flex items-center gap-2 p-1.5 border border-[var(--wiki-border)] bg-[var(--wiki-bg-canvas)] max-w-xs"
+              x-data="cyberColorPicker({ label: 'Color de Resplandor', defaultColor: '#00F0FF', value: () => $store.settings.glowColor, onSelect: (hex) => { $store.settings.glowColor = hex; }, swatches: $store.settings.popularAccentSwatches.map(s => ({ color: s.color, title: s.name })), liveUpdate: true })">
+              <button type="button" @click="toggle()" class="relative w-7 h-7 border border-[var(--wiki-border-strong)] shrink-0 cursor-pointer"
+                :style="'background-color: ' + currentHex + ';'"></button>
+              <span class="text-xs font-mono text-[var(--wiki-text-muted)]">#</span>
+              <input type="text" :value="(currentHex || '').replace('#', '').toUpperCase()"
+                @input="setFromHex('#' + $event.target.value, false)"
+                class="bg-transparent text-xs font-mono uppercase font-bold text-[var(--wiki-text-main)] focus:outline-none w-full" maxlength="6">
+              <include src="./src/ui/partials/views/settings/cyber-color-popover.html"></include>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Tipografía detallada por rol -->
+      <div class="space-y-3 pt-4 border-t" style="border-color: var(--wiki-border);">
+        <div class="text-xs font-semibold uppercase tracking-wider text-[var(--wiki-accent)]">Tipografía por zona y grosor</div>
+
+        <div class="wiki-segmented w-full">
+          <template x-for="cat in fontCats" :key="'tab-' + cat.id">
+            <button type="button" @click="fontCategory = cat.id"
+              class="wiki-segmented-btn flex-1 justify-center"
+              :class="fontCategory === cat.id ? 'is-active' : ''"
+              x-text="cat.tabLabel"></button>
+          </template>
+        </div>
+
+        <template x-if="$store.settings.recentCustomFonts && $store.settings.recentCustomFonts.length > 0">
+          <div class="flex items-center flex-wrap gap-1.5 text-xs">
+            <span class="text-[var(--wiki-text-muted)]">Recientes:</span>
+            <template x-for="rf in $store.settings.recentCustomFonts" :key="rf">
+              <div class="inline-flex items-center border border-[var(--wiki-border)] bg-[var(--wiki-bg-canvas)]">
+                <button type="button"
+                  @click="fontCategory === 'display' ? ($store.settings.fontDisplay = rf) : (fontCategory === 'hud' ? ($store.settings.fontHud = rf) : (fontCategory === 'body' ? ($store.settings.fontBody = rf) : (fontCategory === 'tierlist' ? ($store.settings.fontTierlist = rf) : ($store.settings.fontInput = rf))))"
+                  class="px-2 py-0.5 text-[11px] hover:text-[var(--wiki-accent)] cursor-pointer" x-text="rf"></button>
+                <button type="button" @click="$store.settings.removeRecentCustomFont(rf)"
+                  class="px-1.5 py-0.5 text-[10px] text-[var(--wiki-text-muted)] hover:text-rose-400 cursor-pointer">&times;</button>
               </div>
-              <button type="button" @click="$store.settings.toggleHideIconsH1()"
-                class="px-2.5 py-1 rounded-lg border text-[11px] font-mono font-bold transition-all cursor-pointer shrink-0"
-                :class="($store.settings.hideAllIcons || $store.settings.hideIconsH1) ? 'bg-accent-ruby/20 border-accent-ruby text-rose-300' : 'bg-white/5 border-white/15 text-parchment-cream/80 hover:text-white'">
-                <span x-text="($store.settings.hideAllIcons || $store.settings.hideIconsH1) ? 'Oculto' : 'Visible'"></span>
+            </template>
+            <button type="button" @click="$store.settings.clearRecentCustomFonts()"
+              class="text-[11px] text-[var(--wiki-text-muted)] hover:text-rose-400 cursor-pointer ml-1">Limpiar</button>
+          </div>
+        </template>
+
+        <template x-for="cat in fontCats" :key="cat.id">
+          <div x-show="fontCategory === cat.id" class="wiki-settings-card space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <div class="text-xs font-semibold text-[var(--wiki-text-main)]" x-text="cat.title"></div>
+                <div class="text-[11px] text-[var(--wiki-text-muted)]" x-text="cat.desc"></div>
+              </div>
+              <button type="button" @click="$store.settings[cat.resetFn]()"
+                class="text-[11px] text-[var(--wiki-text-muted)] hover:text-[var(--wiki-accent)] cursor-pointer shrink-0">
+                Restablecer
               </button>
             </div>
 
-            <!-- Nivel 2: H2 Módulos / Tarjeta Padre -->
-            <div
-              class="p-3 rounded-xl border border-white/10 bg-black/40 flex items-center justify-between gap-3">
-              <div class="space-y-0.5">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">H2</span>
-                  <span class="text-xs font-bold text-parchment-cream">Módulos / Tarjeta Padre</span>
-                </div>
-                <p class="text-[11px] text-ink-slate">Oculta la caja de ícono del encabezado de tarjeta (ej: <em>ENTORNO SOCIAL, VÍNCULOS y REDES</em>).</p>
+            <input type="text" :value="$store.settings[cat.prop]" @input="$store.settings[cat.prop] = $event.target.value"
+              class="souls-input text-xs" :placeholder="cat.placeholder">
+
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <span class="text-xs text-[var(--wiki-text-muted)]">Grosor:</span>
+              <div class="wiki-segmented">
+                <template x-for="w in cat.weights" :key="cat.id + '-' + w.val">
+                  <button type="button" @click="$store.settings[cat.weightProp] = w.val"
+                    class="wiki-segmented-btn" :class="$store.settings[cat.weightProp] === w.val ? 'is-active' : ''"
+                    x-text="w.label"></button>
+                </template>
               </div>
-              <button type="button" @click="$store.settings.toggleHideIconsH2()"
-                class="px-2.5 py-1 rounded-lg border text-[11px] font-mono font-bold transition-all cursor-pointer shrink-0"
-                :class="($store.settings.hideAllIcons || $store.settings.hideIconsH2) ? 'bg-accent-ruby/20 border-accent-ruby text-rose-300' : 'bg-white/5 border-white/15 text-parchment-cream/80 hover:text-white'">
-                <span x-text="($store.settings.hideAllIcons || $store.settings.hideIconsH2) ? 'Oculto' : 'Visible'"></span>
-              </button>
             </div>
 
-            <!-- Nivel 3: H3 Grupo de Campos / Subsección -->
-            <div
-              class="p-3 rounded-xl border border-white/10 bg-black/40 flex items-center justify-between gap-3">
-              <div class="space-y-0.5">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">H3</span>
-                  <span class="text-xs font-bold text-parchment-cream">Grupo de Campos / Subsección</span>
-                </div>
-                <p class="text-[11px] text-ink-slate">Oculta el ícono de las subsecciones internas (ej: <em>IDENTIDAD PÚBLICA, FACHADA y ESTATUS</em>).</p>
-              </div>
-              <button type="button" @click="$store.settings.toggleHideIconsH3()"
-                class="px-2.5 py-1 rounded-lg border text-[11px] font-mono font-bold transition-all cursor-pointer shrink-0"
-                :class="($store.settings.hideAllIcons || $store.settings.hideIconsH3) ? 'bg-accent-ruby/20 border-accent-ruby text-rose-300' : 'bg-white/5 border-white/15 text-parchment-cream/80 hover:text-white'">
-                <span x-text="($store.settings.hideAllIcons || $store.settings.hideIconsH3) ? 'Oculto' : 'Visible'"></span>
-              </button>
-            </div>
-
-            <!-- Nivel 4: H4 / Labels Etiquetas de Campo -->
-            <div
-              class="p-3 rounded-xl border border-white/10 bg-black/40 flex items-center justify-between gap-3">
-              <div class="space-y-0.5">
-                <div class="flex items-center gap-2">
-                  <span
-                    class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">H4 / Label</span>
-                  <span class="text-xs font-bold text-parchment-cream">Etiquetas de Campo (Input Labels)</span>
-                </div>
-                <p class="text-[11px] text-ink-slate">Oculta los íconos pequeños en cada etiqueta de campo (ej: <em>AFILIACIÓN / FACCIÓN PRINCIPAL</em>).</p>
-              </div>
-              <button type="button" @click="$store.settings.toggleHideIconsLabels()"
-                class="px-2.5 py-1 rounded-lg border text-[11px] font-mono font-bold transition-all cursor-pointer shrink-0"
-                :class="($store.settings.hideAllIcons || $store.settings.hideIconsLabels) ? 'bg-accent-ruby/20 border-accent-ruby text-rose-300' : 'bg-white/5 border-white/15 text-parchment-cream/80 hover:text-white'">
-                <span x-text="($store.settings.hideAllIcons || $store.settings.hideIconsLabels) ? 'Oculto' : 'Visible'"></span>
-              </button>
+            <div class="flex flex-wrap gap-1.5">
+              <template x-for="preset in cat.presets" :key="cat.id + '-' + preset">
+                <button type="button" @click="$store.settings[cat.prop] = preset" class="souls-btn !px-2 !py-1 text-[11px]"
+                  :style="$store.settings[cat.prop] === preset ? 'border-color: var(--wiki-accent); color: var(--wiki-accent);' : ''"
+                  x-text="preset"></button>
+              </template>
             </div>
           </div>
-        </div>
+        </template>
       </div>
 
-      <!-- B) Neutralización Cromática / Modo Monocromático -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Deshabilitar Colores en Títulos y Etiquetas (Modo Monocromático)
-            </label>
-            <p class="text-xs text-ink-slate">
-              Unifica los textos H1, H2, H3 y etiquetas a tonos neutros limpios de alto contraste, desactivando los colores temáticos por tarjeta para una apariencia minimalista y sobria.
-            </p>
+      <!-- Visibilidad detallada de íconos y barras -->
+      <div class="pt-4 border-t" style="border-color: var(--wiki-border);">
+        <div class="text-xs font-semibold uppercase tracking-wider text-[var(--wiki-accent)] mb-2">Visibilidad de elementos</div>
+
+        <div class="wiki-settings-row">
+          <div>
+            <div class="text-sm font-medium text-[var(--wiki-text-main)]">Modo monocromático</div>
+            <div class="text-xs text-[var(--wiki-text-muted)]">Usa tonos neutros en lugar de colores en títulos y etiquetas.</div>
           </div>
-
-          <!-- Toggle Switch -->
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.disableCustomColors ? 'ring-1' : ''"
-              :style="$store.settings.disableCustomColors ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.disableCustomColors ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.disableCustomColors ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.disableCustomColors"
-                @change="$store.settings.toggleDisableCustomColors()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.disableCustomColors ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.disableCustomColors ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.disableCustomColors ? 'ACTIVO' : 'INACTIVO'">
-            </span>
-          </label>
+          <button type="button" role="switch" :aria-checked="$store.settings.disableCustomColors"
+            class="wiki-switch" :class="$store.settings.disableCustomColors ? 'is-on' : ''"
+            @click="$store.settings.toggleDisableCustomColors()">
+            <span class="wiki-switch-thumb"></span>
+          </button>
         </div>
-      </div>
 
-      <!-- C) Control Global de Placeholders -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Mostrar Textos de Ejemplo (Placeholders)
-            </label>
-            <p class="text-xs text-ink-slate">
-              Activa o desactiva la guía de texto en todos los campos de entrada de la aplicación.
-            </p>
+        <div class="wiki-settings-row">
+          <div>
+            <div class="text-sm font-medium text-[var(--wiki-text-main)]">Ocultar marcos animados</div>
+            <div class="text-xs text-[var(--wiki-text-muted)]">Desactiva marcos animados de avatar.</div>
           </div>
-
-          <!-- Toggle Switch -->
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.showPlaceholders ? 'ring-1' : ''"
-              :style="$store.settings.showPlaceholders ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.showPlaceholders ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.showPlaceholders ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.showPlaceholders"
-                @change="$store.settings.toggleShowPlaceholders()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.showPlaceholders ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.showPlaceholders ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.showPlaceholders ? 'ACTIVO' : 'INACTIVO'">
-            </span>
-          </label>
+          <button type="button" role="switch" :aria-checked="$store.settings.hideAnimatedFrames"
+            class="wiki-switch" :class="$store.settings.hideAnimatedFrames ? 'is-on' : ''"
+            @click="$store.settings.toggleHideAnimatedFrames()">
+            <span class="wiki-switch-thumb"></span>
+          </button>
         </div>
-      </div>
 
-
-      <!-- D) Deshabilitar Resplandores Neón (Glow) -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Deshabilitar Resplandores Neón (Glow)
-            </label>
-            <p class="text-xs text-ink-slate">
-              Desactiva las sombras luminosas y resplandores exteriores en tarjetas, botones y campos para un aspecto mate y descansado.
-            </p>
+        <div class="py-2.5 border-b border-[var(--wiki-border)] space-y-2">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <div class="text-sm font-medium text-[var(--wiki-text-main)]">Ocultar íconos decorativos</div>
+              <div class="text-xs text-[var(--wiki-text-muted)]">Esconde los íconos de títulos y etiquetas dentro de fichas.</div>
+            </div>
+            <button type="button" role="switch" :aria-checked="$store.settings.hideAllIcons"
+              class="wiki-switch" :class="$store.settings.hideAllIcons ? 'is-on' : ''"
+              @click="$store.settings.toggleHideAllIcons()">
+              <span class="wiki-switch-thumb"></span>
+            </button>
           </div>
-
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.disableGlowEffects ? 'ring-1' : ''"
-              :style="$store.settings.disableGlowEffects ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.disableGlowEffects ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.disableGlowEffects ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.disableGlowEffects"
-                @change="$store.settings.toggleDisableGlowEffects()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.disableGlowEffects ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.disableGlowEffects ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.disableGlowEffects ? 'ACTIVO' : 'INACTIVO'">
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- E) Ocultar Marcos Animados de Steam -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Ocultar Marcos Animados de Steam
-            </label>
-            <p class="text-xs text-ink-slate">
-              Oculta las animaciones de marcos (APNG / WebM) alrededor de avatares en el tablero, la reserva y las fichas, manteniendo el avatar limpio.
-            </p>
+          <button type="button" @click="$store.settings.toggleIconHierarchyExpanded()"
+            class="text-xs text-[var(--wiki-text-muted)] hover:text-[var(--wiki-accent)] inline-flex items-center gap-1 cursor-pointer">
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform" :class="$store.settings.iconHierarchyExpanded ? 'rotate-180' : ''"></i>
+            Elegir niveles específicos
+          </button>
+          <div x-show="$store.settings.iconHierarchyExpanded" class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+            <button type="button" @click="$store.settings.toggleHideIconsH1()" class="souls-btn !py-1 text-xs justify-between"
+              :style="$store.settings.hideIconsH1 ? 'border-color: var(--wiki-accent); color: var(--wiki-accent);' : ''">
+              <span>Títulos H1</span><span class="font-mono text-[10px]" x-text="$store.settings.hideIconsH1 ? 'Oculto' : 'Visible'"></span>
+            </button>
+            <button type="button" @click="$store.settings.toggleHideIconsH2()" class="souls-btn !py-1 text-xs justify-between"
+              :style="$store.settings.hideIconsH2 ? 'border-color: var(--wiki-accent); color: var(--wiki-accent);' : ''">
+              <span>Títulos H2</span><span class="font-mono text-[10px]" x-text="$store.settings.hideIconsH2 ? 'Oculto' : 'Visible'"></span>
+            </button>
+            <button type="button" @click="$store.settings.toggleHideIconsH3()" class="souls-btn !py-1 text-xs justify-between"
+              :style="$store.settings.hideIconsH3 ? 'border-color: var(--wiki-accent); color: var(--wiki-accent);' : ''">
+              <span>Títulos H3</span><span class="font-mono text-[10px]" x-text="$store.settings.hideIconsH3 ? 'Oculto' : 'Visible'"></span>
+            </button>
+            <button type="button" @click="$store.settings.toggleHideIconsLabels()" class="souls-btn !py-1 text-xs justify-between"
+              :style="$store.settings.hideIconsLabels ? 'border-color: var(--wiki-accent); color: var(--wiki-accent);' : ''">
+              <span>Etiquetas</span><span class="font-mono text-[10px]" x-text="$store.settings.hideIconsLabels ? 'Oculto' : 'Visible'"></span>
+            </button>
           </div>
-
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.hideAnimatedFrames ? 'ring-1' : ''"
-              :style="$store.settings.hideAnimatedFrames ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.hideAnimatedFrames ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.hideAnimatedFrames ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.hideAnimatedFrames"
-                @change="$store.settings.toggleHideAnimatedFrames()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.hideAnimatedFrames ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.hideAnimatedFrames ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.hideAnimatedFrames ? 'OCULTOS' : 'VISIBLES'">
-            </span>
-          </label>
         </div>
-      </div>
 
-      <!-- F) Ocultar Insignias de Atajos de Teclado -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Ocultar Insignias de Atajos de Teclado
-            </label>
-            <p class="text-xs text-ink-slate">
-              Oculta las etiquetas de teclas visuales (ej: Ctrl + ,, Shift) mostradas en cabeceras y barras de la aplicación.
-            </p>
+        <template x-for="opt in extraUiToggles" :key="opt.prop">
+          <div class="wiki-settings-row">
+            <div>
+              <div class="text-sm font-medium text-[var(--wiki-text-main)]" x-text="opt.title"></div>
+              <div class="text-xs text-[var(--wiki-text-muted)]" x-text="opt.desc"></div>
+            </div>
+            <button type="button" role="switch" :aria-checked="$store.settings[opt.prop]"
+              class="wiki-switch" :class="$store.settings[opt.prop] ? 'is-on' : ''"
+              @click="$store.settings[opt.toggle]()">
+              <span class="wiki-switch-thumb"></span>
+            </button>
           </div>
-
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.hideKeyboardBadges ? 'ring-1' : ''"
-              :style="$store.settings.hideKeyboardBadges ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.hideKeyboardBadges ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.hideKeyboardBadges ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.hideKeyboardBadges"
-                @change="$store.settings.toggleHideKeyboardBadges()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.hideKeyboardBadges ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.hideKeyboardBadges ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.hideKeyboardBadges ? 'OCULTAS' : 'VISIBLES'">
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- G) Fondo Estático en Ajustes (Desactivar Rejilla Canvas) -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Fondo Estático en Ajustes (Desactivar Rejilla Canvas)
-            </label>
-            <p class="text-xs text-ink-slate">
-              Desactiva el efecto de partículas y rejilla interactiva que sigue al cursor en esta pantalla, manteniendo un fondo estático y optimizado.
-            </p>
-          </div>
-
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.disableSettingsInteractiveGrid ? 'ring-1' : ''"
-              :style="$store.settings.disableSettingsInteractiveGrid ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.disableSettingsInteractiveGrid ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.disableSettingsInteractiveGrid ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.disableSettingsInteractiveGrid"
-                @change="$store.settings.toggleDisableSettingsInteractiveGrid()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.disableSettingsInteractiveGrid ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.disableSettingsInteractiveGrid ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.disableSettingsInteractiveGrid ? 'ESTÁTICO' : 'INTERACTIVO'">
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- H) Ocultar Tier de Power Scaling en Tarjetas de Personajes -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Ocultar Tier de Power Scaling en Tarjetas
-            </label>
-            <p class="text-xs text-ink-slate">
-              Oculta la insignia de rango de poder (ej: High 3-A, 1-A) mostrada junto o debajo del nombre en las tarjetas del panel de personajes.
-            </p>
-          </div>
-
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.hidePowerScalingTierBadge ? 'ring-1' : ''"
-              :style="$store.settings.hidePowerScalingTierBadge ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.hidePowerScalingTierBadge ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.hidePowerScalingTierBadge ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.hidePowerScalingTierBadge"
-                @change="$store.settings.toggleHidePowerScalingTierBadge()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.hidePowerScalingTierBadge ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.hidePowerScalingTierBadge ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.hidePowerScalingTierBadge ? 'OCULTO' : 'VISIBLE'">
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- H) Deshabilitar Barra de Completitud -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Deshabilitar Barra de Completitud
-            </label>
-            <p class="text-xs text-ink-slate">
-              Oculta el medidor de progreso y porcentaje de llenado de la ficha ubicado en la barra superior.
-            </p>
-          </div>
-
-          <!-- Switch -->
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.hideCompletenessBar ? 'ring-1' : ''"
-              :style="$store.settings.hideCompletenessBar ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.hideCompletenessBar ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.hideCompletenessBar ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.hideCompletenessBar"
-                @change="$store.settings.toggleHideCompletenessBar()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.hideCompletenessBar ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.hideCompletenessBar ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.hideCompletenessBar ? 'OCULTA' : 'VISIBLE'">
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- I) Deshabilitar Acceso Rápido a Ficha Reciente -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Deshabilitar Acceso a Ficha Reciente en Barra Superior
-            </label>
-            <p class="text-xs text-ink-slate">
-              Oculta el botón «Abrir Ficha: [Nombre]» de la barra superior izquierda en el Panel de Personajes y Tier List.
-            </p>
-          </div>
-
-          <!-- Switch -->
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.hideRecentSheetButton ? 'ring-1' : ''"
-              :style="$store.settings.hideRecentSheetButton ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.hideRecentSheetButton ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.hideRecentSheetButton ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.hideRecentSheetButton"
-                @change="$store.settings.toggleHideRecentSheetButton()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.hideRecentSheetButton ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.hideRecentSheetButton ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.hideRecentSheetButton ? 'OCULTO' : 'VISIBLE'">
-            </span>
-          </label>
-        </div>
-      </div>
-
-      <!-- J) Deshabilitar Contadores de Campos en Secciones [x/total] -->
-      <div class="pt-3.5 border-t border-white/10">
-        <div class="flex items-center justify-between gap-4">
-          <div class="space-y-0.5">
-            <label class="block text-sm font-bold text-parchment-peach">
-              Deshabilitar Contadores de Campos en Secciones
-            </label>
-            <p class="text-xs text-ink-slate">
-              Oculta el indicador numérico entre corchetes (ej: [0/11]) que muestra los campos completados en la lista lateral de pestañas.
-            </p>
-          </div>
-
-          <!-- Switch -->
-          <label class="flex items-center gap-2.5 cursor-pointer shrink-0 select-none group">
-            <div class="tactical-switch-track" :class="$store.settings.hideTabFieldCounters ? 'ring-1' : ''"
-              :style="$store.settings.hideTabFieldCounters ? ('border-color: ' + $store.settings.accentColor + '; background: rgba(' + $store.settings.rgbChannels + ', 0.2); box-shadow: 0 0 12px rgba(' + $store.settings.rgbChannels + ', 0.35); ring-color: rgba(' + $store.settings.rgbChannels + ', 0.4);') : ''">
-              <div class="tactical-switch-knob"
-                :class="$store.settings.hideTabFieldCounters ? 'is-active' : 'is-inactive'"
-                :style="$store.settings.hideTabFieldCounters ? ('background: ' + $store.settings.accentColor + '; box-shadow: 0 0 8px ' + $store.settings.accentColor + ';') : ''">
-              </div>
-              <input type="checkbox" class="hidden" :checked="$store.settings.hideTabFieldCounters"
-                @change="$store.settings.toggleHideTabFieldCounters()">
-            </div>
-            <span class="text-xs font-mono font-bold tracking-wider uppercase min-w-[85px] transition-colors"
-              :style="$store.settings.hideTabFieldCounters ? ('color: ' + $store.settings.accentColor + '; font-weight: 800;') : ''"
-              :class="!$store.settings.hideTabFieldCounters ? 'text-ink-slate opacity-70' : ''"
-              x-text="$store.settings.hideTabFieldCounters ? 'OCULTOS' : 'VISIBLES'">
-            </span>
-          </label>
-        </div>
+        </template>
       </div>
 
     </div>
-
   </div>
-
 </div>

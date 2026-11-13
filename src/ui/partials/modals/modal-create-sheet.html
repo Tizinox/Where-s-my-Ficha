@@ -1,0 +1,292 @@
+<!-- ==============================================================
+     MODAL DE SELECCIÓN DE TIPO DE FICHA (FICHA A VS FICHA B)
+     ============================================================== -->
+<div id="create-sheet-modal" x-data x-show="$store.characters.createSheetModalOpen" x-cloak
+  x-transition:enter="transition ease-out duration-150"
+  x-transition:enter-start="opacity-0"
+  x-transition:enter-end="opacity-100"
+  x-transition:leave="transition ease-in duration-100"
+  x-transition:leave-start="opacity-100"
+  x-transition:leave-end="opacity-0"
+  class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm overflow-y-auto"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-create-sheet-title"
+  @keydown.escape.window="$store.characters.closeCreateSheetModal()"
+  @click.self="$store.characters.closeCreateSheetModal()">
+
+  <div class="w-full max-w-3xl border shadow-2xl overflow-hidden my-auto"
+    style="background-color: var(--bg-panel); border-color: var(--border-custom); color: var(--text-primary); outline: 1px solid var(--border-subtle); outline-offset: -4px;">
+
+    <!-- Cabecera del Modal -->
+    <div class="flex items-start justify-between gap-4 px-6 py-4 border-b"
+      style="border-color: var(--border-subtle); background-color: var(--bg-panel-elevated);">
+      <div>
+        <span class="block text-[10px] font-mono uppercase tracking-widest mb-1"
+          style="color: var(--accent);">Nueva Ficha</span>
+        <h2 id="modal-create-sheet-title" class="text-lg sm:text-xl font-bold tracking-wide"
+          style="font-family: var(--font-display, var(--font-title, serif)); color: var(--text-primary);">
+          Elegir Tipo de Ficha
+        </h2>
+      </div>
+      <button type="button"
+        @click="$store.characters.closeCreateSheetModal()"
+        class="p-1.5 border cursor-pointer transition-colors hover:opacity-80 shrink-0"
+        style="border-color: var(--border-subtle); background-color: var(--bg-panel); color: var(--text-secondary);"
+        title="Cerrar (Esc)"
+        aria-label="Cerrar selector de ficha">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Dos Opciones con Preview Visual de su Estructura -->
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+      <!-- Opción A: Ficha A (Actual Unificada) -->
+      <button type="button"
+        id="btn-create-sheet-unified"
+        @click="$store.characters.createNew('unified')"
+        class="group text-left p-4 border flex flex-col gap-3.5 cursor-pointer transition-all hover:-translate-y-0.5"
+        style="background-color: var(--bg-panel-elevated); border-color: var(--border-custom); color: var(--text-primary);">
+
+        <div class="flex items-center justify-between gap-2 w-full">
+          <h3 class="text-base font-bold tracking-wide"
+            style="font-family: var(--font-wiki-serif, var(--font-display, serif)); color: var(--text-primary);">
+            Ficha A
+          </h3>
+          <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 border font-semibold"
+            style="border-color: var(--accent); background-color: var(--accent-dim); color: var(--accent);">
+            Unificada · 3 Cols
+          </span>
+        </div>
+
+        <!-- Mini Preview Esquemática: Hoja Centrada 3 Columnas sin Sidebar -->
+        <div class="w-full h-44 sm:h-48 border p-2.5 flex items-stretch justify-center overflow-hidden select-none pointer-events-none"
+          style="background-color: var(--bg-panel); border-color: var(--border-subtle);"
+          aria-hidden="true">
+          <div class="w-[92%] h-full border p-2 flex flex-col gap-1.5"
+            style="background-color: var(--bg-panel-elevated); border-color: var(--border-custom); outline: 1px solid var(--border-subtle); outline-offset: -3px;">
+            <!-- Banda superior de cabecera de ficha -->
+            <div class="grid grid-cols-6 gap-1 pb-1.5 border-b" style="border-color: var(--border-custom);">
+              <div class="col-span-2 p-1 border flex flex-col justify-center gap-0.5"
+                style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                <span class="block w-5 h-1 rounded-none" style="background-color: var(--accent);"></span>
+                <span class="block w-full h-1.5 rounded-none opacity-80" style="background-color: var(--text-primary);"></span>
+              </div>
+              <div class="col-span-1 p-1 border flex flex-col justify-center gap-0.5"
+                style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                <span class="block w-4 h-0.5" style="background-color: var(--accent);"></span>
+                <span class="block w-full h-1 opacity-55" style="background-color: var(--text-secondary);"></span>
+              </div>
+              <div class="col-span-1 p-1 border flex flex-col justify-center gap-0.5"
+                style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                <span class="block w-4 h-0.5" style="background-color: var(--accent);"></span>
+                <span class="block w-full h-1 opacity-55" style="background-color: var(--text-secondary);"></span>
+              </div>
+              <div class="col-span-1 p-1 border flex flex-col justify-center gap-0.5"
+                style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                <span class="block w-4 h-0.5" style="background-color: var(--accent);"></span>
+                <span class="block w-full h-1 opacity-55" style="background-color: var(--text-secondary);"></span>
+              </div>
+              <div class="col-span-1 p-1 border flex flex-col justify-center gap-0.5"
+                style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                <span class="block w-4 h-0.5" style="background-color: var(--accent);"></span>
+                <span class="block w-full h-1 opacity-55" style="background-color: var(--text-secondary);"></span>
+              </div>
+            </div>
+
+            <!-- Cuerpo de 3 columnas -->
+            <div class="grid grid-cols-12 gap-1.5 flex-1 min-h-0">
+              <!-- Columna 1: Retrato + Datos -->
+              <div class="col-span-3 flex flex-col gap-1 min-h-0">
+                <div class="flex-1 border flex flex-col items-center justify-center gap-0.5 p-1"
+                  style="border-color: var(--accent); background-color: var(--accent-dim); color: var(--accent);">
+                  <i data-lucide="image" class="w-3.5 h-3.5 opacity-90"></i>
+                  <span class="text-[7px] font-mono uppercase tracking-wider font-semibold leading-none">Imagen</span>
+                </div>
+                <div class="h-8 border p-1 flex flex-col justify-between"
+                  style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                  <span class="block w-3/4 h-0.5 opacity-60" style="background-color: var(--text-secondary);"></span>
+                  <span class="block w-full h-0.5 opacity-40" style="background-color: var(--text-muted);"></span>
+                  <span class="block w-2/3 h-0.5 opacity-40" style="background-color: var(--text-muted);"></span>
+                </div>
+              </div>
+
+              <!-- Columna 2: Cajas de rasgos / stats -->
+              <div class="col-span-4 flex flex-col gap-1 min-h-0">
+                <div class="flex-1 border p-1 flex flex-col gap-1"
+                  style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                  <span class="block w-1/2 h-1" style="background-color: var(--accent);"></span>
+                  <span class="block w-full h-1 opacity-45" style="background-color: var(--text-secondary);"></span>
+                  <span class="block w-4/5 h-1 opacity-35" style="background-color: var(--text-muted);"></span>
+                </div>
+                <div class="flex-1 border p-1 flex flex-col gap-1"
+                  style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                  <span class="block w-2/3 h-1" style="background-color: var(--accent);"></span>
+                  <div class="grid grid-cols-2 gap-1 flex-1">
+                    <span class="border opacity-50" style="border-color: var(--border-custom);"></span>
+                    <span class="border opacity-50" style="border-color: var(--border-custom);"></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Columna 3: Historia / Notas / Equipo -->
+              <div class="col-span-5 flex flex-col gap-1 min-h-0">
+                <div class="flex-[1.3] border p-1 flex flex-col gap-1"
+                  style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                  <span class="block w-1/2 h-1" style="background-color: var(--accent);"></span>
+                  <span class="block w-full h-1 opacity-45" style="background-color: var(--text-secondary);"></span>
+                  <span class="block w-11/12 h-1 opacity-35" style="background-color: var(--text-muted);"></span>
+                  <span class="block w-4/5 h-1 opacity-35" style="background-color: var(--text-muted);"></span>
+                </div>
+                <div class="flex-1 border p-1 flex flex-col gap-1"
+                  style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+                  <span class="block w-2/5 h-1" style="background-color: var(--accent);"></span>
+                  <span class="block w-full h-1 opacity-40" style="background-color: var(--text-muted);"></span>
+                  <span class="block w-3/4 h-1 opacity-30" style="background-color: var(--text-muted);"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2.5 border-t w-full flex items-center justify-between text-xs font-semibold"
+          style="border-color: var(--border-subtle); color: var(--accent);">
+          <span>Elegir Ficha A</span>
+          <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+        </div>
+      </button>
+
+      <!-- Opción B: Ficha B (Clásica Rama main con Barra Lateral) -->
+      <button type="button"
+        id="btn-create-sheet-classic"
+        @click="$store.characters.createNew('classic')"
+        class="group text-left p-4 border flex flex-col gap-3.5 cursor-pointer transition-all hover:-translate-y-0.5"
+        style="background-color: var(--bg-panel-elevated); border-color: var(--border-custom); color: var(--text-primary);">
+
+        <div class="flex items-center justify-between gap-2 w-full">
+          <h3 class="text-base font-bold tracking-wide"
+            style="font-family: var(--font-wiki-serif, var(--font-display, serif)); color: var(--text-primary);">
+            Ficha B
+          </h3>
+          <span class="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 border font-semibold"
+            style="border-color: var(--border-subtle); background-color: var(--bg-panel); color: var(--text-secondary);">
+            Sidebar · Pestañas
+          </span>
+        </div>
+
+        <!-- Mini Preview Esquemática: Sidebar Izquierdo + Área de Pestañas -->
+        <div class="w-full h-44 sm:h-48 border flex flex-col overflow-hidden select-none pointer-events-none"
+          style="background-color: var(--bg-panel); border-color: var(--border-subtle);"
+          aria-hidden="true">
+          <!-- Barra superior -->
+          <div class="h-4 border-b px-2 flex items-center justify-between shrink-0"
+            style="border-color: var(--border-subtle); background-color: var(--bg-panel-elevated);">
+            <span class="block w-10 h-1 opacity-70" style="background-color: var(--text-primary);"></span>
+            <div class="flex items-center gap-1">
+              <span class="block w-4 h-1.5 border opacity-60" style="border-color: var(--border-custom);"></span>
+              <span class="block w-4 h-1.5 border" style="border-color: var(--accent); background-color: var(--accent-dim);"></span>
+            </div>
+          </div>
+
+          <!-- Grid principal: Sidebar + Tab Content -->
+          <div class="flex-1 flex min-h-0">
+            <!-- Barra lateral de secciones -->
+            <div class="w-[27%] border-r p-1.5 flex flex-col gap-1 shrink-0"
+              style="border-color: var(--border-subtle); background-color: var(--bg-panel-elevated);">
+              <span class="block w-8 h-0.5 mb-0.5 opacity-40" style="background-color: var(--text-muted);"></span>
+              <!-- Pestaña activa -->
+              <div class="h-3 px-1 flex items-center border-l-2"
+                style="border-color: var(--accent); background-color: var(--accent-dim);">
+                <span class="block w-4/5 h-1" style="background-color: var(--accent);"></span>
+              </div>
+              <!-- Pestañas inactivas -->
+              <div class="h-2.5 px-1 flex items-center opacity-55">
+                <span class="block w-3/4 h-0.5" style="background-color: var(--text-secondary);"></span>
+              </div>
+              <div class="h-2.5 px-1 flex items-center opacity-50">
+                <span class="block w-2/3 h-0.5" style="background-color: var(--text-secondary);"></span>
+              </div>
+              <div class="h-2.5 px-1 flex items-center opacity-45">
+                <span class="block w-4/5 h-0.5" style="background-color: var(--text-secondary);"></span>
+              </div>
+              <div class="h-2.5 px-1 flex items-center opacity-40">
+                <span class="block w-3/5 h-0.5" style="background-color: var(--text-secondary);"></span>
+              </div>
+              <div class="h-2.5 px-1 flex items-center opacity-35">
+                <span class="block w-3/4 h-0.5" style="background-color: var(--text-secondary);"></span>
+              </div>
+              <div class="mt-auto pt-1 border-t flex items-center justify-center"
+                style="border-color: var(--border-subtle);">
+                <span class="block w-1/2 h-1 opacity-50" style="background-color: var(--text-muted);"></span>
+              </div>
+            </div>
+
+            <!-- Contenido de la pestaña -->
+            <div class="flex-1 p-2 flex flex-col gap-1.5 min-w-0 min-h-0">
+              <!-- Encabezado de sección + badge modo -->
+              <div class="flex items-center justify-between pb-1 border-b shrink-0"
+                style="border-color: var(--border-subtle);">
+                <span class="block w-16 h-1.5 opacity-80" style="background-color: var(--text-primary);"></span>
+                <span class="block w-9 h-2 border"
+                  style="border-color: var(--accent); background-color: var(--accent-dim);"></span>
+              </div>
+
+              <!-- Tarjetas modulares (4 cols identidad + 8 cols formulario) -->
+              <div class="grid grid-cols-12 gap-1.5 flex-1 min-h-0">
+                <div class="col-span-4 border p-1.5 flex flex-col gap-1"
+                  style="border-color: var(--border-custom); background-color: var(--bg-panel-elevated);">
+                  <div class="flex-1 border flex flex-col items-center justify-center gap-0.5 p-1"
+                    style="border-color: var(--accent); background-color: var(--accent-dim); color: var(--accent);">
+                    <i data-lucide="image" class="w-3.5 h-3.5 opacity-90"></i>
+                    <span class="text-[7px] font-mono uppercase tracking-wider font-semibold leading-none">Imagen</span>
+                  </div>
+                  <span class="block w-full h-1 opacity-60" style="background-color: var(--text-primary);"></span>
+                  <span class="block w-2/3 h-0.5 opacity-40" style="background-color: var(--text-muted);"></span>
+                </div>
+
+                <div class="col-span-8 flex flex-col gap-1.5 min-h-0">
+                  <div class="flex-1 border p-1.5 flex flex-col gap-1"
+                    style="border-color: var(--border-custom); background-color: var(--bg-panel-elevated);">
+                    <span class="block w-12 h-1 opacity-75" style="background-color: var(--text-primary);"></span>
+                    <div class="grid grid-cols-2 gap-1 flex-1">
+                      <span class="border" style="border-color: var(--border-subtle); background-color: var(--bg-panel);"></span>
+                      <span class="border" style="border-color: var(--border-subtle); background-color: var(--bg-panel);"></span>
+                      <span class="border" style="border-color: var(--border-subtle); background-color: var(--bg-panel);"></span>
+                      <span class="border" style="border-color: var(--border-subtle); background-color: var(--bg-panel);"></span>
+                    </div>
+                  </div>
+                  <div class="h-9 border p-1.5 flex flex-col gap-1"
+                    style="border-color: var(--border-custom); background-color: var(--bg-panel-elevated);">
+                    <span class="block w-14 h-1 opacity-65" style="background-color: var(--text-secondary);"></span>
+                    <span class="block w-full flex-1 border"
+                      style="border-color: var(--border-subtle); background-color: var(--bg-panel);"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2.5 border-t w-full flex items-center justify-between text-xs font-semibold"
+          style="border-color: var(--border-subtle); color: var(--text-primary);">
+          <span>Elegir Ficha B</span>
+          <i data-lucide="arrow-right" class="w-4 h-4 transition-transform group-hover:translate-x-1"></i>
+        </div>
+      </button>
+
+    </div>
+
+    <!-- Pie del Modal -->
+    <div class="px-6 py-3 border-t flex items-center justify-end gap-3 text-xs"
+      style="border-color: var(--border-subtle); background-color: var(--bg-panel);">
+      <button type="button"
+        @click="$store.characters.closeCreateSheetModal()"
+        class="px-3 py-1.5 border text-xs cursor-pointer transition-colors hover:opacity-85"
+        style="border-color: var(--border-custom); color: var(--text-secondary);">
+        Cancelar
+      </button>
+    </div>
+
+  </div>
+</div>

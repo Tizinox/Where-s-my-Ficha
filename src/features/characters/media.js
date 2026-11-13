@@ -264,7 +264,7 @@ export function createMediaMethods() {
 
     async removeBanner(targetCharId) {
       const idToFind = targetCharId || this.activeId;
-      const char = this.list.find(c => c.id === idToFind) || (this.active?.id === targetCharId ? this.active : null);
+      const char = this.list.find(c => c.id === idToFind) || (this.active?.id === idToFind ? this.active : null);
       if (char && char.basics) {
         char.basics.bannerDataUrl = '';
         char.basics.bannerTransform = '';
@@ -355,7 +355,7 @@ export function createMediaMethods() {
 
     async removeIcon(targetCharId) {
       const idToFind = targetCharId || this.activeId;
-      const char = this.list.find(c => c.id === idToFind) || (this.active?.id === null ? this.active : null);
+      const char = this.list.find(c => c.id === idToFind) || (this.active?.id === idToFind ? this.active : null);
       if (char && char.basics) {
         char.basics.iconDataUrl = '';
         char.basics.iconTransform = '';

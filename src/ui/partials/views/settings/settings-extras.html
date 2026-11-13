@@ -1,952 +1,347 @@
-<!-- ═════════════════════════════════════════════════════════
-     SUB-TAB 6: EXTRAS Y DETALLES MENORES (DISEÑO 2 COLUMNAS WIDESCREEN)
-     ═════════════════════════════════════════════════════════ -->
-<div x-show="$store.settings.activeSubTab === 'extras'" x-transition:enter="transition ease-out duration-200"
-  x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
-  class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+<!-- SUB-PESTAÑA 6: TIER LIST Y SISTEMA (1 COLUMNA CLARA Y DIRECTA) -->
+<div x-data="{ showAdvTierlist: false, activeRadiusCategory: 'registered' }" class="space-y-5">
 
-  <!-- COLUMNA IZQUIERDA: OPERATIVOS y MEMORIA DE TIER LIST -->
-  <div class="space-y-6">
+  <div class="wiki-settings-pane-head">
+    <h2 class="wiki-settings-pane-title">Tier List y Sistema</h2>
+    <p class="wiki-settings-pane-desc">Personaliza cómo se comporta tu Tier List, la animación inicial y herramientas de la app.</p>
+  </div>
 
-    <!-- Módulo: Memoria y Operativos de Tier List -->
-    <div
-      class="p-5 sm:p-6 rounded-2xl border border-purple-500/40 bg-gradient-to-br from-purple-950/30 via-black/60 to-black/80 space-y-4 shadow-xl">
-      <!-- Header del Módulo (Plegar / Desplegar) -->
-      <div class="flex items-center justify-between border-b border-purple-500/20 pb-3 cursor-pointer select-none group"
-        @click="$store.settings.toggleTierlistMemoryExpanded()">
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 flex-wrap">
-            <h3 class="text-sm font-bold text-purple-300 flex items-center gap-2">
-              <i data-lucide="brain" class="w-4.5 h-4.5 text-purple-400"></i>
-              Memoria y Operativos de Tier List
-            </h3>
-            <span
-              class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/15 border border-purple-500/30 text-purple-300 font-bold">
-              Almacenamiento y HUD
-            </span>
-            <!-- Mini Badge de Estado cuando está plegado -->
-            <span x-show="!$store.settings.tierlistMemoryExpanded"
-              class="text-[10px] font-mono text-purple-300 px-2 py-0.5 rounded bg-purple-500/10 border border-purple-500/25">
-              <span x-text="$store.settings.persistGuestCharacters ? 'Memoria Activa' : 'Memoria Desactivada'"></span>
-            </span>
-          </div>
-          <p class="text-xs text-parchment-cream/70 font-mono">
-            Persistencia de personajes temporales, marcos del sistema y formato de curvatura.
-          </p>
-        </div>
-        <div class="flex items-center gap-2.5 shrink-0">
-          <button type="button"
-            class="px-2.5 py-1 rounded-lg border border-purple-500/40 bg-purple-500/15 hover:bg-purple-500/30 text-purple-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
-            <span x-text="$store.settings.tierlistMemoryExpanded ? 'Plegar' : 'Desplegar'"></span>
-            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"
-              :class="$store.settings.tierlistMemoryExpanded ? 'rotate-180 text-purple-300' : 'text-purple-400'"></i>
-          </button>
-        </div>
+  <!-- 1. TIER LIST (SIMPLE PRIMERO) -->
+  <section class="wiki-settings-section space-y-4">
+    <div class="text-sm font-semibold text-[var(--wiki-text-main)]">Tablero Tier List</div>
+
+    <!-- Tamaño de fichas en Tier List -->
+    <div class="space-y-2.5">
+      <div class="flex items-center justify-between text-xs">
+        <span style="color: var(--wiki-text-muted);">Tamaño de las imágenes</span>
+        <span class="font-mono font-semibold" style="color: var(--wiki-accent);"
+          x-text="$store.tierlist?.tokenSizeLabel || '72px'"></span>
       </div>
 
-      <!-- Contenedor Plegable con Animación Suave -->
-      <div x-show="$store.settings.tierlistMemoryExpanded" x-transition:enter="transition ease-out duration-250"
-        x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
-        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-        x-transition:leave-end="opacity-0 -translate-y-2 scale-98" class="space-y-3.5">
-        <!-- Opción 1: Retener la memoria de personajes temporales -->
-        <div class="p-3.5 rounded-xl border transition-all flex items-start justify-between gap-3 bg-black/40"
-          :class="$store.settings.persistGuestCharacters ? 'border-purple-400/60 bg-purple-500/10' : 'border-white/10 hover:border-white/20'">
-          <div class="space-y-1 min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <i data-lucide="save" class="w-4 h-4"
-                :class="$store.settings.persistGuestCharacters ? 'text-purple-300' : 'text-slate-400'"></i>
-              <span class="text-xs font-bold text-parchment-cream font-mono">Retener la memoria de personajes
-                temporales</span>
-            </div>
-            <p class="text-[11px] text-slate-400 leading-relaxed">
-              Almacena en el navegador los personajes creados sin ficha en la Tier List para que persistan al recargar
-              la página o reiniciar la sesión.
-            </p>
-          </div>
-          <button type="button" @click="$store.settings.togglePersistGuestCharacters()"
-            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-            :class="$store.settings.persistGuestCharacters ? 'bg-purple-600' : 'bg-slate-700'" role="switch"
-            :aria-checked="$store.settings.persistGuestCharacters">
-            <span
-              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out"
-              :class="$store.settings.persistGuestCharacters ? 'translate-x-5' : 'translate-x-0'"></span>
-          </button>
+      <div class="wiki-segmented w-full">
+        <button type="button" @click="$store.tierlist?.setTokenSize(56)" class="wiki-segmented-btn flex-1 justify-center"
+          :class="{ 'is-active': ($store.tierlist?.tokenSize || 72) === 56 }">Pequeño</button>
+        <button type="button" @click="$store.tierlist?.setTokenSize(72)" class="wiki-segmented-btn flex-1 justify-center"
+          :class="{ 'is-active': ($store.tierlist?.tokenSize || 72) === 72 }">Mediano</button>
+        <button type="button" @click="$store.tierlist?.setTokenSize(88)" class="wiki-segmented-btn flex-1 justify-center"
+          :class="{ 'is-active': ($store.tierlist?.tokenSize || 72) === 88 }">Grande</button>
+        <button type="button" @click="$store.tierlist?.setTokenSize(104)" class="wiki-segmented-btn flex-1 justify-center"
+          :class="{ 'is-active': ($store.tierlist?.tokenSize || 72) === 104 }">Extra</button>
+      </div>
+
+      <input type="range" min="48" max="112" step="4"
+        :value="$store.tierlist?.tokenSize || 72"
+        @input="$store.tierlist?.setTokenSize($event.target.value)"
+        class="wiki-range" />
+    </div>
+
+    <!-- Opciones principales -->
+    <div class="pt-2 border-t" style="border-color: var(--wiki-border);">
+      <div class="wiki-settings-row">
+        <div>
+          <div class="text-sm font-medium text-[var(--wiki-text-main)]">Guardar personajes sin ficha (Invitados)</div>
+          <div class="text-xs text-[var(--wiki-text-muted)]">Mantiene en la Tier List imágenes sueltas que añadas aunque no tengan ficha.</div>
         </div>
-        <!-- Opción: Ocultar contador de operativos por rango («0 OP») -->
-        <div class="p-3.5 rounded-xl border transition-all flex items-start justify-between gap-3 bg-black/40"
-          :class="$store.settings.hideTierCharacterCount ? 'border-purple-400/60 bg-purple-500/10' : 'border-white/10 hover:border-white/20'">
-          <div class="space-y-1 min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <i data-lucide="hash" class="w-4 h-4"
-                :class="$store.settings.hideTierCharacterCount ? 'text-purple-300' : 'text-slate-400'"></i>
-              <span class="text-xs font-bold text-parchment-cream font-mono">Ocultar contador de operativos por
-                rango</span>
-              <span
-                class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-400/30">TABLERO</span>
-            </div>
-            <p class="text-[11px] text-slate-400 leading-relaxed">
-              Oculta la cápsula con el número de personajes clasificados (ej: <span
-                class="text-white font-mono font-bold">«0 OP»</span> o <span class="text-white font-mono font-bold">«3
-                OP»</span>) debajo de cada letra de rango en la Tier List.
-            </p>
-          </div>
-          <button type="button" @click="$store.settings.toggleHideTierCharacterCount()"
-            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-            :class="$store.settings.hideTierCharacterCount ? 'bg-purple-600' : 'bg-slate-700'" role="switch"
-            :aria-checked="$store.settings.hideTierCharacterCount">
-            <span
-              class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out"
-              :class="$store.settings.hideTierCharacterCount ? 'translate-x-5' : 'translate-x-0'"></span>
-          </button>
+        <button type="button" role="switch"
+          @click="$store.settings.togglePersistGuestCharacters()"
+          :aria-checked="$store.settings.persistGuestCharacters"
+          :class="{ 'is-on': $store.settings.persistGuestCharacters }"
+          class="wiki-switch">
+          <span class="wiki-switch-thumb"></span>
+        </button>
+      </div>
+
+      <div class="wiki-settings-row">
+        <div>
+          <div class="text-sm font-medium text-[var(--wiki-text-main)]">Ocultar contadores en cada fila</div>
+          <div class="text-xs text-[var(--wiki-text-muted)]">Esconde el número de personajes debajo del título de cada rango.</div>
         </div>
+        <button type="button" role="switch"
+          @click="$store.settings.toggleHideTierCharacterCount()"
+          :aria-checked="$store.settings.hideTierCharacterCount"
+          :class="{ 'is-on': $store.settings.hideTierCharacterCount }"
+          class="wiki-switch">
+          <span class="wiki-switch-thumb"></span>
+        </button>
+      </div>
+    </div>
 
-        <!-- Opción 2: Marco del sistema para personajes (con 3 sub-opciones: Plantilla / Con Ficha / Invitados) -->
-        <div class="p-4 rounded-xl border border-white/10 bg-black/50 space-y-3 shadow-md">
-          <div class="flex items-start justify-between gap-3">
-            <div class="space-y-1 min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <i data-lucide="square" class="w-4 h-4 text-cyan-400"></i>
-                <span class="text-xs font-bold text-white font-mono">Marco del sistema para personajes</span>
-                <span
-                  class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">VISUAL</span>
-              </div>
-              <p class="text-[11px] text-slate-400 leading-relaxed">
-                Habilita o quita el borde perimetral del sistema y el resplandor de color en los avatares. Si lo
-                deshabilitas, el personaje se muestra en modo limpio sin marco.
-              </p>
-            </div>
-          </div>
-
-          <!-- 3 Sub-opciones de Marco del Sistema -->
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-            <!-- Sub-opción 2A: De Plantilla -->
-            <div
-              class="p-3 rounded-xl border transition-all cursor-pointer select-none space-y-2 flex flex-col justify-between"
-              :class="$store.settings.tierlistShowFrameTemplate ? 'border-amber-400/50 bg-amber-500/10' : 'border-white/10 bg-black/40 opacity-70'"
-              @click="$store.settings.toggleTierlistShowFrameTemplate()">
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full"
-                    :class="$store.settings.tierlistShowFrameTemplate ? 'bg-amber-400 shadow-[0_0_8px_#f59e0b]' : 'bg-slate-600'"></span>
-                  <span class="text-xs font-bold font-mono text-white">De Plantilla</span>
-                </div>
-                <!-- Switch -->
-                <div class="w-8 h-4.5 rounded-full transition-colors relative shrink-0 p-0.5 border"
-                  :class="$store.settings.tierlistShowFrameTemplate ? 'bg-amber-500 border-amber-400' : 'bg-black/60 border-white/20'">
-                  <div class="w-3 h-3 rounded-full bg-white transition-transform shadow-sm"
-                    :class="$store.settings.tierlistShowFrameTemplate ? 'translate-x-3.5' : 'translate-x-0'"></div>
-                </div>
-              </div>
-              <p class="text-[10.5px] font-mono text-slate-400 leading-tight">
-                Importados vía web (TierMaker)
-              </p>
-            </div>
-
-            <!-- Sub-opción 2B: Con Ficha -->
-            <div
-              class="p-3 rounded-xl border transition-all cursor-pointer select-none space-y-2 flex flex-col justify-between"
-              :class="$store.settings.tierlistShowFrameRegistered ? 'border-cyan-400/50 bg-cyan-500/10' : 'border-white/10 bg-black/40 opacity-70'"
-              @click="$store.settings.toggleTierlistShowFrameRegistered()">
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full"
-                    :class="$store.settings.tierlistShowFrameRegistered ? 'bg-cyan-400 shadow-[0_0_8px_#00f0ff]' : 'bg-slate-600'"></span>
-                  <span class="text-xs font-bold font-mono text-white">Con Ficha</span>
-                </div>
-                <!-- Switch -->
-                <div class="w-8 h-4.5 rounded-full transition-colors relative shrink-0 p-0.5 border"
-                  :class="$store.settings.tierlistShowFrameRegistered ? 'bg-cyan-500 border-cyan-400' : 'bg-black/60 border-white/20'">
-                  <div class="w-3 h-3 rounded-full bg-white transition-transform shadow-sm"
-                    :class="$store.settings.tierlistShowFrameRegistered ? 'translate-x-3.5' : 'translate-x-0'"></div>
-                </div>
-              </div>
-              <p class="text-[10.5px] font-mono text-slate-400 leading-tight">
-                Operativos registrados creados
-              </p>
-            </div>
-
-            <!-- Sub-opción 2C: Invitados -->
-            <div
-              class="p-3 rounded-xl border transition-all cursor-pointer select-none space-y-2 flex flex-col justify-between"
-              :class="$store.settings.tierlistShowFrameGuest ? 'border-violet-400/50 bg-violet-500/10' : 'border-white/10 bg-black/40 opacity-70'"
-              @click="$store.settings.toggleTierlistShowFrameGuest()">
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="w-2 h-2 rounded-full"
-                    :class="$store.settings.tierlistShowFrameGuest ? 'bg-violet-400 shadow-[0_0_8px_#a855f7]' : 'bg-slate-600'"></span>
-                  <span class="text-xs font-bold font-mono text-white">Mis Invitados</span>
-                </div>
-                <!-- Switch -->
-                <div class="w-8 h-4.5 rounded-full transition-colors relative shrink-0 p-0.5 border"
-                  :class="$store.settings.tierlistShowFrameGuest ? 'bg-violet-600 border-violet-400' : 'bg-black/60 border-white/20'">
-                  <div class="w-3 h-3 rounded-full bg-white transition-transform shadow-sm"
-                    :class="$store.settings.tierlistShowFrameGuest ? 'translate-x-3.5' : 'translate-x-0'"></div>
-                </div>
-              </div>
-              <p class="text-[10.5px] font-mono text-slate-400 leading-tight">
-                Sin ficha creados manualmente
-              </p>
-            </div>
+    <!-- Opciones avanzadas de Tier List (colapsado) -->
+    <div>
+      <button type="button" @click="showAdvTierlist = !showAdvTierlist" class="wiki-accordion-header">
+        <div class="flex items-center gap-2.5">
+          <i data-lucide="shapes" class="w-4 h-4 text-[var(--wiki-accent)]"></i>
+          <div>
+            <span class="text-sm font-semibold block">Estilos avanzados de Tier List</span>
+            <span class="text-xs text-[var(--wiki-text-muted)] font-normal block">Bordes redondeados, marcos por origen y etiquetas</span>
           </div>
         </div>
+        <i data-lucide="chevron-down" class="w-4 h-4 text-[var(--wiki-text-muted)] transition-transform shrink-0"
+          :class="showAdvTierlist ? 'rotate-180' : ''"></i>
+      </button>
 
-        <!-- Opción 3: Deshabilitar marcos diferenciadores (Invitados y Plantilla) -->
-        <div class="p-4 rounded-xl border border-white/10 bg-black/50 space-y-3 shadow-md">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <i data-lucide="eye-off" class="w-4 h-4 text-slate-300"></i>
-              <span class="text-xs font-bold text-white font-mono">Marcos diferenciadores y distintivos</span>
-              <span
-                class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-400/30">DISTINTIVOS</span>
+      <div x-show="showAdvTierlist" x-collapse class="wiki-accordion-body space-y-4">
+        <div class="divide-y" style="border-color: var(--wiki-border);">
+          <div class="wiki-settings-row">
+            <div>
+              <div class="text-sm font-medium text-[var(--wiki-text-main)]">Ocultar etiqueta «Invitado»</div>
+              <div class="text-xs text-[var(--wiki-text-muted)]">Quita la insignia en personajes sin ficha.</div>
             </div>
-            <p class="text-[11px] text-slate-400 leading-relaxed">
-              Controla si los personajes especiales llevan sus bordes y etiquetas temáticas exclusivas o se integran con
-              el estilo estándar de la Tier List.
-            </p>
-          </div>
-
-          <div class="space-y-2.5 pt-1">
-            <!-- Sub-opción 3A: Deshabilitar marco de invitado para personajes sin ficha -->
-            <div class="p-3.5 rounded-xl border transition-all flex items-start justify-between gap-3 bg-black/40"
-              :class="$store.settings.hideGuestBadge ? 'border-violet-400/60 bg-violet-500/10' : 'border-white/10 hover:border-white/20'">
-              <div class="space-y-1 min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                  <i data-lucide="user-x" class="w-4 h-4"
-                    :class="$store.settings.hideGuestBadge ? 'text-violet-300' : 'text-slate-400'"></i>
-                  <span class="text-xs font-bold text-parchment-cream font-mono">Deshabilitar marco de invitado para
-                    personajes sin ficha</span>
-                </div>
-                <p class="text-[11px] text-slate-400 leading-relaxed">
-                  Oculta el marco morado y la etiqueta <span
-                    class="px-1 py-0.2 bg-violet-600 text-white rounded text-[9px] font-mono font-bold">INVITADO</span>
-                  en la Tier List, integrando visualmente a los invitados con el marco estándar.
-                </p>
-              </div>
-              <button type="button" @click="$store.settings.toggleHideGuestBadge()"
-                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                :class="$store.settings.hideGuestBadge ? 'bg-violet-600' : 'bg-slate-700'" role="switch"
-                :aria-checked="$store.settings.hideGuestBadge">
-                <span
-                  class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out"
-                  :class="$store.settings.hideGuestBadge ? 'translate-x-5' : 'translate-x-0'"></span>
-              </button>
-            </div>
-
-            <!-- Sub-opción 3B: Deshabilitar marco de plantilla para personajes importados -->
-            <div class="p-3.5 rounded-xl border transition-all flex items-start justify-between gap-3 bg-black/40"
-              :class="$store.settings.hideTemplateBadge ? 'border-amber-400/60 bg-amber-500/10' : 'border-white/10 hover:border-white/20'">
-              <div class="space-y-1 min-w-0 flex-1">
-                <div class="flex items-center gap-2">
-                  <i data-lucide="globe" class="w-4 h-4"
-                    :class="$store.settings.hideTemplateBadge ? 'text-amber-300' : 'text-slate-400'"></i>
-                  <span class="text-xs font-bold text-parchment-cream font-mono">Deshabilitar marco de plantilla para
-                    personajes importados</span>
-                </div>
-                <p class="text-[11px] text-slate-400 leading-relaxed">
-                  Oculta el marco dorado y la etiqueta <span
-                    class="px-1 py-0.2 bg-amber-500 text-black rounded text-[9px] font-mono font-bold">PLANTILLA</span>
-                  en la Tier List, integrando visualmente a los personajes importados con el marco estándar.
-                </p>
-              </div>
-              <button type="button" @click="$store.settings.toggleHideTemplateBadge()"
-                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                :class="$store.settings.hideTemplateBadge ? 'bg-amber-500' : 'bg-slate-700'" role="switch"
-                :aria-checked="$store.settings.hideTemplateBadge">
-                <span
-                  class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out"
-                  :class="$store.settings.hideTemplateBadge ? 'translate-x-5' : 'translate-x-0'"></span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Opción 4: Formato y Curvatura de Bordes (Plantilla / Con Ficha / Invitados) -->
-        <div x-data="{ activeRadiusCategory: 'registered' }"
-          class="p-4 rounded-xl border border-white/10 bg-black/50 space-y-3.5 shadow-md">
-          <div class="flex items-start justify-between gap-3">
-            <div class="space-y-1 min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <i data-lucide="shapes" class="w-4 h-4 text-accent-cyan"></i>
-                <span class="text-xs font-bold text-white font-mono">Formato y curvatura de bordes</span>
-                <span
-                  class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">SILUETA</span>
-              </div>
-              <p class="text-[11px] text-slate-400 leading-relaxed">
-                Elige esquinas puntiagudas en ángulo recto de 90°, redondeadas, squircle o circulares para los
-                personajes en la Tier List.
-              </p>
-            </div>
-
-            <!-- Botón de Sincronizar / Vincular Todo -->
-            <button type="button" @click="$store.settings.toggleTierlistBorderRadiusSync()"
-              class="px-2.5 py-1 rounded-lg border text-[10px] font-mono font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-              :class="$store.settings.tierlistBorderRadiusSync ? 'border-transparent' : 'bg-black/40 border-white/10 text-slate-400 hover:text-white hover:border-white/20'"
-              :style="$store.settings.tierlistBorderRadiusSync ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; box-shadow: 0 0 12px ' + ($store.settings.activeGlowColor) + '45;') : ''"
-              title="Aplica la misma curvatura a las tres categorías simultáneamente">
-              <i data-lucide="link" class="w-3 h-3"
-                :style="$store.settings.tierlistBorderRadiusSync ? ('color: ' + $store.settings.accentColor) : ''"></i>
-              <span x-text="$store.settings.tierlistBorderRadiusSync ? 'Vinculado' : 'Vincular Todo'"></span>
+            <button type="button" role="switch"
+              @click="$store.settings.toggleHideGuestBadge()"
+              :aria-checked="$store.settings.hideGuestBadge"
+              :class="{ 'is-on': $store.settings.hideGuestBadge }"
+              class="wiki-switch">
+              <span class="wiki-switch-thumb"></span>
             </button>
           </div>
 
-          <!-- Selector de Categoría (De Plantilla / Con Ficha / Mis Invitados) -->
+          <div class="wiki-settings-row">
+            <div>
+              <div class="text-sm font-medium text-[var(--wiki-text-main)]">Ocultar etiqueta «Plantilla»</div>
+              <div class="text-xs text-[var(--wiki-text-muted)]">Quita la insignia en imágenes importadas de TierMaker.</div>
+            </div>
+            <button type="button" role="switch"
+              @click="$store.settings.toggleHideTemplateBadge()"
+              :aria-checked="$store.settings.hideTemplateBadge"
+              :class="{ 'is-on': $store.settings.hideTemplateBadge }"
+              class="wiki-switch">
+              <span class="wiki-switch-thumb"></span>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-2 pt-2 border-t" style="border-color: var(--wiki-border);">
+          <div class="text-xs font-semibold">Mostrar borde alrededor según tipo</div>
           <div class="grid grid-cols-3 gap-2">
-            <!-- Categoría 1: De Plantilla -->
-            <button type="button" @click="activeRadiusCategory = 'template'"
-              class="p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 text-left relative overflow-hidden"
-              :class="activeRadiusCategory === 'template' ? 'border-amber-400 bg-amber-500/15 shadow-[0_0_12px_rgba(245,158,11,0.25)]' : 'border-white/10 bg-black/40 hover:border-white/20 opacity-80'">
-              <div class="flex items-center justify-between gap-1">
-                <span class="text-[11px] font-bold font-mono text-white truncate">De Plantilla</span>
-                <!-- Mini Preview de Silueta en vivo -->
-                <div class="w-4 h-4 border-2 border-amber-400 bg-amber-400/20 shrink-0 transition-all duration-150"
-                  data-protect-radius data-protect-circle
-                  :style="'border-radius: ' + $store.settings.tierlistBorderRadiusTemplate + '% !important;'"></div>
-              </div>
-              <span class="text-[10px] font-mono text-amber-300 font-bold"
-                x-text="($store.settings.tierlistBorderRadiusTemplate === 0 ? '0% Recto' : ($store.settings.tierlistBorderRadiusTemplate === 50 ? '50% Círculo' : $store.settings.tierlistBorderRadiusTemplate + '%'))"></span>
+            <button type="button" @click="$store.settings.toggleTierlistShowFrameTemplate()"
+              class="souls-btn !px-2.5 !py-1.5 text-xs justify-between"
+              :style="$store.settings.tierlistShowFrameTemplate ? 'border-color: var(--wiki-accent); background: var(--wiki-accent-dim); color: var(--wiki-accent);' : ''">
+              <span>Plantilla</span>
+              <span class="font-mono text-[10px]" x-text="$store.settings.tierlistShowFrameTemplate ? 'Sí' : 'No'"></span>
             </button>
-
-            <!-- Categoría 2: Con Ficha -->
-            <button type="button" @click="activeRadiusCategory = 'registered'"
-              class="p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 text-left relative overflow-hidden"
-              :class="activeRadiusCategory === 'registered' ? 'border-transparent' : 'border-white/10 bg-black/40 hover:border-white/20 opacity-80'"
-              :style="activeRadiusCategory === 'registered' ? ('border-color: ' + $store.settings.accentColor + '; background-color: rgba(' + $store.settings.rgbChannels + ', 0.15); box-shadow: 0 0 12px ' + ($store.settings.activeGlowColor) + '45;') : ''">
-              <div class="flex items-center justify-between gap-1">
-                <span class="text-[11px] font-bold font-mono text-white truncate">Con Ficha</span>
-                <!-- Mini Preview de Silueta en vivo -->
-                <div class="w-4 h-4 border-2 shrink-0 transition-all duration-150" data-protect-radius
-                  data-protect-circle
-                  :style="'border-radius: ' + $store.settings.tierlistBorderRadiusRegistered + '% !important; border-color: ' + $store.settings.accentColor + '; background-color: rgba(' + $store.settings.rgbChannels + ', 0.25);'">
-                </div>
-              </div>
-              <span class="text-[10px] font-mono font-bold" :style="'color: ' + $store.settings.accentColor + ';'"
-                x-text="($store.settings.tierlistBorderRadiusRegistered === 0 ? '0% Recto' : ($store.settings.tierlistBorderRadiusRegistered === 50 ? '50% Círculo' : $store.settings.tierlistBorderRadiusRegistered + '%'))"></span>
+            <button type="button" @click="$store.settings.toggleTierlistShowFrameRegistered()"
+              class="souls-btn !px-2.5 !py-1.5 text-xs justify-between"
+              :style="$store.settings.tierlistShowFrameRegistered ? 'border-color: var(--wiki-accent); background: var(--wiki-accent-dim); color: var(--wiki-accent);' : ''">
+              <span>Con ficha</span>
+              <span class="font-mono text-[10px]" x-text="$store.settings.tierlistShowFrameRegistered ? 'Sí' : 'No'"></span>
             </button>
-
-            <!-- Categoría 3: Mis Invitados -->
-            <button type="button" @click="activeRadiusCategory = 'guest'"
-              class="p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col gap-1.5 text-left relative overflow-hidden"
-              :class="activeRadiusCategory === 'guest' ? 'border-violet-400 bg-violet-500/15 shadow-[0_0_12px_rgba(168,85,247,0.25)]' : 'border-white/10 bg-black/40 hover:border-white/20 opacity-80'">
-              <div class="flex items-center justify-between gap-1">
-                <span class="text-[11px] font-bold font-mono text-white truncate">Mis Invitados</span>
-                <!-- Mini Preview de Silueta en vivo -->
-                <div class="w-4 h-4 border-2 border-violet-400 bg-violet-400/20 shrink-0 transition-all duration-150"
-                  data-protect-radius data-protect-circle
-                  :style="'border-radius: ' + $store.settings.tierlistBorderRadiusGuest + '% !important;'"></div>
-              </div>
-              <span class="text-[10px] font-mono text-violet-300 font-bold"
-                x-text="($store.settings.tierlistBorderRadiusGuest === 0 ? '0% Recto' : ($store.settings.tierlistBorderRadiusGuest === 50 ? '50% Círculo' : $store.settings.tierlistBorderRadiusGuest + '%'))"></span>
+            <button type="button" @click="$store.settings.toggleTierlistShowFrameGuest()"
+              class="souls-btn !px-2.5 !py-1.5 text-xs justify-between"
+              :style="$store.settings.tierlistShowFrameGuest ? 'border-color: var(--wiki-accent); background: var(--wiki-accent-dim); color: var(--wiki-accent);' : ''">
+              <span>Invitados</span>
+              <span class="font-mono text-[10px]" x-text="$store.settings.tierlistShowFrameGuest ? 'Sí' : 'No'"></span>
             </button>
-          </div>
-
-          <!-- Controles de Preajustes Rápidos y Slider para la Categoría Activa -->
-          <div class="p-3 rounded-xl bg-black/60 border border-white/10 space-y-3">
-            <!-- Header de Preajustes Rápidos -->
-            <div class="flex items-center justify-between text-xs font-mono">
-              <span class="text-[11px] text-slate-300 flex items-center gap-1.5">
-                <i data-lucide="layout-grid" class="w-3.5 h-3.5"
-                  :style="'color: ' + $store.settings.accentColor + ';'"></i>
-                <span>Preajustes Rápidos:</span>
-              </span>
-              <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 25)"
-                class="hover:underline text-[10.5px] transition-colors cursor-pointer flex items-center gap-1"
-                :style="'color: ' + $store.settings.accentColor + ';'">
-                <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer
-              </button>
-            </div>
-
-            <!-- Botones de Preajustes Rápidos (Recto, Suave, Estándar, Squircle, Círculo) -->
-            <div class="grid grid-cols-5 gap-1.5">
-              <!-- 1. Recto (0%) -->
-              <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 0)"
-                class="p-2 rounded-lg border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer group"
-                :class="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 0 ? 'border-transparent' : 'bg-black/40 border-white/10 hover:border-white/25 text-slate-400 hover:text-white'"
-                :style="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 0 ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; box-shadow: 0 0 14px ' + ($store.settings.activeGlowColor) + '60;') : ''"
-                title="Cuadrado perfecto (0% - esquinas en ángulo recto de 90° / puntiagudo)">
-                <svg class="w-4 h-4 shrink-0 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3.5" y="3.5" width="17" height="17" rx="0" />
-                </svg>
-                <span class="text-[8.5px] font-mono font-bold uppercase truncate">Recto</span>
-              </button>
-
-              <!-- 2. Suave (12%) -->
-              <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 12)"
-                class="p-2 rounded-lg border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer group"
-                :class="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 12 ? 'border-transparent' : 'bg-black/40 border-white/10 hover:border-white/25 text-slate-400 hover:text-white'"
-                :style="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 12 ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; box-shadow: 0 0 14px ' + ($store.settings.activeGlowColor) + '60;') : ''"
-                title="Esquinas suaves (12% curvatura sutil)">
-                <svg class="w-4 h-4 shrink-0 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3.5" y="3.5" width="17" height="17" rx="3.5" />
-                </svg>
-                <span class="text-[8.5px] font-mono font-bold uppercase truncate">Suave</span>
-              </button>
-
-              <!-- 3. Estándar (25%) -->
-              <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 25)"
-                class="p-2 rounded-lg border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer group"
-                :class="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 25 ? 'border-transparent' : 'bg-black/40 border-white/10 hover:border-white/25 text-slate-400 hover:text-white'"
-                :style="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 25 ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; box-shadow: 0 0 14px ' + ($store.settings.activeGlowColor) + '60;') : ''"
-                title="Redondeado estándar (25% - clásico)">
-                <svg class="w-4 h-4 shrink-0 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3.5" y="3.5" width="17" height="17" rx="6.5" />
-                </svg>
-                <span class="text-[8.5px] font-mono font-bold uppercase truncate">Estándar</span>
-              </button>
-
-              <!-- 4. Squircle (38%) -->
-              <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 38)"
-                class="p-2 rounded-lg border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer group"
-                :class="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 38 ? 'border-transparent' : 'bg-black/40 border-white/10 hover:border-white/25 text-slate-400 hover:text-white'"
-                :style="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 38 ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; box-shadow: 0 0 14px ' + ($store.settings.activeGlowColor) + '60;') : ''"
-                title="Squircle superelipse (38% - curvatura moderna)">
-                <svg class="w-4 h-4 shrink-0 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path
-                    d="M 12 3.5 C 18.2 3.5 20.5 5.8 20.5 12 C 20.5 18.2 18.2 20.5 12 20.5 C 5.8 20.5 3.5 18.2 3.5 12 C 3.5 5.8 5.8 3.5 12 3.5 Z" />
-                </svg>
-                <span class="text-[8.5px] font-mono font-bold uppercase truncate">Squircle</span>
-              </button>
-
-              <!-- 5. Círculo (50%) -->
-              <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 50)"
-                class="p-2 rounded-lg border flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer group"
-                :class="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 50 ? 'border-transparent' : 'bg-black/40 border-white/10 hover:border-white/25 text-slate-400 hover:text-white'"
-                :style="$store.settings.getTierlistBorderRadius(activeRadiusCategory) === 50 ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + '; box-shadow: 0 0 14px ' + ($store.settings.activeGlowColor) + '60;') : ''"
-                title="Circular perfecto (50% - totalmente redondo)">
-                <svg class="w-4 h-4 shrink-0 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="8.5" />
-                </svg>
-                <span class="text-[8.5px] font-mono font-bold uppercase truncate">Círculo</span>
-              </button>
-            </div>
-
-            <!-- Slider Continuo de Curvatura (0% a 50%) -->
-            <div class="pt-2 border-t border-white/10 space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-[11px] font-mono text-slate-300 flex items-center gap-1.5">
-                  <i data-lucide="sliders" class="w-3.5 h-3.5"
-                    :style="'color: ' + $store.settings.accentColor + ';'"></i>
-                  <span>Curvatura de Bordes:</span>
-                </span>
-                <span class="font-mono text-xs font-bold" :style="'color: ' + $store.settings.accentColor + ';'"
-                  x-text="$store.settings.getTierlistBorderRadius(activeRadiusCategory) + '%'"></span>
-              </div>
-
-              <div class="flex items-center gap-2.5">
-                <span class="text-[9px] font-mono text-ink-slate shrink-0 uppercase">0% Recto</span>
-                <input type="range" min="0" max="50" step="1"
-                  :value="$store.settings.getTierlistBorderRadius(activeRadiusCategory)"
-                  @input="$store.settings.setTierlistBorderRadius(activeRadiusCategory, $event.target.value)"
-                  class="w-full h-1.5 bg-black/80 rounded-lg appearance-none cursor-pointer"
-                  :style="'accent-color: ' + $store.settings.accentColor + ';'" />
-                <span class="text-[9px] font-mono text-ink-slate shrink-0 uppercase">50% Círculo</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        <!-- Opción 5: Tamaño de Íconos de Personajes en Tier List -->
-        <div class="p-4 rounded-xl border border-white/10 bg-black/50 space-y-3.5 shadow-md">
-          <div class="flex items-start justify-between gap-3">
-            <div class="space-y-1 min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <i data-lucide="maximize-2" class="w-4 h-4 text-accent-cyan"></i>
-                <span class="text-xs font-bold text-white font-mono">Tamaño del Ícono en Tier List</span>
-                <span
-                  class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
-                  x-text="$store.tierlist?.tokenSizeLabel || '72px'"></span>
-              </div>
-              <p class="text-[11px] text-slate-400 leading-relaxed">
-                Controla qué tan grandes o pequeños se visualizan los avatares e íconos de personajes registrados,
-                invitados temporales y plantillas en el tablero y banco.
-              </p>
+        <div class="space-y-3 pt-2 border-t" style="border-color: var(--wiki-border);">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="wiki-segmented">
+              <button type="button" @click="activeRadiusCategory = 'registered'"
+                :class="{ 'is-active': activeRadiusCategory === 'registered' }"
+                class="wiki-segmented-btn">Con ficha</button>
+              <button type="button" @click="activeRadiusCategory = 'template'"
+                :class="{ 'is-active': activeRadiusCategory === 'template' }"
+                class="wiki-segmented-btn">Plantilla</button>
+              <button type="button" @click="activeRadiusCategory = 'guest'"
+                :class="{ 'is-active': activeRadiusCategory === 'guest' }"
+                class="wiki-segmented-btn">Invitados</button>
             </div>
+
+            <button type="button" @click="$store.settings.toggleTierlistBorderRadiusSync()"
+              class="souls-btn !px-2.5 !py-1 text-xs"
+              :class="{ 'souls-btn-primary': $store.settings.tierlistBorderRadiusSync }"
+              title="Aplicar la misma forma a los 3 tipos">
+              <i data-lucide="link" class="w-3 h-3"></i>
+              <span x-text="$store.settings.tierlistBorderRadiusSync ? 'Sincronizados' : 'Sincronizar'"></span>
+            </button>
           </div>
 
-          <div class="space-y-2 pt-1">
-            <div class="flex items-center gap-2.5">
-              <span class="text-[9px] font-mono text-ink-slate shrink-0 uppercase">48px Chico</span>
-              <input type="range" min="48" max="112" step="4" :value="$store.tierlist?.tokenSize || 72"
-                @input="$store.tierlist?.setTokenSize($event.target.value)"
-                class="w-full h-1.5 bg-black/80 rounded-lg appearance-none cursor-pointer"
-                :style="'accent-color: ' + $store.settings.accentColor + ';'" />
-              <span class="text-[9px] font-mono text-ink-slate shrink-0 uppercase">112px Grande</span>
-            </div>
+          <div class="grid grid-cols-5 gap-1.5 text-xs">
+            <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 0)"
+              class="souls-btn !px-1 !py-1.5"
+              :class="{ 'souls-btn-primary': $store.settings.getTierlistBorderRadius(activeRadiusCategory) === 0 }">Cuadrado</button>
+            <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 12)"
+              class="souls-btn !px-1 !py-1.5"
+              :class="{ 'souls-btn-primary': $store.settings.getTierlistBorderRadius(activeRadiusCategory) === 12 }">Suave</button>
+            <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 25)"
+              class="souls-btn !px-1 !py-1.5"
+              :class="{ 'souls-btn-primary': $store.settings.getTierlistBorderRadius(activeRadiusCategory) === 25 }">Medio</button>
+            <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 38)"
+              class="souls-btn !px-1 !py-1.5"
+              :class="{ 'souls-btn-primary': $store.settings.getTierlistBorderRadius(activeRadiusCategory) === 38 }">Curvo</button>
+            <button type="button" @click="$store.settings.setTierlistBorderRadius(activeRadiusCategory, 50)"
+              class="souls-btn !px-1 !py-1.5"
+              :class="{ 'souls-btn-primary': $store.settings.getTierlistBorderRadius(activeRadiusCategory) === 50 }">Círculo</button>
+          </div>
 
-            <!-- Botones Preset -->
-            <div class="grid grid-cols-4 gap-1.5 pt-1 text-[10px] font-mono">
-              <button type="button" @click="$store.tierlist?.setTokenSize(56)"
-                class="py-1 px-2 rounded-lg border text-center transition-all cursor-pointer font-bold"
-                :class="($store.tierlist?.tokenSize || 72) === 56 ? 'border-transparent text-white font-black' : 'bg-black/40 border-white/10 text-slate-400 hover:text-white'"
-                :style="($store.tierlist?.tokenSize || 72) === 56 ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + ';') : ''">
-                56px (S)
-              </button>
-              <button type="button" @click="$store.tierlist?.setTokenSize(72)"
-                class="py-1 px-2 rounded-lg border text-center transition-all cursor-pointer font-bold"
-                :class="($store.tierlist?.tokenSize || 72) === 72 ? 'border-transparent text-white font-black' : 'bg-black/40 border-white/10 text-slate-400 hover:text-white'"
-                :style="($store.tierlist?.tokenSize || 72) === 72 ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + ';') : ''">
-                72px (M)
-              </button>
-              <button type="button" @click="$store.tierlist?.setTokenSize(88)"
-                class="py-1 px-2 rounded-lg border text-center transition-all cursor-pointer font-bold"
-                :class="($store.tierlist?.tokenSize || 72) === 88 ? 'border-transparent text-white font-black' : 'bg-black/40 border-white/10 text-slate-400 hover:text-white'"
-                :style="($store.tierlist?.tokenSize || 72) === 88 ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + ';') : ''">
-                88px (L)
-              </button>
-              <button type="button" @click="$store.tierlist?.setTokenSize(104)"
-                class="py-1 px-2 rounded-lg border text-center transition-all cursor-pointer font-bold"
-                :class="($store.tierlist?.tokenSize || 72) === 104 ? 'border-transparent text-white font-black' : 'bg-black/40 border-white/10 text-slate-400 hover:text-white'"
-                :style="($store.tierlist?.tokenSize || 72) === 104 ? ('background-color: rgba(' + $store.settings.rgbChannels + ', 0.18); border-color: ' + $store.settings.accentColor + '; color: ' + $store.settings.accentColor + ';') : ''">
-                104px (XL)
-              </button>
-            </div>
+          <div class="flex items-center gap-3 text-xs">
+            <input type="range" min="0" max="50" step="1"
+              :value="$store.settings.getTierlistBorderRadius(activeRadiusCategory)"
+              @input="$store.settings.setTierlistBorderRadius(activeRadiusCategory, $event.target.value)"
+              class="wiki-range flex-1" />
+            <span class="font-mono w-10 text-right" style="color: var(--wiki-accent);"
+              x-text="$store.settings.getTierlistBorderRadius(activeRadiusCategory) + '%'"></span>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-  </div>
+  <!-- 2. ANIMACIÓN DE CARGA Y HERRAMIENTAS -->
+  <section class="wiki-settings-section space-y-4">
+    <div class="text-sm font-semibold text-[var(--wiki-text-main)]">Inicio y Herramientas</div>
 
-  <!-- COLUMNA DERECHA: DEV HUD y CUSTOM FAVICON ENGINE -->
-  <div class="space-y-6">
-
-    <!-- Módulo: Consola Dev HUD y Logs -->
-    <div class="p-5 sm:p-6 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 space-y-3.5 shadow-xl">
-      <div class="flex items-center justify-between border-b border-emerald-500/20 pb-3">
-        <h3 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
-          <i data-lucide="terminal" class="w-4.5 h-4.5 text-emerald-400"></i>
-          Herramientas de Depuración Dev HUD
-        </h3>
-        <span
-          class="text-xs text-emerald-400 font-mono px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 font-bold">
-          CTRL + `
-        </span>
+    <div class="space-y-2.5">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div class="text-sm font-medium text-[var(--wiki-text-main)]">Animación al abrir la aplicación</div>
+          <div class="text-xs text-[var(--wiki-text-muted)]">Elige la pantalla de carga que prefieras ver al entrar.</div>
+        </div>
+        <button type="button" @click="if (window.retriggerBiosBoot) { window.retriggerBiosBoot(); }" class="souls-btn !py-1 text-xs">
+          <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+          <span>Probar ahora</span>
+        </button>
       </div>
-      <p class="text-xs text-parchment-cream/80 leading-relaxed">
-        Inspecciona eventos en tiempo real, advertencias de rendimiento, telemetría multimedia y registros del
-        motor.
-      </p>
-      <button type="button"
-        class="w-full justify-center py-3 gap-2 border border-emerald-500/50 bg-emerald-500/10 hover:bg-emerald-500 hover:text-black text-emerald-400 text-xs font-mono font-bold uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center cursor-pointer"
-        @click="$store.settings.closeModal(); $store.devConsole.openModal()">
-        <i data-lucide="terminal" class="w-4 h-4"></i>
-        Habilitar Consola del Desarrollador
+
+      <div class="wiki-segmented w-full">
+        <button type="button"
+          @click="if (!$store.settings.showSplashScreen) $store.settings.toggleSplashScreen()"
+          :class="{ 'is-active': $store.settings.showSplashScreen }"
+          class="wiki-segmented-btn flex-1 justify-center">Terminal Retro BIOS</button>
+        <button type="button"
+          @click="if ($store.settings.showSplashScreen) $store.settings.toggleSplashScreen()"
+          :class="{ 'is-active': !$store.settings.showSplashScreen }"
+          class="wiki-segmented-btn flex-1 justify-center">Cubo 3D limpio</button>
+      </div>
+    </div>
+
+    <div class="wiki-settings-row pt-3 border-t" style="border-color: var(--wiki-border);">
+      <div>
+        <div class="text-sm font-medium text-[var(--wiki-text-main)]">Consola de comandos (<kbd class="font-mono">Ctrl + `</kbd>)</div>
+        <div class="text-xs text-[var(--wiki-text-muted)]">Abre registros técnicos y comandos del sistema.</div>
+      </div>
+      <button type="button" @click="$store.settings.closeModal(); $store.devConsole.openModal()" class="souls-btn shrink-0">
+        <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+        <span>Abrir consola</span>
       </button>
     </div>
+  </section>
 
-    <!-- ═════════════════════════════════════════════════════════
-         MÓDULO SECRETO: [UNLOCKED LOGIC] - CUSTOM FAVICON ENGINE
-         ═════════════════════════════════════════════════════════ -->
-    <div x-show="$store.settings.faviconEasterEggUnlocked" x-cloak x-transition:enter="transition ease-out duration-300"
-      x-transition:enter-start="opacity-0 translate-y-4 scale-95"
-      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-      class="p-5 sm:p-6 rounded-2xl border-2 border-emerald-400/80 bg-gradient-to-br from-emerald-950/40 via-black/85 to-purple-950/30 space-y-4 shadow-[0_0_35px_rgba(16,185,129,0.3)] relative overflow-hidden animate-fadeIn">
-
-      <!-- Header del Módulo Secreto (Plegar / Desplegar) -->
-      <div
-        class="flex items-center justify-between border-b border-emerald-500/30 pb-3 cursor-pointer select-none group"
-        @click="$store.settings.toggleFaviconEngineExpanded()">
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 flex-wrap">
-            <span
-              class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold tracking-widest uppercase flex items-center gap-1 shadow-sm">
-              <i data-lucide="unlock" class="w-3 h-3 text-emerald-400"></i>
-              [UNLOCKED LOGIC]
-            </span>
-            <h3 class="text-sm font-bold text-emerald-300 font-mono tracking-wider">
-              CUSTOM FAVICON ENGINE
-            </h3>
-            <!-- Mini Badge de Estado cuando está plegado -->
-            <span x-show="!$store.settings.faviconEngineExpanded"
-              class="text-[10px] font-mono text-emerald-300 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/25">
-              <span
-                x-text="$store.settings.activeFavicon ? ('Activo: ' + ($store.settings.activeFaviconName || 'Cabeza 3D')) : 'Predeterminado'"></span>
-            </span>
-          </div>
-          <p class="text-xs text-parchment-cream/80 font-mono">
-            Inyector de favicons isométricos 3D (Minecraft-Heads.com y Jugadores Reales).
-          </p>
+  <!-- 3. FAVICON PERSONALIZADO (SOLO SI ESTÁ DESBLOQUEADO) -->
+  <div x-show="$store.settings.faviconEasterEggUnlocked" x-cloak>
+    <button type="button" @click="$store.settings.toggleFaviconEngineExpanded()" class="wiki-accordion-header"
+      style="border-color: var(--wiki-accent);">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <i data-lucide="unlock" class="w-4 h-4 shrink-0 text-[var(--wiki-accent)]"></i>
+        <div>
+          <span class="text-sm font-semibold block">Icono de pestaña (Favicon)</span>
+          <span class="text-xs text-[var(--wiki-text-muted)] font-normal block"
+            x-text="$store.settings.activeFavicon ? ($store.settings.activeFaviconName || 'Activo') : 'Predeterminado'"></span>
         </div>
-        <div class="flex items-center gap-2.5 shrink-0">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0"
-            title="Módulo Secreto Desbloqueado"></span>
-          <button type="button"
-            class="px-2.5 py-1 rounded-lg border border-emerald-500/40 bg-emerald-500/15 hover:bg-emerald-500/30 text-emerald-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
-            <span x-text="$store.settings.faviconEngineExpanded ? 'Plegar' : 'Desplegar'"></span>
-            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"
-              :class="$store.settings.faviconEngineExpanded ? 'rotate-180 text-emerald-300' : 'text-emerald-400'"></i>
-          </button>
+      </div>
+      <i data-lucide="chevron-down" class="w-4 h-4 text-[var(--wiki-text-muted)] transition-transform shrink-0"
+        :class="$store.settings.faviconEngineExpanded ? 'rotate-180' : ''"></i>
+    </button>
+
+    <div x-show="$store.settings.faviconEngineExpanded" class="wiki-accordion-body space-y-3.5">
+      <div class="wiki-segmented w-full">
+        <button type="button" @click="$store.settings.setFaviconEngineMode('custom_heads')"
+          :class="{ 'is-active': $store.settings.faviconEngineMode === 'custom_heads' }"
+          class="wiki-segmented-btn flex-1 justify-center">Objetos / Cabezas</button>
+        <button type="button" @click="$store.settings.setFaviconEngineMode('players')"
+          :class="{ 'is-active': $store.settings.faviconEngineMode === 'players' }"
+          class="wiki-segmented-btn flex-1 justify-center">Jugadores</button>
+      </div>
+
+      <div x-show="$store.settings.faviconEngineMode === 'custom_heads'" class="space-y-3">
+        <div class="flex items-center gap-2">
+          <input type="text" x-model="$store.settings.customHeadSearch"
+            @input="$store.settings.searchCustomHeads($store.settings.customHeadSearch)"
+            @keydown.enter.prevent="$store.settings.applyCustomHeadFavicon()"
+            placeholder="Buscar cabeza, URL o /give..."
+            class="souls-input text-xs font-mono flex-1" />
+          <button type="button" @click="$store.settings.applyCustomHeadFavicon()" class="souls-btn souls-btn-primary shrink-0">Aplicar</button>
+        </div>
+
+        <div x-show="$store.settings.faviconStatusMessage"
+          class="flex items-center justify-between gap-2 text-[11px] font-mono px-2.5 py-1 border"
+          style="background: var(--wiki-accent-dim); border-color: var(--wiki-accent); color: var(--wiki-text-main);">
+          <span class="truncate" x-text="$store.settings.faviconStatusMessage"></span>
+          <span class="text-[10px] uppercase shrink-0" style="color: var(--wiki-accent);"
+            x-text="$store.settings.faviconStatus === 'valid' ? 'Listo' : ($store.settings.faviconStatus === 'error' ? 'Aviso' : 'Detectado')"></span>
+        </div>
+
+        <div class="flex items-center gap-1 overflow-x-auto pb-1">
+          <template x-for="cat in $store.settings.headCategories" :key="cat.id">
+            <button type="button"
+              @click="$store.settings.searchCustomHeads($store.settings.customHeadSearch, cat.id)"
+              class="souls-btn !px-2.5 !py-1 text-xs whitespace-nowrap shrink-0"
+              :class="{ 'souls-btn-primary': $store.settings.customHeadCategory === cat.id }"
+              x-text="cat.name"></button>
+          </template>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-52 overflow-y-auto p-2 border"
+          style="background: var(--wiki-bg-canvas); border-color: var(--wiki-border);">
+          <template x-for="item in $store.settings.customHeadResults" :key="item.h">
+            <button type="button"
+              @click="$store.settings.selectCustomHead(item)"
+              @dblclick="$store.settings.applyCustomHeadFavicon(item)"
+              class="p-2 border flex items-center gap-2 text-left cursor-pointer"
+              :style="($store.settings.selectedCustomHead && $store.settings.selectedCustomHead.h === item.h)
+                ? 'border-color: var(--wiki-accent); background: var(--wiki-accent-dim);'
+                : 'border-color: var(--wiki-border); background: var(--wiki-bg-elevated);'">
+              <img :src="'https://mc-heads.net/head/' + item.h + '/64'" :alt="item.n" loading="lazy"
+                class="w-7 h-7 object-contain shrink-0" @error="$event.target.src = '/favicon.png'" />
+              <span class="text-xs truncate" x-text="item.n"></span>
+            </button>
+          </template>
         </div>
       </div>
 
-      <!-- Contenedor Plegable con Animación Suave -->
-      <div x-show="$store.settings.faviconEngineExpanded" x-transition:enter="transition ease-out duration-250"
-        x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
-        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-        x-transition:leave-end="opacity-0 -translate-y-2 scale-98" class="space-y-4 pt-1">
-
-        <!-- SELECTOR DE MODOS (TABS): Objetos y Decoración VS Jugadores Reales -->
-        <div class="grid grid-cols-2 gap-2 p-1 bg-black/60 rounded-xl border border-emerald-500/30 font-mono text-xs">
-          <button type="button" @click="$store.settings.setFaviconEngineMode('custom_heads')"
-            :class="$store.settings.faviconEngineMode === 'custom_heads' ? 'bg-emerald-500/30 text-emerald-300 border-emerald-400 font-bold shadow-[0_0_12px_rgba(52,211,153,0.3)]' : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-white/5'"
-            class="py-2 px-3 rounded-lg border transition-all flex items-center justify-center gap-2 cursor-pointer">
-            <i data-lucide="boxes" class="w-3.5 h-3.5 text-emerald-400"></i>
-            <span>Objetos y Minecraft-Heads</span>
-          </button>
-          <button type="button" @click="$store.settings.setFaviconEngineMode('players')"
-            :class="$store.settings.faviconEngineMode === 'players' ? 'bg-emerald-500/30 text-emerald-300 border-emerald-400 font-bold shadow-[0_0_12px_rgba(52,211,153,0.3)]' : 'text-slate-400 hover:text-slate-200 border-transparent hover:bg-white/5'"
-            class="py-2 px-3 rounded-lg border transition-all flex items-center justify-center gap-2 cursor-pointer">
-            <i data-lucide="user" class="w-3.5 h-3.5 text-cyan-400"></i>
-            <span>Jugadores Reales (Skins)</span>
-          </button>
+      <div x-show="$store.settings.faviconEngineMode === 'players'" class="space-y-3">
+        <div class="flex items-center gap-2">
+          <input type="text" x-model="$store.settings.minecraftFaviconInput"
+            @input="$store.settings.checkFaviconUser()"
+            @keydown.enter.prevent="$store.settings.applyMinecraftFavicon()"
+            placeholder="Nick de Minecraft (ej: Steve)"
+            class="souls-input text-xs flex-1" />
+          <button type="button" @click="$store.settings.applyMinecraftFavicon()" class="souls-btn souls-btn-primary shrink-0">Aplicar</button>
         </div>
 
-        <!-- ═════════════════════════════════════════════════════════
-             MODO 1: OBJETOS y DECORACIÓN (MINECRAFT-HEADS.COM)
-             ═════════════════════════════════════════════════════════ -->
-        <div x-show="$store.settings.faviconEngineMode === 'custom_heads'" class="space-y-4 animate-fadeIn">
-          <!-- Input de Búsqueda de Objetos / URLs / Comandos -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between flex-wrap gap-1">
-              <label class="block text-xs font-mono font-bold text-emerald-400 flex items-center gap-1.5">
-                <i data-lucide="search" class="w-3.5 h-3.5 text-emerald-400"></i>
-                <span>Buscador de Cabezas (+92,000 Modelos):</span>
-              </label>
-              <span class="text-[10px] font-mono text-ink-slate flex items-center gap-1">
-                <span>Soporta nombres, URLs de minecraft-heads.com y comandos /give</span>
-              </span>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <div class="relative flex-1">
-                <i data-lucide="box"
-                  class="w-3.5 h-3.5 text-emerald-400/70 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                <input type="text" x-model="$store.settings.customHeadSearch"
-                  @input="$store.settings.searchCustomHeads($store.settings.customHeadSearch)"
-                  @keydown.enter.prevent="$store.settings.applyCustomHeadFavicon()"
-                  placeholder="Ej: Demonshade Helmet, Melon (sliced), Camera, Chest... o pega una URL/comando"
-                  class="form-input font-mono text-xs pl-8 pr-8 w-full border-emerald-500/40 bg-black/70 focus:border-emerald-400 text-emerald-200 placeholder:text-slate-500 rounded-xl transition-all shadow-inner" />
-                <button type="button" x-show="$store.settings.customHeadSearch"
-                  @click="$store.settings.customHeadSearch = ''; $store.settings.searchCustomHeads('')"
-                  class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer p-1 rounded hover:bg-white/10 transition-colors"
-                  title="Limpiar búsqueda">
-                  ✕
-                </button>
-              </div>
-              <button type="button" @click="$store.settings.applyCustomHeadFavicon()"
-                class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-black text-xs font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-[0_0_16px_rgba(52,211,153,0.4)] hover:shadow-[0_0_20px_rgba(52,211,153,0.6)] cursor-pointer active:scale-95 transition-all shrink-0">
-                <i data-lucide="check" class="w-3.5 h-3.5 stroke-[2.5]"></i>
-                <span>Aplicar Favicon</span>
-              </button>
-            </div>
-
-            <!-- Feedback de estado si se detectó URL, comando o selección -->
-            <div x-show="$store.settings.faviconStatusMessage"
-              class="flex items-center justify-between text-[11px] font-mono px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
-              <span class="flex items-center gap-1.5 truncate" x-text="$store.settings.faviconStatusMessage"></span>
-              <span
-                class="text-[9px] uppercase tracking-wider text-emerald-400/70 shrink-0 font-bold">Autodetectado</span>
-            </div>
-          </div>
-
-          <!-- Categorías Rápidas Oficiales -->
-          <div class="space-y-1.5">
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1.5 custom-scrollbar">
-              <template x-for="cat in $store.settings.headCategories" :key="cat.id">
-                <button type="button"
-                  @click="$store.settings.searchCustomHeads($store.settings.customHeadSearch, cat.id)"
-                  :class="$store.settings.customHeadCategory === cat.id ? 'bg-emerald-500/30 text-emerald-300 border-emerald-400 font-bold shadow-[0_0_10px_rgba(52,211,153,0.3)]' : 'bg-black/50 text-slate-400 hover:text-slate-200 border-white/10 hover:border-emerald-500/30'"
-                  class="px-3 py-1.5 rounded-lg border text-[11px] font-mono whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 shrink-0">
-                  <i :data-lucide="cat.icon" class="w-3.5 h-3.5"></i>
-                  <span x-text="cat.name"></span>
-                </button>
-              </template>
-            </div>
-          </div>
-
-          <!-- Galería / Grid de Resultados Interactivos 3D de Minecraft-Heads -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between text-[11px] font-mono text-ink-slate px-1">
-              <span class="flex items-center gap-1.5">
-                <i data-lucide="layers" class="w-3.5 h-3.5 text-emerald-400/80"></i>
-                <span>Resultados (<strong class="text-emerald-300"
-                    x-text="$store.settings.customHeadResults.length"></strong>):</span>
-              </span>
-              <span class="text-[10px] text-emerald-400/70 flex items-center gap-1">
-                <span>Clic para previsualizar • Doble clic para aplicar</span>
-              </span>
-            </div>
-
-            <!-- Contenedor Grid Mejorado -->
-            <div
-              class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 max-h-60 overflow-y-auto p-2.5 bg-black/60 rounded-2xl border border-emerald-500/20 custom-scrollbar shadow-inner">
-
-              <template x-for="item in $store.settings.customHeadResults" :key="item.h">
-                <div @click="$store.settings.selectCustomHead(item)"
-                  @dblclick="$store.settings.applyCustomHeadFavicon(item)"
-                  :class="($store.settings.selectedCustomHead && $store.settings.selectedCustomHead.h === item.h) ? 'border-emerald-400 bg-emerald-500/25 shadow-[0_0_14px_rgba(52,211,153,0.4)] scale-[1.02]' : 'border-white/10 bg-white/[0.04] hover:border-emerald-500/50 hover:bg-white/[0.08] hover:scale-[1.01]'"
-                  class="p-2.5 rounded-xl border transition-all duration-150 cursor-pointer flex items-center gap-2.5 group relative select-none"
-                  :title="`${item.n} (${item.c}) - Clic para previsualizar, doble clic para activar`">
-
-                  <!-- Render 3D Isométrico -->
-                  <div
-                    class="w-10 h-10 rounded-lg bg-black/70 border border-white/10 shrink-0 flex items-center justify-center overflow-hidden p-1 shadow-sm group-hover:border-emerald-400/50 transition-colors">
-                    <img :src="'https://mc-heads.net/head/' + item.h + '/64'" :alt="item.n" loading="lazy"
-                      class="w-full h-full object-contain filter drop-shadow group-hover:scale-115 transition-transform duration-200"
-                      @error="$event.target.src = '/favicon.png'" />
-                  </div>
-
-                  <div class="min-w-0 flex-1 space-y-0.5">
-                    <p class="text-xs font-mono text-emerald-200 font-bold truncate group-hover:text-emerald-100 transition-colors"
-                      x-text="item.n"></p>
-                    <span
-                      class="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-white/5 border border-white/10 text-slate-400 truncate inline-block"
-                      x-text="item.c"></span>
-                  </div>
-                </div>
-              </template>
-
-              <!-- Mensaje de Búsqueda Vacía con Solución Asistida -->
-              <template x-if="$store.settings.customHeadResults.length === 0">
-                <div class="col-span-full py-8 text-center space-y-2">
-                  <i data-lucide="help-circle" class="w-8 h-8 text-emerald-400/50 mx-auto"></i>
-                  <p class="text-xs font-mono text-slate-300">
-                    No se encontraron cabezas para "<strong class="text-emerald-300"
-                      x-text="$store.settings.customHeadSearch"></strong>".
-                  </p>
-                  <p class="text-[11px] font-mono text-ink-slate max-w-md mx-auto">
-                    💡 <strong>Tip Pro:</strong> Si estás viendo la cabeza en <a href="https://minecraft-heads.com"
-                      target="_blank" class="text-emerald-400 underline">minecraft-heads.com</a>, copia la URL de la
-                    página o el
-                    comando <code>/give</code> y pégalo directamente en el buscador arriba.
-                  </p>
-                </div>
-              </template>
-
-            </div>
-          </div>
+        <div x-show="$store.settings.faviconStatus || $store.settings.faviconStatusMessage"
+          class="flex items-center justify-between gap-2 text-[11px] font-mono"
+          style="color: var(--wiki-text-muted);">
+          <span class="truncate" x-text="$store.settings.faviconStatusMessage || 'Vista isométrica 3D con casco.'"></span>
+          <span class="inline-flex items-center gap-1 shrink-0"
+            :class="$store.settings.faviconStatus === 'valid' ? 'text-emerald-400' : ($store.settings.faviconStatus === 'error' ? 'text-amber-400' : 'text-[var(--wiki-accent)]')">
+            <i x-show="$store.settings.faviconStatus === 'checking'" data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>
+            <i x-show="$store.settings.faviconStatus === 'valid'" data-lucide="check-circle" class="w-3 h-3"></i>
+            <i x-show="$store.settings.faviconStatus === 'error'" data-lucide="alert-triangle" class="w-3 h-3"></i>
+            <span x-text="$store.settings.faviconStatus === 'checking' ? 'Comprobando...' : ($store.settings.faviconStatus === 'valid' ? 'Skin verificada' : ($store.settings.faviconStatus === 'error' ? 'Respaldo' : ''))"></span>
+          </span>
         </div>
-
-        <!-- ═════════════════════════════════════════════════════════
-             MODO 2: JUGADORES REALES (PLAYER SKINS)
-             ═════════════════════════════════════════════════════════ -->
-        <div x-show="$store.settings.faviconEngineMode === 'players'" class="space-y-3.5 animate-fadeIn">
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between">
-              <label class="block text-xs font-mono font-bold text-emerald-400 flex items-center gap-1.5">
-                <i data-lucide="user" class="w-3.5 h-3.5"></i> Username de Minecraft (Jugador Real):
-              </label>
-
-              <!-- Badge de Comprobación en Vivo -->
-              <div class="flex items-center gap-1.5 text-[10px] font-mono">
-                <template x-if="$store.settings.faviconStatus === 'checking'">
-                  <span
-                    class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1 animate-pulse font-bold">
-                    <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>
-                    Comprobando...
-                  </span>
-                </template>
-                <template x-if="$store.settings.faviconStatus === 'valid'">
-                  <span
-                    class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1 font-bold shadow-[0_0_8px_rgba(16,185,129,0.3)]">
-                    <i data-lucide="check-circle" class="w-3 h-3 text-emerald-400"></i>
-                    Skin 3D Verificada
-                  </span>
-                </template>
-                <template x-if="$store.settings.faviconStatus === 'error'">
-                  <span
-                    class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1 font-bold">
-                    <i data-lucide="alert-triangle" class="w-3 h-3 text-amber-400"></i>
-                    Usando Fallback
-                  </span>
-                </template>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <div class="relative flex-1">
-                <i data-lucide="user"
-                  class="w-3.5 h-3.5 text-emerald-400/60 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                <input type="text" x-model="$store.settings.minecraftFaviconInput"
-                  @input="$store.settings.checkFaviconUser()"
-                  @keydown.enter.prevent="$store.settings.applyMinecraftFavicon()"
-                  placeholder="Ej: MumboJumbo, Steve, Alex, Notch, Technoblade..."
-                  class="form-input font-mono text-xs pl-8 w-full border-emerald-500/40 bg-black/60 focus:border-emerald-400 text-emerald-200" />
-              </div>
-              <button type="button" @click="$store.settings.applyMinecraftFavicon()"
-                class="header-btn-accent text-xs py-2 px-3.5 flex items-center gap-1.5 cursor-pointer !bg-emerald-400 !text-black !shadow-[0_0_14px_rgba(52,211,153,0.5)] font-mono font-bold shrink-0">
-                <i data-lucide="check" class="w-3.5 h-3.5"></i> Aplicar
-              </button>
-            </div>
-
-            <!-- Mensaje de Estado de Comprobación -->
-            <div class="flex items-center justify-between text-[10px] font-mono text-ink-slate pt-0.5">
-              <span
-                x-text="$store.settings.faviconStatusMessage || 'Perspectiva isométrica 3D con canal alfa transparente y capa de casco.'"></span>
-              <span class="text-emerald-400/60 hidden sm:inline">Motor: MC-Heads 3D / Minotar</span>
-            </div>
-          </div>
-
-          <!-- Presets Rápidos de Jugadores Populares -->
-          <div class="flex items-center gap-1.5 flex-wrap text-[11px] font-mono">
-            <span class="text-[10px] text-ink-slate">Presets rápidos:</span>
-            <template x-for="nick in ['MumboJumbo', 'Steve', 'Alex', 'Notch', 'Herobrine', 'Technoblade']" :key="nick">
-              <button type="button"
-                @click="$store.settings.minecraftFaviconInput = nick; $store.settings.checkFaviconUser(); $store.settings.applyMinecraftFavicon(nick)"
-                class="px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 transition-all cursor-pointer text-[10px]"
-                x-text="nick"></button>
-            </template>
-          </div>
-        </div>
-
-        <!-- ═════════════════════════════════════════════════════════
-             PREVISUALIZACIÓN DE PESTAÑA DEL NAVEGADOR (EN TIEMPO REAL)
-             ═════════════════════════════════════════════════════════ -->
-        <div class="p-3.5 rounded-xl border border-white/15 bg-[#10131a] space-y-2.5 shadow-inner">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-mono text-ink-slate uppercase tracking-wider block flex items-center gap-1.5">
-              <i data-lucide="layout" class="w-3 h-3 text-cyan-400"></i>
-              Simulador de Pestaña del Navegador (Vista Isométrica 3D):
-            </span>
-            <span class="text-[9px] font-mono text-emerald-400/70">En Vivo</span>
-          </div>
-
-          <div
-            class="flex items-center gap-2 max-w-sm bg-[#1e232e] border border-white/10 px-3.5 py-2 rounded-t-xl shadow-md transition-all">
-            <!-- 3D Isometric Head Favicon Preview -->
-            <div
-              class="w-5 h-5 rounded shrink-0 flex items-center justify-center overflow-hidden bg-black/40 border border-white/10 shadow-sm">
-              <img :src="$store.settings.resolvedFaviconUrl || '/favicon.png'" alt="Favicon Preview"
-                class="w-full h-full object-contain filter drop-shadow transition-transform hover:scale-110"
-                @error="$event.target.src = '/favicon.png'" />
-            </div>
-            <!-- Tab Title -->
-            <span class="text-xs font-sans text-slate-200 truncate flex-1 font-medium select-none"
-              x-text="'Where\'s my Ficha • ' + ($store.characters.active?.identity?.name || 'Personaje')"></span>
-            <!-- Tab Close Icon -->
-            <span class="text-slate-400 text-xs hover:text-white cursor-pointer select-none">✕</span>
-          </div>
-        </div>
-
-        <!-- Estado del Favicon y Botón Restaurar -->
-        <div class="flex items-center justify-between pt-2 border-t border-white/10 text-xs font-mono">
-          <div class="flex items-center gap-2">
-            <span class="text-ink-slate">Favicon Activo:</span>
-            <span class="text-emerald-300 font-bold text-[11px]"
-              x-text="$store.settings.activeFavicon ? ('Cabeza 3D Activa: ' + ($store.settings.activeFaviconName || 'Personalizada')) : 'Predeterminado (/favicon.png)'"></span>
-          </div>
-          <button type="button" x-show="$store.settings.activeFavicon" @click="$store.settings.resetFavicon()"
-            class="text-ink-slate hover:text-rose-400 transition-colors flex items-center gap-1 cursor-pointer text-[11px]">
-            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer Favicon
-          </button>
-        </div>
-      </div> <!-- End of collapsible content -->
-    </div>
-
-    <!-- Placeholder decorativo si el Easter Egg no está desbloqueado -->
-    <div x-show="!$store.settings.faviconEasterEggUnlocked"
-      class="p-5 rounded-2xl border border-dashed border-white/10 bg-black/30 text-center space-y-2 py-8">
-      <div
-        class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-slate-500">
-        <i data-lucide="lock" class="w-5 h-5"></i>
-      </div>
-      <h4 class="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider">Módulo de Sistema Oculto</h4>
-      <p class="text-[11px] text-slate-500 font-mono max-w-xs mx-auto">
-        Hay funciones y personalizaciones secretas que se desbloquean al interactuar con el sistema.
-      </p>
-    </div>
-
-    <!-- ═════════════════════════════════════════════════════════
-         MÓDULO: ARRANQUE DEL SISTEMA y PANTALLA RETRO BIOS
-         ═════════════════════════════════════════════════════════ -->
-    <div
-      class="p-5 sm:p-6 rounded-2xl border border-cyan-500/40 bg-gradient-to-br from-cyan-950/25 via-black/60 to-black/80 space-y-4 shadow-xl">
-      <div class="flex items-center justify-between border-b border-cyan-500/20 pb-3 cursor-pointer select-none group"
-        @click="$store.settings.toggleBootSettingsExpanded()">
-        <div class="space-y-1">
-          <div class="flex items-center gap-2 flex-wrap">
-            <h3 class="text-sm font-bold text-cyan-300 flex items-center gap-2">
-              <i data-lucide="terminal" class="w-4.5 h-4.5 text-cyan-400"></i>
-              Arranque del Sistema y Pantalla de Inicio
-            </h3>
-            <span
-              class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-bold">
-              Bootloader
-            </span>
-            <!-- Mini Badge de Estado cuando está plegado -->
-            <span x-show="!$store.settings.bootSettingsExpanded"
-              class="text-[10px] font-mono text-cyan-300 px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/25">
-              <span x-text="$store.settings.showSplashScreen ? 'Retro BIOS' : 'Carga Genérica 3D'"></span>
-            </span>
-          </div>
-          <p class="text-xs text-parchment-cream/70 font-mono">
-            Control de arranque visual: elige entre terminal Retro BIOS o pantalla de carga genérica 3D.
-          </p>
-        </div>
-        <div class="flex items-center gap-2.5 shrink-0">
-          <button type="button"
-            class="px-2.5 py-1 rounded-lg border border-cyan-500/40 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
-            <span x-text="$store.settings.bootSettingsExpanded ? 'Plegar' : 'Desplegar'"></span>
-            <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"
-              :class="$store.settings.bootSettingsExpanded ? 'rotate-180 text-cyan-300' : 'text-cyan-400'"></i>
-          </button>
+        <div class="flex flex-wrap gap-1.5">
+          <template x-for="nick in ['MumboJumbo', 'Steve', 'Alex', 'Notch', 'Herobrine', 'Technoblade']" :key="nick">
+            <button type="button"
+              @click="$store.settings.minecraftFaviconInput = nick; $store.settings.checkFaviconUser(); $store.settings.applyMinecraftFavicon(nick)"
+              class="souls-btn !px-2 !py-0.5 text-xs" x-text="nick"></button>
+          </template>
         </div>
       </div>
 
-      <!-- Contenedor Plegable -->
-      <div x-show="$store.settings.bootSettingsExpanded" x-transition:enter="transition ease-out duration-250"
-        x-transition:enter-start="opacity-0 -translate-y-2 scale-98"
-        x-transition:enter-end="opacity-100 translate-y-0 scale-100"
-        x-transition:leave="transition ease-in duration-150"
-        x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-        x-transition:leave-end="opacity-0 -translate-y-2 scale-98" class="space-y-3.5 pt-1">
-
-        <!-- Opción: Activar Retro BIOS vs Carga Genérica 3D -->
-        <div class="p-3.5 rounded-xl border transition-all flex items-start justify-between gap-3 bg-black/40"
-          :class="$store.settings.showSplashScreen ? 'border-cyan-400/60 bg-cyan-500/10' : 'border-blue-500/40 bg-blue-950/20'">
-          <div class="space-y-1 min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <i :data-lucide="$store.settings.showSplashScreen ? 'terminal' : 'box'" class="w-4 h-4"
-                :class="$store.settings.showSplashScreen ? 'text-cyan-300' : 'text-blue-400'"></i>
-              <span class="text-xs font-bold text-parchment-cream font-mono">Modo de Arranque Visual</span>
-            </div>
-            <p class="text-[11px] text-ink-slate font-sans leading-relaxed">
-              <span x-show="$store.settings.showSplashScreen">
-                <strong class="text-cyan-300">Retro BIOS activo:</strong> Secuencia clásica de terminal PCem / Award
-                v4.51PG con verificación de memoria RAM y kernel del HUD.
-              </span>
-              <span x-show="!$store.settings.showSplashScreen">
-                <strong class="text-blue-400">Carga Genérica 3D activa:</strong> Pantalla de carga moderna y estilizada
-                con animación de cubo isométrico en perspectiva 3D.
-              </span>
-            </p>
-          </div>
-          <button type="button" @click="$store.settings.toggleSplashScreen()"
-            class="px-3 py-1.5 rounded-lg border text-xs font-mono font-bold transition-all cursor-pointer shrink-0"
-            :class="$store.settings.showSplashScreen ? 'bg-cyan-500/25 border-cyan-400 text-cyan-300 shadow-[0_0_10px_rgba(6,182,212,0.3)]' : 'bg-blue-600/25 border-blue-400 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.3)]'">
-            <span x-text="$store.settings.showSplashScreen ? 'RETRO BIOS (ACTIVADO)' : 'CARGA GENÉRICA 3D'"></span>
-          </button>
+      <div class="wiki-settings-card flex items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2 min-w-0">
+          <img :src="$store.settings.resolvedFaviconUrl || '/favicon.png'" alt="Favicon" class="w-4 h-4 object-contain shrink-0" @error="$event.target.src = '/favicon.png'" />
+          <span class="truncate" style="color: var(--wiki-text-muted);"
+            x-text="$store.settings.activeFavicon ? ($store.settings.activeFaviconName || 'Personalizado') : 'Predeterminado (/favicon.png)'"></span>
         </div>
-
-        <!-- Botón Probar Secuencia de Carga Actual -->
-        <div class="pt-2 flex items-center justify-between border-t border-white/10">
-          <span class="text-[11px] font-mono text-ink-slate">Probar visualización de inicio:</span>
-          <button type="button" @click="if (window.retriggerBiosBoot) { window.retriggerBiosBoot(); }"
-            class="px-3.5 py-1.5 rounded-lg border border-cyan-400/50 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 text-xs font-mono font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer">
-            <i data-lucide="play" class="w-3.5 h-3.5"></i>
-            <span>Probar Pantalla de Carga</span>
-          </button>
-        </div>
+        <button type="button" x-show="$store.settings.activeFavicon" @click="$store.settings.resetFavicon()"
+          class="souls-btn !px-2 !py-1 text-xs shrink-0">Restablecer</button>
       </div>
     </div>
   </div>
+
 </div>

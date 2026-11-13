@@ -18,8 +18,7 @@
     (function () {
       try {
         var s = JSON.parse(localStorage.getItem('superficha_global_settings') || '{}');
-        var v2 = localStorage.getItem('superficha_ui_v2_sober');
-        if (!v2 || s.showSplashScreen !== true || s.fastBoot === true) {
+        if (s.showSplashScreen === false || s.fastBoot === true) {
           document.documentElement.classList.add('boot-mode-generic');
         } else {
           document.documentElement.classList.add('boot-mode-bios');
@@ -31,8 +30,8 @@
     /* Prevención total de FOUC con el tema base Fandom Slate */
     html,
     body {
-      background-color: #1e1f26 !important;
-      color: #e4e4e9;
+      background-color: var(--wiki-bg-outer, #1e1f26) !important;
+      color: var(--wiki-text-main, #e4e4e9);
       margin: 0;
       padding: 0;
     }
@@ -42,9 +41,11 @@
       display: none !important;
     }
 
-    /* ── Desactivar Pantallas de Arranque Cyber BIOS y Cubo 3D Neón ── */
-    #bios-boot-screen,
-    #generic-loading-screen {
+    /* ── Control de Pantallas de Arranque (Anti-FOUC) ── */
+    html.boot-mode-generic #bios-boot-screen {
+      display: none !important;
+    }
+    html:not(.boot-mode-generic) #generic-loading-screen {
       display: none !important;
     }
 
@@ -749,6 +750,12 @@
      ============================================================== -->
   <div id="app" x-data x-init="$store.characters.init()" :style="$store.settings.scopedThemeStyle"
     :data-density="$store.settings.density" data-active-view="dashboard" :data-active-view="$store.app.activeView"
+    :data-sheet-type="$store.characters.active?.sheetType || 'unified'"
+    x-effect="(() => {
+      const isClassicEditor = $store.app.activeView === 'editor' && $store.characters.active?.sheetType === 'classic';
+      document.documentElement.classList.toggle('sheet-mode-classic', isClassicEditor);
+      document.body.classList.toggle('sheet-mode-classic', isClassicEditor);
+    })()"
     :data-surface-theme="$store.settings.isLightSurface ? 'light' : 'dark'"
     :class="{
       'surface-light': $store.settings.isLightSurface,
@@ -796,11 +803,70 @@
         </button>
       </div>
 
-      <!-- Contenedor Principal de la Ficha Unificada (Hoja Física Integral sin división de sesiones) -->
-      <template x-if="$store.characters.active">
+      <!-- Contenedor Principal de Ficha Actual (Hoja Física Integral Unificada) -->
+      <template x-if="$store.characters.active && ($store.characters.active?.sheetType || 'unified') !== 'classic'">
         <div id="character-view-container" class="w-full" x-show="!$store.characters.loading && !$store.app.isSheetLoading" x-cloak>
           <!-- Ficha Integral Física Unificada (Inspirada en D&D y Mörk Borg) -->
+          <include src="./src/ui/partials/views/sheet-unified.html"></include>
+        </div>
+      </template>
+
+      <!-- Contenedor Principal de Ficha Clásica (Rama main / Modular por Pestañas) -->
+      <template x-if="$store.characters.active && $store.characters.active?.sheetType === 'classic'">
+        <div id="tab-content" class="min-h-[600px] min-h-[60vh]" x-show="!$store.characters.loading && !$store.app.isSheetLoading" x-cloak>
+          <!-- Encabezado de sección -->
+          <div class="section-header-bar">
+            <template x-for="tab in $store.app.activeTabObjects" :key="tab.id">
+              <span x-show="$store.app.currentTab === tab.id">
+                <h2 class="section-title">
+                  <span :data-animate-icon="tab.icon" data-size="24" class="w-6 h-6 flex items-center justify-center shrink-0"></span>
+                  <span x-text="tab.label"></span>
+                </h2>
+              </span>
+            </template>
+            <!-- Badge del modo -->
+            <span class="mode-badge shadow-lg shadow-black/80 backdrop-blur-md"
+              :class="$store.app.editMode ? 'mode-badge-edit' : 'mode-badge-preview'"
+              x-text="$store.app.editMode ? '// EDITANDO' : '// VISTA PREVIA'"></span>
+          </div>
+
+          <!-- Pestañas Modulares del Personaje -->
           <include src="./src/ui/partials/tabs/tab-basics.html"></include>
+
+          <!-- Pestañas Secundarias con Renderizado Diferido Bajo Demanda (Lazy Mount) -->
+          <template x-if="$store.app.isTabVisited('body')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-body.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('mind')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-mind.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('social')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-social.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('beliefs')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-beliefs.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('priorities')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-priorities.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('skills')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-skills.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('weapons')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-weapons.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('power')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-power.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('extras')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-extras.html"></include></div>
+          </template>
+          <template x-if="$store.app.isTabVisited('steam')">
+            <div class="contents"><include src="./src/ui/partials/tabs/tab-steam.html"></include></div>
+          </template>
+
+          <!-- Pestaña para Secciones Personalizadas Dinámicas -->
+          <include src="./src/ui/partials/tabs/tab-custom.html"></include>
         </div>
       </template>
 
@@ -811,6 +877,7 @@
   <!-- ==============================================================
      MODALES Y DIÁLOGOS DE SISTEMA
      ============================================================== -->
+  <include src="./src/ui/partials/modals/modal-create-sheet.html"></include>
   <include src="./src/ui/partials/modals/modal-dashboard.html"></include>
   <include src="./src/ui/partials/modals/modal-discord.html"></include>
   <include src="./src/ui/partials/modals/modal-cropper.html"></include>

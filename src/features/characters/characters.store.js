@@ -46,6 +46,7 @@ export function registerCharactersStore(Alpine) {
     list: [],               // Array de personajes en memoria
     activeId: null,         // ID del personaje activo
     loading: true,
+    createSheetModalOpen: false,
     renameTarget: null,     // { id, name } para modal de renombre
     deleteTarget: null,     // ID para confirmación de borrado
     deleteCountdown: 0,     // Segundos de protección anti-missclick
@@ -168,12 +169,14 @@ export function registerCharactersStore(Alpine) {
     itemsPerPage: 9,
     currentPage: 1,
     searchQuery: '',
+    filterFavorite: false,
     tierFilter: 'all',
     classFilter: 'all',
     sortBy: 'updatedAt',
 
     clearDashboardFilters() {
       this.searchQuery = '';
+      this.filterFavorite = false;
       this.tierFilter = 'all';
       this.classFilter = 'all';
       this.sortBy = 'updatedAt';
@@ -471,6 +474,10 @@ export function registerCharactersStore(Alpine) {
           if (charClass !== classFilter) return false;
         }
 
+        if (this.filterFavorite && !c.isFavorite) {
+          return false;
+        }
+
         if (activeFolder && activeFolder !== 'all') {
           if (activeFolder === 'unassigned') {
             if (c.folderId && validFolderIds && validFolderIds.has(c.folderId)) return false;
@@ -491,8 +498,16 @@ export function registerCharactersStore(Alpine) {
           const timeB = b.updatedAt || b.createdAt || 0;
           return timeB - timeA;
         }
-        if (this.sortBy === 'name') {
+        if (this.sortBy === 'name' || this.sortBy === 'name_asc') {
           return (a.name || '').localeCompare(b.name || '');
+        }
+        if (this.sortBy === 'name_desc') {
+          return (b.name || '').localeCompare(a.name || '');
+        }
+        if (this.sortBy === 'created') {
+          const timeA = a.createdAt || a.updatedAt || 0;
+          const timeB = b.createdAt || b.updatedAt || 0;
+          return timeB - timeA;
         }
         if (this.sortBy === 'tier') {
           const rankA = getTierRank(a.powerScaling?.tier);
@@ -964,8 +979,25 @@ export function registerCharactersStore(Alpine) {
     },
 
     // ── CRUD de Personajes ──────────────────────────────────────────
-    async createNew() {
-      const char = createEmptyCharacter();
+    openCreateSheetModal() {
+      this.createSheetModalOpen = true;
+    },
+
+    closeCreateSheetModal() {
+      this.createSheetModalOpen = false;
+    },
+
+    async createNew(sheetType = null) {
+      if (sheetType !== 'unified' && sheetType !== 'classic') {
+        this.openCreateSheetModal();
+        return null;
+      }
+
+      this.createSheetModalOpen = false;
+      const targetFolderId = (this.activeFolderId && this.activeFolderId !== 'all' && this.activeFolderId !== 'unassigned' && (this.folders || []).some(f => f.id === this.activeFolderId))
+        ? this.activeFolderId
+        : null;
+      const char = createEmptyCharacter({ sheetType, folderId: targetFolderId });
       this.list.push(char);
       await this._persist(char);
       await this.selectActive(char.id);
@@ -1092,6 +1124,7 @@ export function registerCharactersStore(Alpine) {
         id: char.id,
         createdAt: char.createdAt,
         name: 'Nuevo Personaje',
+        sheetType: char.sheetType,
       });
 
       Object.keys(char).forEach(key => delete char[key]);

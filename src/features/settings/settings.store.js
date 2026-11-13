@@ -38,6 +38,168 @@ export {
   THEME_KITS
 };
 
+function clampByte(n) {
+  return Math.max(0, Math.min(255, Math.round(n)));
+}
+
+function shiftRgbCss(rgb, dr, dg, db) {
+  return `rgb(${clampByte(rgb.r + dr)}, ${clampByte(rgb.g + dg)}, ${clampByte(rgb.b + db)})`;
+}
+
+function getRelativeLuminance(rgb) {
+  if (!rgb) return 0;
+  const norm = (v) => {
+    const s = v / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * norm(rgb.r) + 0.7152 * norm(rgb.g) + 0.0722 * norm(rgb.b);
+}
+
+function parseHexRgb(hex) {
+  if (!hex || typeof hex !== 'string') return null;
+  let cleanHex = hex.trim().replace(/^#/, '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(c => c + c).join('');
+  }
+  if (cleanHex.length !== 6) return null;
+  const num = parseInt(cleanHex, 16);
+  if (isNaN(num)) return null;
+  return {
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255
+  };
+}
+
+/**
+ * Calcula todos los tokens CSS globales y --wiki-* de forma única
+ * para garantizar coherencia entre applySettings() y scopedThemeStyle.
+ */
+function buildThemeTokens(state) {
+  const accent = state.accentColor || DEFAULT_SETTINGS.accentColor;
+  const rgb = parseHexRgb(accent) || { r: 200, g: 170, b: 110 };
+  const secondary = state.secondaryColor || DEFAULT_SETTINGS.secondaryColor;
+  const secRgb = parseHexRgb(secondary) || { r: 139, g: 115, b: 85 };
+  const tertiary = state.tertiaryColor || DEFAULT_SETTINGS.tertiaryColor;
+  const tertRgb = parseHexRgb(tertiary) || { r: 148, g: 163, b: 184 };
+  const surface = state.surfaceColor || DEFAULT_SETTINGS.surfaceColor;
+  const surfRgb = parseHexRgb(surface) || { r: 30, g: 31, b: 38 };
+  const border = state.borderColor || DEFAULT_SETTINGS.borderColor;
+  const bordRgb = parseHexRgb(border) || { r: 61, g: 65, b: 84 };
+
+  const isLight = getRelativeLuminance(surfRgb) > 0.42;
+  const accentText = getRelativeLuminance(rgb) > 0.42 ? '#0B0F19' : '#FFFFFF';
+  const disableGlow = !!state.disableGlowEffects;
+
+  let glowRgba = disableGlow ? 'transparent' : `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.35)`;
+  if (!disableGlow && state.glowMode === 'custom' && state.glowColor) {
+    const glowRgb = parseHexRgb(state.glowColor) || rgb;
+    glowRgba = `rgba(${glowRgb.r}, ${glowRgb.g}, ${glowRgb.b}, 0.45)`;
+  }
+  const secGlow = disableGlow ? 'transparent' : `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.35)`;
+  const tertGlow = disableGlow ? 'transparent' : `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.35)`;
+  const glowLg = disableGlow ? 'transparent' : `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`;
+
+  const cleanDisp = (state.fontDisplay || DEFAULT_SETTINGS.fontDisplay || 'Barlow Condensed').trim().replace(/['"]/g, '');
+  const cleanBody = (state.fontBody || DEFAULT_SETTINGS.fontBody || 'Inter Tight').trim().replace(/['"]/g, '');
+  const cleanInput = (state.fontInput || DEFAULT_SETTINGS.fontInput || 'Inter Tight').trim().replace(/['"]/g, '');
+  const cleanHud = (state.fontHud || DEFAULT_SETTINGS.fontHud || 'Inter Tight').trim().replace(/['"]/g, '');
+  const cleanTier = (state.fontTierlist || DEFAULT_SETTINGS.fontTierlist || 'Barlow Condensed').trim().replace(/['"]/g, '');
+
+  const fDisp = `"${cleanDisp}", "Barlow Condensed", sans-serif`;
+  const fBody = `"${cleanBody}", "Inter Tight", sans-serif`;
+  const fInput = `"${cleanInput}", "Inter Tight", sans-serif`;
+  const fHud = `"${cleanHud}", "Inter Tight", sans-serif`;
+  const fTier = `"${cleanTier}", "Barlow Condensed", sans-serif`;
+
+  const isDefaultAccent = accent.trim().toUpperCase() === DEFAULT_SETTINGS.accentColor.toUpperCase();
+  const isDefaultBorder = border.trim().toUpperCase() === DEFAULT_SETTINGS.borderColor.toUpperCase();
+
+  const wikiAccent = (isLight && isDefaultAccent) ? '#8c5d17' : accent;
+  const wikiAccentRgb = parseHexRgb(wikiAccent) || rgb;
+  const wikiAccentDim = `rgba(${wikiAccentRgb.r}, ${wikiAccentRgb.g}, ${wikiAccentRgb.b}, ${isLight ? 0.12 : 0.14})`;
+  const wikiLink = isDefaultAccent ? (isLight ? '#1d4ed8' : '#6ba6ff') : accent;
+
+  const wikiBgOuter = isLight ? shiftRgbCss(surfRgb, -20, -19, -15) : surface;
+  const wikiBgCanvas = isLight ? surface : shiftRgbCss(surfRgb, 10, 11, 16);
+  const wikiBgElevated = isLight ? shiftRgbCss(surfRgb, -11, -10, -7) : shiftRgbCss(surfRgb, 19, 20, 28);
+  const wikiBgInfobox = isLight ? shiftRgbCss(surfRgb, -7, -6, -4) : shiftRgbCss(surfRgb, 14, 16, 23);
+  const wikiBgHeader = isLight ? '#1f222a' : shiftRgbCss(surfRgb, -6, -6, -6);
+
+  const wikiBorder = (isLight && isDefaultBorder) ? '#d0d4dd' : border;
+  const wikiBorderStrong = (isLight && isDefaultBorder)
+    ? '#9ca3af'
+    : (isLight ? shiftRgbCss(bordRgb, -30, -28, -24) : shiftRgbCss(bordRgb, 19, 20, 26));
+
+  const vars = {
+    '--accent-primary': accent,
+    '--accent-primary-rgb': `${rgb.r}, ${rgb.g}, ${rgb.b}`,
+    '--accent': accent,
+    '--accent-gold': accent,
+    '--accent-text': accentText,
+    '--accent-secondary': secondary,
+    '--accent-secondary-rgb': `${secRgb.r}, ${secRgb.g}, ${secRgb.b}`,
+    '--accent-tertiary': tertiary,
+    '--accent-tertiary-rgb': `${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}`,
+    '--accent-dim': `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.18)`,
+    '--accent-secondary-dim': `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.18)`,
+    '--accent-tertiary-dim': `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.18)`,
+    '--accent-glow': glowRgba,
+    '--accent-secondary-glow': secGlow,
+    '--accent-tertiary-glow': tertGlow,
+    '--accent-glow-lg': glowLg,
+    '--border-accent': `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.30)`,
+    '--border-secondary': `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.35)`,
+    '--border-tertiary': `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.35)`,
+    '--border-strong': `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.55)`,
+    '--bg-panel-custom': surface,
+    '--bg-panel-rgb': `${surfRgb.r}, ${surfRgb.g}, ${surfRgb.b}`,
+    '--bg-panel': `rgba(${surfRgb.r}, ${surfRgb.g}, ${surfRgb.b}, 0.95)`,
+    '--bg-panel-2': `rgba(${clampByte(surfRgb.r + 7)}, ${clampByte(surfRgb.g + 8)}, ${clampByte(surfRgb.b + 11)}, 0.96)`,
+    '--bg-panel-3': `rgba(${clampByte(surfRgb.r + 14)}, ${clampByte(surfRgb.g + 16)}, ${clampByte(surfRgb.b + 22)}, 0.98)`,
+    '--bg-base': surface,
+    '--border-custom': border,
+    '--border-custom-rgb': `${bordRgb.r}, ${bordRgb.g}, ${bordRgb.b}`,
+    '--border-subtle': `rgba(${bordRgb.r}, ${bordRgb.g}, ${bordRgb.b}, 0.45)`,
+    '--border-subtle-rgb': `${bordRgb.r}, ${bordRgb.g}, ${bordRgb.b}`,
+    '--border-panel': border,
+    '--border-width': `${state.borderWidth || 1}px`,
+    '--text-primary': isLight ? '#0B0F19' : '#F1F5F9',
+    '--text-secondary': isLight ? 'rgba(11, 15, 25, 0.78)' : 'rgba(226, 232, 240, 0.78)',
+    '--text-muted': isLight ? 'rgba(11, 15, 25, 0.52)' : 'rgba(148, 163, 184, 0.62)',
+    '--gradient-accent': `linear-gradient(135deg, ${accent} 0%, ${secondary} 100%)`,
+    '--gradient-accent-h': `linear-gradient(90deg, ${accent} 0%, ${secondary} 100%)`,
+    '--gradient-accent-tri': `linear-gradient(90deg, ${accent} 0%, ${secondary} 50%, ${tertiary} 100%)`,
+    '--wiki-bg-outer': wikiBgOuter,
+    '--wiki-bg-canvas': wikiBgCanvas,
+    '--wiki-bg-elevated': wikiBgElevated,
+    '--wiki-bg-infobox': wikiBgInfobox,
+    '--wiki-bg-header': wikiBgHeader,
+    '--wiki-border': wikiBorder,
+    '--wiki-border-strong': wikiBorderStrong,
+    '--wiki-accent': wikiAccent,
+    '--wiki-accent-dim': wikiAccentDim,
+    '--wiki-link': wikiLink,
+    '--wiki-text-main': isLight ? '#1e2229' : '#f0f1f5',
+    '--wiki-text-muted': isLight ? '#545b69' : '#a0a4b8',
+    '--wiki-text-dim': isLight ? '#798294' : '#717589',
+    '--font-display': fDisp,
+    '--font-body': fBody,
+    '--font-sans': fBody,
+    '--font-input': fInput,
+    '--font-mono': fInput,
+    '--font-hud': fHud,
+    '--font-tierlist': fTier,
+    '--font-weight-display': state.fontWeightDisplay || '600',
+    '--font-weight-body': state.fontWeightBody || '400',
+    '--font-weight-input': state.fontWeightInput || '400',
+    '--font-weight-hud': state.fontWeightHud || '500',
+    '--font-weight-tierlist': state.fontWeightTierlist || '700'
+  };
+
+  return { vars, isLight };
+}
+
 export function registerSettingsStore(Alpine) {
   // Migración única al nuevo diseño sobrio y legible (v3)
   let _pendingSoberDbReset = false;
@@ -199,6 +361,7 @@ export function registerSettingsStore(Alpine) {
         const _glowMode = this.glowMode;
         const _surfColor = this.surfaceColor;
         const _bordColor = this.borderColor;
+        const _bordWidth = this.borderWidth;
         const _fDisp = this.fontDisplay;
         const _fBody = this.fontBody;
         const _fInput = this.fontInput;
@@ -311,47 +474,12 @@ export function registerSettingsStore(Alpine) {
       const surface = this.surfaceColor || DEFAULT_SETTINGS.surfaceColor;
       const rgb = this.hexToRgb(surface);
       if (!rgb) return false;
-      const normalize = (val) => {
-        const s = val / 255;
-        return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-      };
-      const lum = 0.2126 * normalize(rgb.r) + 0.7152 * normalize(rgb.g) + 0.0722 * normalize(rgb.b);
-      return lum > 0.42; // Detecta blanco puro (#FFF) y tonalidades claras como #BBB7AD (lum ~0.47)
+      return getRelativeLuminance(rgb) > 0.42; // Detecta blanco puro (#FFF) y tonalidades claras como #BBB7AD (lum ~0.47)
     },
 
     get scopedThemeStyle() {
-      const accent = this.accentColor || DEFAULT_SETTINGS.accentColor;
-      const rgb = this.hexToRgb(accent) || { r: 0, g: 240, b: 255 };
-      const secondary = this.secondaryColor || DEFAULT_SETTINGS.secondaryColor;
-      const secRgb = this.hexToRgb(secondary) || { r: 255, g: 0, b: 119 };
-      const tertiary = this.tertiaryColor || DEFAULT_SETTINGS.tertiaryColor;
-      const tertRgb = this.hexToRgb(tertiary) || { r: 212, g: 175, b: 55 };
-      const surface = this.surfaceColor || DEFAULT_SETTINGS.surfaceColor;
-      const surfRgb = this.hexToRgb(surface) || { r: 10, g: 13, b: 20 };
-      const border = this.borderColor || DEFAULT_SETTINGS.borderColor;
-      const bordRgb = this.hexToRgb(border) || { r: 34, g: 42, b: 54 };
-      let glowRgba = this.disableGlowEffects ? 'transparent' : `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.35)`;
-      if (!this.disableGlowEffects && this.glowMode === 'custom' && this.glowColor) {
-        const glowRgb = this.hexToRgb(this.glowColor) || rgb;
-        glowRgba = `rgba(${glowRgb.r}, ${glowRgb.g}, ${glowRgb.b}, 0.45)`;
-      }
-      const secGlow = this.disableGlowEffects ? 'transparent' : `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.35)`;
-      const tertGlow = this.disableGlowEffects ? 'transparent' : `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.35)`;
-      const glowLg = this.disableGlowEffects ? 'transparent' : `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`;
-
-      const fDisplay = `"${(this.fontDisplay || 'Barlow Condensed').trim()}", "Barlow Condensed", sans-serif`;
-      const fBody = `"${(this.fontBody || 'Inter Tight').trim()}", "Inter Tight", sans-serif`;
-      const fInput = `"${(this.fontInput || 'Inter Tight').trim()}", "Inter Tight", sans-serif`;
-      const fHud = `"${(this.fontHud || 'Inter Tight').trim()}", "Inter Tight", sans-serif`;
-      const fTierlist = `"${(this.fontTierlist || 'Barlow Condensed').trim()}", "Barlow Condensed", sans-serif`;
-
-      const isLight = this.isLightSurface;
-      const textPrimary = isLight ? '#0B0F19' : '#F1F5F9';
-      const textSecondary = isLight ? 'rgba(11, 15, 25, 0.78)' : 'rgba(226, 232, 240, 0.78)';
-      const textMuted = isLight ? 'rgba(11, 15, 25, 0.52)' : 'rgba(148, 163, 184, 0.62)';
-      const bWidth = `${this.borderWidth || 1}px`;
-
-      return `--accent-primary:${accent};--accent-primary-rgb:${rgb.r},${rgb.g},${rgb.b};--accent:${accent};--accent-secondary:${secondary};--accent-secondary-rgb:${secRgb.r},${secRgb.g},${secRgb.b};--accent-tertiary:${tertiary};--accent-tertiary-rgb:${tertRgb.r},${tertRgb.g},${tertRgb.b};--accent-dim:rgba(${rgb.r},${rgb.g},${rgb.b},0.18);--accent-secondary-dim:rgba(${secRgb.r},${secRgb.g},${secRgb.b},0.18);--accent-tertiary-dim:rgba(${tertRgb.r},${tertRgb.g},${tertRgb.b},0.18);--accent-glow:${glowRgba};--accent-secondary-glow:${secGlow};--accent-tertiary-glow:${tertGlow};--accent-glow-lg:${glowLg};--border-accent:rgba(${rgb.r},${rgb.g},${rgb.b},0.25);--border-secondary:rgba(${secRgb.r},${secRgb.g},${secRgb.b},0.35);--border-tertiary:rgba(${tertRgb.r},${tertRgb.g},${tertRgb.b},0.35);--border-strong:rgba(${rgb.r},${rgb.g},${rgb.b},0.55);--border-custom:${border};--border-custom-rgb:${bordRgb.r},${bordRgb.g},${bordRgb.b};--border-subtle:rgba(${bordRgb.r},${bordRgb.g},${bordRgb.b},0.45);--border-panel:${border};--border-width:${bWidth};--bg-panel-custom:${surface};--bg-panel-rgb:${surfRgb.r},${surfRgb.g},${surfRgb.b};--bg-panel:rgba(${surfRgb.r},${surfRgb.g},${surfRgb.b},0.95);--bg-panel-2:rgba(${Math.min(255,surfRgb.r+7)},${Math.min(255,surfRgb.g+8)},${Math.min(255,surfRgb.b+11)},0.96);--bg-panel-3:rgba(${Math.min(255,surfRgb.r+14)},${Math.min(255,surfRgb.g+16)},${Math.min(255,surfRgb.b+22)},0.98);--bg-base:${surface};--text-primary:${textPrimary};--text-secondary:${textSecondary};--text-muted:${textMuted};--gradient-accent:linear-gradient(135deg,${accent} 0%,${secondary} 100%);--gradient-accent-h:linear-gradient(90deg,${accent} 0%,${secondary} 100%);--gradient-accent-tri:linear-gradient(90deg,${accent} 0%,${secondary} 50%,${tertiary} 100%);--font-display:${fDisplay};--font-body:${fBody};--font-input:${fInput};--font-hud:${fHud};--font-tierlist:${fTierlist};--font-weight-display:${this.fontWeightDisplay || '700'};--font-weight-body:${this.fontWeightBody || '400'};--font-weight-input:${this.fontWeightInput || '400'};--font-weight-hud:${this.fontWeightHud || '600'};--font-weight-tierlist:${this.fontWeightTierlist || '900'};`;
+      const { vars } = buildThemeTokens(this);
+      return Object.entries(vars).map(([key, val]) => `${key}:${val};`).join('');
     },
 
     get filteredThemeKits() {
@@ -1205,115 +1333,26 @@ export function registerSettingsStore(Alpine) {
 
       const appEl = document.getElementById('app');
       const rootEl = document.documentElement;
-      const rgb = this.hexToRgb(this.accentColor || DEFAULT_SETTINGS.accentColor) || { r: 0, g: 240, b: 255 };
-      const accent = this.accentColor || DEFAULT_SETTINGS.accentColor;
-      const secondary = this.secondaryColor || DEFAULT_SETTINGS.secondaryColor;
-      const secRgb = this.hexToRgb(secondary) || { r: 255, g: 0, b: 119 };
-
-      let glowRgba = this.disableGlowEffects ? 'transparent' : `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.35)`;
-      if (!this.disableGlowEffects && this.glowMode === 'custom' && this.glowColor) {
-        const glowRgb = this.hexToRgb(this.glowColor) || rgb;
-        glowRgba = `rgba(${glowRgb.r}, ${glowRgb.g}, ${glowRgb.b}, 0.45)`;
-      }
-
-      const cleanDisp = (this.fontDisplay || 'Barlow Condensed').trim().replace(/['"]/g, '');
-      const cleanBody = (this.fontBody || 'Inter Tight').trim().replace(/['"]/g, '');
-      const cleanInput = (this.fontInput || 'Inter Tight').trim().replace(/['"]/g, '');
-      const cleanHud = (this.fontHud || 'Inter Tight').trim().replace(/['"]/g, '');
-      const cleanTier = (this.fontTierlist || 'Barlow Condensed').trim().replace(/['"]/g, '');
-
-      const fDisp = `"${cleanDisp}", "Barlow Condensed", sans-serif`;
-      const fBody = `"${cleanBody}", "Inter Tight", sans-serif`;
-      const fInput = `"${cleanInput}", "Inter Tight", sans-serif`;
-      const fHud = `"${cleanHud}", "Inter Tight", sans-serif`;
-      const fTier = `"${cleanTier}", "Barlow Condensed", sans-serif`;
-
-      const targets = [appEl, rootEl].filter(Boolean);
-      const tertiary = this.tertiaryColor || DEFAULT_SETTINGS.tertiaryColor;
-      const tertRgb = this.hexToRgb(tertiary) || { r: 212, g: 175, b: 55 };
-      const surface = this.surfaceColor || DEFAULT_SETTINGS.surfaceColor;
-      const surfRgb = this.hexToRgb(surface) || { r: 10, g: 13, b: 20 };
-      const border = this.borderColor || DEFAULT_SETTINGS.borderColor;
-      const bordRgb = this.hexToRgb(border) || { r: 34, g: 42, b: 54 };
-
-      const secGlow = this.disableGlowEffects ? 'transparent' : `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.35)`;
-      const tertGlow = this.disableGlowEffects ? 'transparent' : `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.35)`;
-      const glowLg = this.disableGlowEffects ? 'transparent' : `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.12)`;
+      const targets = [appEl, rootEl, document.body].filter(Boolean);
+      const { vars, isLight } = buildThemeTokens(this);
+      const densityVal = this.density || 'normal';
+      const cornerVal = this.cornerStyle || 'rounded';
 
       targets.forEach(el => {
-        el.style.setProperty('--accent-primary', accent);
-        el.style.setProperty('--accent-primary-rgb', `${rgb.r}, ${rgb.g}, ${rgb.b}`);
-        el.style.setProperty('--accent', accent);
-        el.style.setProperty('--accent-secondary', secondary);
-        el.style.setProperty('--accent-secondary-rgb', `${secRgb.r}, ${secRgb.g}, ${secRgb.b}`);
-        el.style.setProperty('--accent-tertiary', tertiary);
-        el.style.setProperty('--accent-tertiary-rgb', `${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}`);
-        el.style.setProperty('--accent-dim', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.18)`);
-        el.style.setProperty('--accent-secondary-dim', `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.18)`);
-        el.style.setProperty('--accent-tertiary-dim', `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.18)`);
-        el.style.setProperty('--accent-glow', glowRgba);
-        el.style.setProperty('--accent-secondary-glow', secGlow);
-        el.style.setProperty('--accent-tertiary-glow', tertGlow);
-        el.style.setProperty('--accent-glow-lg', glowLg);
-        el.style.setProperty('--border-accent', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.25)`);
-        el.style.setProperty('--border-secondary', `rgba(${secRgb.r}, ${secRgb.g}, ${secRgb.b}, 0.35)`);
-        el.style.setProperty('--border-tertiary', `rgba(${tertRgb.r}, ${tertRgb.g}, ${tertRgb.b}, 0.35)`);
-        el.style.setProperty('--border-strong', `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.55)`);
-
-        // Superficie y Fondos Dinámicos
-        el.style.setProperty('--bg-panel-custom', surface);
-        el.style.setProperty('--bg-panel-rgb', `${surfRgb.r}, ${surfRgb.g}, ${surfRgb.b}`);
-        el.style.setProperty('--bg-panel', `rgba(${surfRgb.r}, ${surfRgb.g}, ${surfRgb.b}, 0.95)`);
-        el.style.setProperty('--bg-panel-2', `rgba(${Math.min(255, surfRgb.r + 7)}, ${Math.min(255, surfRgb.g + 8)}, ${Math.min(255, surfRgb.b + 11)}, 0.96)`);
-        el.style.setProperty('--bg-panel-3', `rgba(${Math.min(255, surfRgb.r + 14)}, ${Math.min(255, surfRgb.g + 16)}, ${Math.min(255, surfRgb.b + 22)}, 0.98)`);
-        el.style.setProperty('--bg-base', surface);
-
-        // Bordes y Contornos Dinámicos
-        el.style.setProperty('--border-custom', border);
-        el.style.setProperty('--border-custom-rgb', `${bordRgb.r}, ${bordRgb.g}, ${bordRgb.b}`);
-        el.style.setProperty('--border-subtle', `rgba(${bordRgb.r}, ${bordRgb.g}, ${bordRgb.b}, 0.45)`);
-        el.style.setProperty('--border-subtle-rgb', `${bordRgb.r}, ${bordRgb.g}, ${bordRgb.b}`);
-        el.style.setProperty('--border-panel', border);
-        el.style.setProperty('--border-width', `${this.borderWidth || 1}px`);
-
-        // Contraste Dinámico Automático de Superficie
-        const isLight = this.isLightSurface;
+        Object.entries(vars).forEach(([prop, val]) => {
+          el.style.setProperty(prop, val);
+        });
         el.setAttribute('data-surface-theme', isLight ? 'light' : 'dark');
         el.classList.toggle('surface-light', isLight);
-        el.style.setProperty('--text-primary', isLight ? '#0B0F19' : '#F1F5F9');
-        el.style.setProperty('--text-secondary', isLight ? 'rgba(11, 15, 25, 0.78)' : 'rgba(226, 232, 240, 0.78)');
-        el.style.setProperty('--text-muted', isLight ? 'rgba(11, 15, 25, 0.52)' : 'rgba(148, 163, 184, 0.62)');
-
-        el.style.setProperty('--gradient-accent', `linear-gradient(135deg, ${accent} 0%, ${secondary} 100%)`);
-        el.style.setProperty('--gradient-accent-h', `linear-gradient(90deg, ${accent} 0%, ${secondary} 100%)`);
-        el.style.setProperty('--gradient-accent-tri', `linear-gradient(90deg, ${accent} 0%, ${secondary} 50%, ${tertiary} 100%)`);
-
-        el.style.setProperty('--font-display', fDisp);
-        el.style.setProperty('--font-body', fBody);
-        el.style.setProperty('--font-input', fInput);
-        el.style.setProperty('--font-hud', fHud);
-        el.style.setProperty('--font-tierlist', fTier);
-
-        el.style.setProperty('--font-weight-display', this.fontWeightDisplay || '600');
-        el.style.setProperty('--font-weight-body', this.fontWeightBody || '400');
-        el.style.setProperty('--font-weight-input', this.fontWeightInput || '400');
-        el.style.setProperty('--font-weight-hud', this.fontWeightHud || '500');
-        el.style.setProperty('--font-weight-tierlist', this.fontWeightTierlist || '700');
-
-        el.setAttribute('data-density', this.density || 'normal');
-        el.setAttribute('data-corner-style', this.cornerStyle || 'rounded');
+        el.setAttribute('data-density', densityVal);
+        el.setAttribute('data-corner-style', cornerVal);
       });
 
       if (document.body) {
-        document.body.setAttribute('data-corner-style', this.cornerStyle || 'rounded');
-        if (document.documentElement) {
-          document.documentElement.setAttribute('data-corner-style', this.cornerStyle || 'rounded');
-        }
-        const densityVal = this.density || 'normal';
+        document.body.setAttribute('data-corner-style', cornerVal);
         document.body.setAttribute('data-density', densityVal);
-        if (document.documentElement) {
-          document.documentElement.setAttribute('data-density', densityVal);
-        }
+        document.body.setAttribute('data-surface-theme', isLight ? 'light' : 'dark');
+        document.body.classList.toggle('surface-light', isLight);
 
         const isH1Hidden = !!(this.hideAllIcons || this.hideIconsH1);
         const isH2Hidden = !!(this.hideAllIcons || this.hideIconsH2);
@@ -1461,30 +1500,24 @@ export function registerSettingsStore(Alpine) {
 
     isKitActive(kit) {
       if (!kit) return false;
-      if (this.kitId && this.kitId === kit.id) return true;
+      const p = kit.palette || {};
       const currentAccent = (this.accentColor || '').trim().toUpperCase();
-      const kitAccent = (kit.color || '').trim().toUpperCase();
+      const kitAccent = (kit.color || p.accent || '').trim().toUpperCase();
+      const currentSurf = (this.surfaceColor || '').trim().toUpperCase();
+      const kitSurf = (p.surface || kit.surfaceColor || '').trim().toUpperCase();
       const currentDisp = (this.fontDisplay || '').trim().toLowerCase();
-      const kitDisp = (kit.fontDisplay || '').trim().toLowerCase();
+      const kitDisp = (kit.fontDisplay || kit.font || '').trim().toLowerCase();
       const currentBody = (this.fontBody || '').trim().toLowerCase();
       const kitBody = (kit.fontBody || '').trim().toLowerCase();
-      return currentAccent === kitAccent && currentDisp === kitDisp && currentBody === kitBody;
+
+      if (this.kitId && this.kitId === kit.id) {
+        return currentAccent === kitAccent && (!kitSurf || currentSurf === kitSurf);
+      }
+      return currentAccent === kitAccent && (!kitSurf || currentSurf === kitSurf) && currentDisp === kitDisp && currentBody === kitBody;
     },
 
     hexToRgb(hex) {
-      if (!hex || typeof hex !== 'string') return null;
-      let cleanHex = hex.trim().replace(/^#/, '');
-      if (cleanHex.length === 3) {
-        cleanHex = cleanHex.split('').map(c => c + c).join('');
-      }
-      if (cleanHex.length !== 6) return null;
-      const num = parseInt(cleanHex, 16);
-      if (isNaN(num)) return null;
-      return {
-        r: (num >> 16) & 255,
-        g: (num >> 8) & 255,
-        b: num & 255
-      };
+      return parseHexRgb(hex);
     },
 
     // ── Fondo del Panel Principal (Dashboard) ───────────────────

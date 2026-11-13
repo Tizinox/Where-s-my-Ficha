@@ -57,10 +57,10 @@ export const DEFAULT_SETTINGS = {
   folderExportExpanded: true,
   bootSettingsExpanded: true,
   iconHierarchyExpanded: false,
-  fastBoot: true,
-  showSplashScreen: false,
+  fastBoot: false,
+  showSplashScreen: true,
   showSplashQuotes: true,
-  bootSound: false,
+  bootSound: true,
   bootQuotesCategory: 'roleplay', // 'all' | 'minecraft' | 'roleplay' | 'scifi'
   customBootQuotes: [],
 };
@@ -129,10 +129,10 @@ export const THEME_KITS = [
       accent: '#C8AA6E',
       secondary: '#8B7355',
       tertiary: '#94A3B8',
-      surface: '#121418',
-      border: '#2A2E37',
+      surface: '#1e1f26',
+      border: '#3d4154',
       glow: '#C8AA6E',
-      bg: '#0D0F12',
+      bg: '#181920',
       text: '#F1F5F9'
     },
     fontDisplay: 'Barlow Condensed',
