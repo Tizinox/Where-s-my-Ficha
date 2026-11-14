@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-corner-style="chamfer">
+<html lang="es" data-corner-style="rounded">
 
 <head>
   <meta charset="UTF-8" />
@@ -27,11 +27,11 @@
     })();
   </script>
   <style>
-    /* Prevención total de FOUC (Flash of Unstyled Content) */
+    /* Prevención total de FOUC con el tema base Fandom Slate */
     html,
     body {
-      background-color: #000000 !important;
-      color: #ffffff;
+      background-color: var(--wiki-bg-outer, #1e1f26) !important;
+      color: var(--wiki-text-main, #e4e4e9);
       margin: 0;
       padding: 0;
     }
@@ -652,18 +652,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" as="style"
-    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Chakra+Petch:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Chakra+Petch:wght@300;400;500;600;700&family=Inter+Tight:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap" />
   <link
-    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Chakra+Petch:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Chakra+Petch:wght@300;400;500;600;700&family=Inter+Tight:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" media="print" onload="this.media='all'" />
   <noscript>
     <link
-      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Chakra+Petch:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800;900&family=Chakra+Petch:wght@300;400;500;600;700&family=Inter+Tight:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet" />
   </noscript>
 
   <!-- Vite module entry -->
-  <script type="module" src="/src/main.js"></script>
+  <script type="module" src="/src/main.ts"></script>
 </head>
 
 <body>
@@ -750,6 +750,12 @@
      ============================================================== -->
   <div id="app" x-data x-init="$store.characters.init()" :style="$store.settings.scopedThemeStyle"
     :data-density="$store.settings.density" data-active-view="dashboard" :data-active-view="$store.app.activeView"
+    :data-sheet-type="$store.characters.active?.sheetType || 'unified'"
+    x-effect="(() => {
+      const isClassicEditor = $store.app.activeView === 'editor' && $store.characters.active?.sheetType === 'classic';
+      document.documentElement.classList.toggle('sheet-mode-classic', isClassicEditor);
+      document.body.classList.toggle('sheet-mode-classic', isClassicEditor);
+    })()"
     :data-surface-theme="$store.settings.isLightSurface ? 'light' : 'dark'"
     :class="{
       'surface-light': $store.settings.isLightSurface,
@@ -757,133 +763,11 @@
       'hide-kbd-badges': $store.settings.hideKeyboardBadges,
       'no-glow-effects': $store.settings.disableGlowEffects
     }">
-
-    <!-- Capa de Fondo Dinámico -->
-    <include src="./src/partials/dynamic-bg.html"></include>
-
-    <!-- Barra de Encabezado Superior -->
-    <include src="./src/partials/header.html"></include>
-
-    <!-- Pantalla Principal: Panel de Personajes (Fullscreen Dashboard) -->
-    <include src="./src/partials/views/dashboard.html"></include>
-
-    <!-- Pantalla Principal: Ajustes / Configuración (Fullscreen Settings) -->
-    <include src="./src/partials/views/settings.html"></include>
-
-    <!-- Pantalla Principal: Creador de Tier List (Fullscreen Tier List Maker) [EXPERIMENTAL] -->
-    <include src="./src/partials/views/tierlist.html"></include>
-
-    <!-- Barra Lateral de Pestañas (Sidebar) -->
-    <include src="./src/partials/sidebar.html"></include>
-
-    <!-- =======================================================
-       MAIN CONTENT — Contenedor y Pestañas de la Ficha
-       ======================================================= -->
-    <main id="app-content" role="main" aria-label="Contenido de la ficha" x-show="$store.app.activeView === 'editor'"
-      x-cloak>
-
-      <!-- Skeleton Screen de Ficha de Personaje -->
-      <include src="./src/partials/views/sheet-skeleton.html"></include>
-
-      <!-- Sin personaje activo -->
-      <div x-show="!$store.characters.loading && !$store.characters.active" x-cloak class="empty-state">
-        <i data-lucide="scan-face" class="w-16 h-16"></i>
-        <h2 class="font-title" style="font-size:1.8rem;color:var(--text-primary);">NINGÚN OPERATIVO ACTIVO</h2>
-        <p
-          style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-muted);max-width:260px;text-align:center;letter-spacing:0.06em;">
-          INICIALIZA UN NUEVO PERFIL PARA COMENZAR</p>
-        <button class="header-btn-accent mt-4" @click="$store.characters.createNew()">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          NUEVO OPERATIVO
-        </button>
-      </div>
-
-      <!-- Tab content dinámico -->
-      <template x-if="$store.characters.active">
-        <div id="tab-content" class="min-h-[600px] min-h-[60vh]" x-show="!$store.characters.loading && !$store.app.isSheetLoading" x-cloak>
-          <!-- Encabezado de sección -->
-          <div class="section-header-bar">
-            <template x-for="tab in $store.app.activeTabObjects" :key="tab.id">
-              <span x-show="$store.app.currentTab === tab.id">
-                <h2 class="section-title">
-                  <span :data-animate-icon="tab.icon" data-size="24" class="w-6 h-6 flex items-center justify-center shrink-0"></span>
-                  <span x-text="tab.label"></span>
-                </h2>
-              </span>
-            </template>
-            <!-- Badge del modo -->
-            <span class="mode-badge shadow-lg shadow-black/80 backdrop-blur-md"
-              :class="$store.app.editMode ? 'mode-badge-edit' : 'mode-badge-preview'"
-              x-text="$store.app.editMode ? '// EDITANDO' : '// VISTA PREVIA'"></span>
-          </div>
-
-          <!-- Pestañas Modulares del Personaje -->
-          <include src="./src/partials/tabs/tab-basics.html"></include>
-
-          <!-- Pestañas Secundarias con Renderizado Diferido Bajo Demanda (Lazy Mount) -->
-          <template x-if="$store.app.isTabVisited('body')">
-            <div class="contents"><include src="./src/partials/tabs/tab-body.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('mind')">
-            <div class="contents"><include src="./src/partials/tabs/tab-mind.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('social')">
-            <div class="contents"><include src="./src/partials/tabs/tab-social.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('beliefs')">
-            <div class="contents"><include src="./src/partials/tabs/tab-beliefs.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('priorities')">
-            <div class="contents"><include src="./src/partials/tabs/tab-priorities.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('skills')">
-            <div class="contents"><include src="./src/partials/tabs/tab-skills.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('weapons')">
-            <div class="contents"><include src="./src/partials/tabs/tab-weapons.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('power')">
-            <div class="contents"><include src="./src/partials/tabs/tab-power.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('extras')">
-            <div class="contents"><include src="./src/partials/tabs/tab-extras.html"></include></div>
-          </template>
-          <template x-if="$store.app.isTabVisited('steam')">
-            <div class="contents"><include src="./src/partials/tabs/tab-steam.html"></include></div>
-          </template>
-
-          <!-- Pestaña para Secciones Personalizadas Dinámicas -->
-          <include src="./src/partials/tabs/tab-custom.html"></include>
-
-        </div>
-      </template>
-
-    </main>
-
+    <!-- La estructura completa de la aplicación se monta desde src/ui/mountAppUi.ts -->
   </div><!-- /#app -->
 
-  <!-- ==============================================================
-     MODALES Y DIÁLOGOS DE SISTEMA
-     ============================================================== -->
-  <include src="./src/partials/modals/modal-dashboard.html"></include>
-  <include src="./src/partials/modals/modal-discord.html"></include>
-  <include src="./src/partials/modals/modal-cropper.html"></include>
-  <include src="./src/partials/modals/modal-multi-image-picker.html"></include>
-  <include src="./src/partials/modals/modal-media-notices.html"></include>
-  <include src="./src/partials/modals/modal-theme-designer.html"></include>
-  <include src="./src/partials/modals/modal-dev-console.html"></include>
-  <include src="./src/partials/modals/modal-hotkeys.html"></include>
-  <include src="./src/partials/modals/modal-factory-reset.html"></include>
-  <include src="./src/partials/modals/modal-folders.html"></include>
-  <include src="./src/partials/modals/modal-steam-cosmetics.html"></include>
-  <include src="./src/partials/modals/modal-emoji-picker.html"></include>
-  <include src="./src/partials/modals/modal-steam-emojis.html"></include>
-  <include src="./src/partials/modals/modal-json-preview.html"></include>
-  <include src="./src/partials/modals/modal-create-custom-tab.html"></include>
-  <include src="./src/partials/modals/modal-custom-block.html"></include>
-
-  <!-- Contenedor del Sistema de Notificaciones Toast -->
-  <include src="./src/partials/toasts.html"></include>
+  <!-- Contenedor modular de modales globales y notificaciones toast -->
+  <div id="modals-root" class="contents"></div>
 
 </body>
 </html>

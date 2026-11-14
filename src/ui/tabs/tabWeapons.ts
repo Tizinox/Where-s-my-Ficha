@@ -1,0 +1,1122 @@
+/**
+ * @file src/ui/tabs/tabWeapons.ts
+ */
+
+export function renderTabWeapons(): string {
+  return `<!-- =========================================================
+     PESTAÑA 8: ARMAS Y ARTEFACTOS (REDDISEÑO MODULAR DINÁMICO)
+     ========================================================= -->
+<div x-show="$store.app.currentTab === 'weapons'" class="space-y-6" data-tab-section="weapons" x-data="{
+    searchQuery: '',
+    rarityFilter: 'all',
+    tagFilter: null,
+    collapsedWeapons: {},
+    confirmDeleteWeaponId: null,
+    draggedIndex: null,
+    dragOverIndex: null,
+    isDraggingWeaponImg: null,
+    weaponUrlInputId: null,
+    weaponUrlValue: '',
+
+    init() {
+      this.loadCollapsedState();
+      this.$watch('$store.characters.activeId', () => {
+        this.loadCollapsedState();
+      });
+    },
+
+    loadCollapsedState() {
+      const charId = Alpine.store('characters')?.activeId;
+      if (!charId) return;
+      try {
+        const raw = localStorage.getItem('superficha_weapons_collapsed_' + charId);
+        this.collapsedWeapons = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        this.collapsedWeapons = {};
+      }
+    },
+
+    saveCollapsedState() {
+      const charId = Alpine.store('characters')?.activeId;
+      if (!charId) return;
+      try {
+        localStorage.setItem('superficha_weapons_collapsed_' + charId, JSON.stringify(this.collapsedWeapons));
+      } catch (e) {}
+    },
+
+    isDraggingCard: false,
+
+    isWeaponCollapsed(weapon) {
+      if (!weapon || !weapon.id) return false;
+      return Boolean(this.collapsedWeapons[weapon.id]);
+    },
+
+    toggleWeapon(weaponId) {
+      if (this.isDraggingCard) return;
+      if (!weaponId) return;
+      const next = !Boolean(this.collapsedWeapons[weaponId]);
+      this.collapsedWeapons = { ...this.collapsedWeapons, [weaponId]: next };
+      this.saveCollapsedState();
+    },
+
+    expandAll() {
+      const weapons = Alpine.store('characters')?.active?.weapons || [];
+      const map = {};
+      weapons.forEach(w => { map[w.id] = false; });
+      this.collapsedWeapons = map;
+      this.saveCollapsedState();
+      Alpine.store('app')?.toast('Todas las armas expandidas.', 'info', 1500);
+    },
+
+    collapseAll() {
+      const weapons = Alpine.store('characters')?.active?.weapons || [];
+      const map = {};
+      weapons.forEach(w => { map[w.id] = true; });
+      this.collapsedWeapons = map;
+      this.saveCollapsedState();
+      Alpine.store('app')?.toast('Todas las armas colapsadas.', 'info', 1500);
+    },
+
+    onAddWeapon() {
+      const newId = Alpine.store('characters').addWeapon();
+      if (newId) {
+        this.collapsedWeapons[newId] = false;
+        this.saveCollapsedState();
+      }
+    },
+
+    onDuplicateWeapon(weaponId) {
+      const newId = Alpine.store('characters').duplicateWeapon(weaponId);
+      if (newId) {
+        this.collapsedWeapons[newId] = false;
+        this.saveCollapsedState();
+      }
+    },
+
+    onDragStart(e, index) {
+      if (!Alpine.store('app').editMode) {
+        e.preventDefault();
+        return;
+      }
+      this.draggedIndex = index;
+      this.isDraggingCard = true;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(index));
+      const card = e.currentTarget.closest('.weapon-dossier-card');
+      if (card && e.dataTransfer.setDragImage) {
+        const rect = card.getBoundingClientRect();
+        e.dataTransfer.setDragImage(card, e.clientX - rect.left, e.clientY - rect.top);
+      }
+    },
+
+    onDragOver(e, index) {
+      if (!Alpine.store('app').editMode || this.draggedIndex === null) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      this.dragOverIndex = index;
+    },
+
+    onDrop(e, targetIndex) {
+      if (!Alpine.store('app').editMode || this.draggedIndex === null) return;
+      e.preventDefault();
+      if (this.draggedIndex !== targetIndex) {
+        Alpine.store('characters').reorderWeapons(this.draggedIndex, targetIndex);
+      }
+      this.draggedIndex = null;
+      this.dragOverIndex = null;
+    },
+
+    onDragEnd() {
+      this.draggedIndex = null;
+      this.dragOverIndex = null;
+      setTimeout(() => {
+        this.isDraggingCard = false;
+      }, 100);
+    },
+
+    addWeaponTag(weapon, event) {
+      const val = (event.target.value || '').trim();
+      if (!val) return;
+      if (!Array.isArray(weapon.tags)) weapon.tags = [];
+      const parts = val.split(',').map(s => s.trim().replace(/^#/, '')).filter(Boolean);
+      parts.forEach(p => {
+        if (!weapon.tags.includes(p)) weapon.tags.push(p);
+      });
+      event.target.value = '';
+      Alpine.store('characters').scheduleAutoSave();
+    },
+
+    removeWeaponTag(weapon, index) {
+      if (Array.isArray(weapon.tags)) {
+        weapon.tags.splice(index, 1);
+        Alpine.store('characters').scheduleAutoSave();
+      }
+    },
+
+    getLinkedSkill(weapon) {
+      if (!weapon.linkedSkillId) return null;
+      return (Alpine.store('characters').active?.skills || []).find(s => s.id === weapon.linkedSkillId) || null;
+    },
+
+    get allTags() {
+      const set = new Set();
+      const weapons = Alpine.store('characters')?.active?.weapons || [];
+      weapons.forEach(w => {
+        if (Array.isArray(w.tags)) {
+          w.tags.forEach(t => { if (t && String(t).trim()) set.add(String(t).trim()); });
+        }
+      });
+      return Array.from(set);
+    },
+
+    get filteredWeapons() {
+      let list = Alpine.store('characters')?.active?.weapons ?? [];
+      if (this.rarityFilter !== 'all') {
+        list = list.filter(w => (w.rarity || 'Común') === this.rarityFilter);
+      }
+      if (this.tagFilter) {
+        list = list.filter(w => Array.isArray(w.tags) && w.tags.includes(this.tagFilter));
+      }
+      if (this.searchQuery.trim()) {
+        const q = this.searchQuery.trim().toLowerCase();
+        list = list.filter(w =>
+          (w.name || '').toLowerCase().includes(q) ||
+          (w.weaponType || '').toLowerCase().includes(q) ||
+          (w.damage || '').toLowerCase().includes(q) ||
+          (w.properties || '').toLowerCase().includes(q) ||
+          (w.lore || '').toLowerCase().includes(q) ||
+          (w.rarity || '').toLowerCase().includes(q) ||
+          (Array.isArray(w.tags) && w.tags.some(t => String(t).toLowerCase().includes(q)))
+        );
+      }
+      return list;
+    }
+  }">
+
+  <!-- ════ TOOLBAR SUPERIOR: ENCABEZADO, CONTADOR Y ACCIONES GLOBALES ════ -->
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div class="flex items-center gap-3">
+      <div
+        class="category-header-icon-box w-9 h-9 rounded-xl bg-accent-cyan/15 border border-accent-cyan/40 flex items-center justify-center text-accent-cyan shrink-0"
+        style="box-shadow: 0 0 12px var(--accent-glow);">
+        <i data-lucide="sword" class="w-4.5 h-4.5"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h3 class="category-header-title">Arsenal y Artefactos del Personaje</h3>
+          <span class="text-xs px-2 py-0.5 rounded bg-accent-cyan/10 border border-accent-cyan/30 text-accent-cyan font-mono font-bold"
+            x-text="\`\${$store.characters.active?.weapons?.length || 0} \${($store.characters.active?.weapons?.length === 1) ? 'item' : 'items'}\`"></span>
+        </div>
+        <p class="category-header-desc">
+          Gestiona armas, reliquias arcanas, tecnología y artefactos en tarjetas horizontales de alta legibilidad.
+        </p>
+      </div>
+    </div>
+
+    <!-- Botones de Acción Global -->
+    <div class="flex items-center flex-wrap gap-2">
+      <!-- Expandir / Colapsar todo -->
+      <div x-show="($store.characters.active?.weapons?.length || 0) > 0"
+        class="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10 shadow-sm no-print">
+        <button type="button" class="text-xs py-1 px-2.5 gap-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 font-mono font-bold transition-all flex items-center cursor-pointer"
+          @click="expandAll()" title="Expandir todas las tarjetas">
+          <i data-lucide="chevrons-down-up" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Expandir todo</span>
+        </button>
+        <button type="button" class="text-xs py-1 px-2.5 gap-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 font-mono font-bold transition-all flex items-center cursor-pointer"
+          @click="collapseAll()" title="Colapsar todas las tarjetas">
+          <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Colapsar todo</span>
+        </button>
+      </div>
+
+      <!-- Botón Añadir Arma -->
+      <button x-show="$store.app.editMode" type="button"
+        class="header-btn-accent text-xs gap-1.5 no-print cursor-pointer"
+        @click="onAddWeapon()">
+        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+        <span>+ Añadir Arma / Artefacto</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ════ BARRA DE BÚSQUEDA Y FILTROS ════ -->
+  <div x-show="($store.characters.active?.weapons?.length || 0) > 0"
+    class="p-3.5 rounded-xl bg-black/40 border border-white/10 space-y-3 no-print">
+    <div class="flex items-center flex-wrap gap-2.5">
+      <!-- Buscador por texto -->
+      <div class="relative flex-1 min-w-[220px]">
+        <i data-lucide="search"
+          class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+        <input type="text" x-model="searchQuery"
+          placeholder="Buscar arma por nombre, tipo, daño, lore o etiqueta..."
+          style="padding-left: 2.25rem !important; padding-right: 2rem !important;"
+          class="form-input text-xs !pl-9 !pr-8 py-1.5 w-full bg-black/50 border-white/15 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400" />
+        <button x-show="searchQuery" type="button" @click="searchQuery = ''"
+          class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white text-xs cursor-pointer">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- Filtro por Rareza Rápido -->
+      <div class="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10 text-xs overflow-x-auto max-w-full">
+        <button type="button" class="weapon-filter-chip"
+          :class="rarityFilter === 'all' ? 'is-active' : ''"
+          :style="rarityFilter === 'all' ? \`background-color: \${$store.settings.accentColor || '#00F0FF'}; color: #000000; font-weight: 800;\` : ''"
+          @click="rarityFilter = 'all'">
+          Todas (<span x-text="($store.characters.active?.weapons || []).length"></span>)
+        </button>
+        <template x-for="r in ['Común', 'Poco Común', 'Rara', 'Épica', 'Legendaria', 'Mítica', 'Única / Artefacto']" :key="r">
+          <button type="button" class="weapon-filter-chip shrink-0 flex items-center gap-1.5"
+            :class="rarityFilter === r ? 'is-active' : ''"
+            x-show="($store.characters.active?.weapons || []).some(w => (w.rarity || 'Común') === r)"
+            @click="rarityFilter = (rarityFilter === r ? 'all' : r)">
+            <span class="w-1.5 h-1.5 rounded-full" :style="'background-color: ' + ($store.app.rarityColors?.[r] || '#9ca3af')"></span>
+            <span x-text="r"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <!-- Nube de Tags para filtrado rápido -->
+    <div x-show="allTags.length > 0"
+      class="flex items-center flex-wrap gap-1.5 pt-2 border-t border-white/10">
+      <span class="text-[11px] text-ink-slate font-medium mr-1 flex items-center gap-1">
+        <i data-lucide="tags" class="w-3 h-3 text-accent-gold"></i> Tags:
+      </span>
+      <button type="button" class="skill-tag-filter" :class="tagFilter === null ? 'active' : ''"
+        @click="tagFilter = null">
+        Todos
+      </button>
+      <template x-for="tag in allTags" :key="tag">
+        <button type="button" class="skill-tag-filter" :class="tagFilter === tag ? 'active' : ''"
+          @click="tagFilter = (tagFilter === tag ? null : tag)">
+          <span x-text="'#' + tag"></span>
+        </button>
+      </template>
+    </div>
+  </div>
+
+  <!-- ════ ESTADO VACÍO: SIN ARMAS REGISTRADAS ════ -->
+  <div x-show="!$store.characters.active?.weapons || $store.characters.active?.weapons.length === 0"
+    class="flex flex-col items-center justify-center py-16 gap-4 text-ink-slate form-card text-center">
+    <i data-lucide="sword" class="w-14 h-14 opacity-20 text-accent-gold"></i>
+    <div class="text-center space-y-1">
+      <p class="font-title text-xl text-parchment-peach/60">Sin armas ni artefactos registrados</p>
+      <p class="text-sm" x-show="$store.app.editMode">
+        Usa el botón superior para añadir un arma, objeto o artefacto a este personaje.
+      </p>
+    </div>
+    <div x-show="$store.app.editMode">
+      <button type="button" class="header-btn-accent text-xs gap-1.5" @click="onAddWeapon()">
+        <i data-lucide="plus" class="w-3.5 h-3.5"></i> + Añadir Arma / Artefacto
+      </button>
+    </div>
+  </div>
+
+  <!-- ════ ESTADO: BÚSQUEDA SIN RESULTADOS ════ -->
+  <div x-show="($store.characters.active?.weapons?.length > 0) && filteredWeapons.length === 0"
+    class="form-card text-center py-12 space-y-2">
+    <i data-lucide="search-x" class="w-8 h-8 mx-auto text-ink-slate opacity-40"></i>
+    <p class="text-sm text-ink-slate font-sans">No se encontraron armas o artefactos que coincidan con los filtros aplicados.</p>
+    <button type="button" class="header-btn-ghost text-xs mx-auto gap-1"
+      @click="searchQuery = ''; rarityFilter = 'all'; tagFilter = null">
+      <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Restablecer filtros
+    </button>
+  </div>
+
+  <!-- ════ LISTA DE TARJETAS HORIZONTALES (FULL-WIDTH) ════ -->
+  <div class="space-y-4" x-show="filteredWeapons.length > 0">
+    <template x-for="(weapon, wIndex) in filteredWeapons" :key="weapon.id">
+      <div class="weapon-dossier-card group transition-all"
+        :class="[
+          isWeaponCollapsed(weapon) ? 'is-collapsed' : 'is-expanded',
+          draggedIndex === wIndex ? 'is-dragging' : '',
+          dragOverIndex === wIndex ? 'is-drag-over' : ''
+        ]"
+        :style="'--weapon-glow-color: ' + $store.app.hexToRgba($store.app.getWeaponRarityColor(weapon), 0.4) + '; border-left-color: ' + $store.app.getWeaponRarityColor(weapon) + '; border-color: ' + $store.app.hexToRgba($store.app.getWeaponRarityColor(weapon), 0.35) + ';'"
+        @dragover="onDragOver($event, wIndex)"
+        @drop="onDrop($event, wIndex)"
+        @dragend="onDragEnd()">
+
+        <!-- ════ CABECERA DE LA TARJETA (BARRA HORIZONTAL COMPACTA - ZONA EXCLUSIVA DE ARRASTRE) ════ -->
+        <div class="weapon-card-header flex items-center justify-between gap-3 select-none cursor-pointer"
+          :draggable="$store.app.editMode"
+          @dragstart="onDragStart($event, wIndex)"
+          @click="toggleWeapon(weapon.id)">
+
+          <!-- Lado Izquierdo: Handle Drag + Miniatura + Título + Badges + Resumen Stats -->
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <!-- Asa Drag y Drop (Modo Edición) -->
+            <div x-show="$store.app.editMode" class="weapon-drag-handle p-1 shrink-0 cursor-grab active:cursor-grabbing"
+              title="Arrastrar para reordenar" @click.stop>
+              <svg class="w-4 h-4 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/>
+                <circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/>
+              </svg>
+            </div>
+
+            <!-- Miniatura Thumbnail Adaptable con Glow de Rareza -->
+            <div class="weapon-thumb-mini overflow-hidden border bg-black/80 flex items-center justify-center shrink-0 shadow-md transition-transform hover:scale-105 relative"
+              draggable="false"
+              :class="{
+                'is-vertical': weapon.imageOrientation === 'vertical',
+                'is-tall': weapon.imageOrientation === 'tall',
+                'is-square': weapon.imageOrientation === 'square'
+              }"
+              :style="'border-color: ' + $store.app.getWeaponRarityColor(weapon)"
+              @click.stop="weapon.imageDataUrl ? $store.app.openLightbox(weapon.imageDataUrl) : null"
+              :title="weapon.imageDataUrl ? 'Clic para ver en pantalla completa' : 'Sin imagen'">
+              
+              <div x-show="weapon.imageDataUrl" class="w-full h-full relative">
+                <img :src="weapon.imageDataUrl" class="thumb-blur-backdrop" alt="" />
+                <img :src="weapon.imageDataUrl" alt="" class="relative z-10 w-full h-full object-center"
+                  :style="weapon.imageTransform || ''"
+                  :class="(weapon.imageFit || 'cover') === 'contain' ? 'fit-contain' : 'fit-cover'" />
+              </div>
+
+              <div x-show="!weapon.imageDataUrl"
+                class="flex items-center justify-center w-full h-full text-accent-gold/60 pointer-events-none">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
+                  <line x1="13" x2="19" y1="19" y2="13"/>
+                  <line x1="16" x2="20" y1="16" y2="20"/>
+                  <line x1="19" x2="21" y1="21" y2="19"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Textos y Badges del Header -->
+            <div class="min-w-0 flex-1 space-y-0.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h4 class="font-title text-base font-bold text-parchment-peach truncate"
+                  x-text="weapon.name || 'Arma / Artefacto sin nombre'"></h4>
+
+                <!-- Badge de Rareza con Color Dinámico -->
+                <span class="weapon-rarity-badge shrink-0"
+                  :style="'color: ' + $store.app.getWeaponRarityColor(weapon) + '; border-color: ' + $store.app.hexToRgba($store.app.getWeaponRarityColor(weapon), 0.6) + '; background-color: ' + $store.app.hexToRgba($store.app.getWeaponRarityColor(weapon), 0.15)">
+                  <span class="w-1.5 h-1.5 rounded-full" :style="'background-color: ' + $store.app.getWeaponRarityColor(weapon)"></span>
+                  <span x-text="weapon.rarity || 'Común'"></span>
+                </span>
+
+                <!-- Badge de Tipo de Arma -->
+                <template x-if="weapon.weaponType && String(weapon.weaponType).trim()">
+                  <span class="text-[11px] px-2 py-0.5 rounded border border-parchment-brown/40 text-ink-sage bg-parchment-brown/10 shrink-0 truncate max-w-[170px]"
+                    x-text="weapon.weaponType"></span>
+                </template>
+
+                <!-- Badge de Habilidad Vinculada -->
+                <template x-if="weapon.linkedSkillId && getLinkedSkill(weapon)">
+                  <span class="inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded border border-accent-gold/40 text-accent-gold bg-accent-gold/10 font-medium shrink-0 truncate max-w-[190px]"
+                    :title="'Vinculada a: ' + (getLinkedSkill(weapon)?.title || 'Habilidad')">
+                    <svg class="w-3 h-3 text-accent-gold pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                    <span class="truncate" x-text="getLinkedSkill(weapon)?.title || 'Habilidad'"></span>
+                  </span>
+                </template>
+              </div>
+
+              <!-- Resumen compacto cuando está colapsada -->
+              <div x-show="isWeaponCollapsed(weapon)" class="space-y-0.5">
+                <p class="text-xs text-ink-slate truncate italic font-sans"
+                  x-text="(weapon.damage ? 'Daño: ' + weapon.damage : '') + (weapon.damage && weapon.range ? ' • ' : '') + (weapon.range ? 'Alcance: ' + weapon.range : '') || weapon.lore || 'Sin estadísticas especificadas...'"></p>
+
+                <!-- Chips de Tags en Header Colapsado -->
+                <div x-show="Array.isArray(weapon.tags) && weapon.tags.length > 0"
+                  class="flex items-center flex-wrap gap-1 pt-0.5">
+                  <template x-for="t in (weapon.tags || [])" :key="t">
+                    <span class="text-[10px] px-1.5 py-0.2 rounded bg-parchment-brown/20 text-ink-slate font-sans"
+                      x-text="'#' + t"></span>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lado Derecho: Reordenar + Duplicar + Borrar + Chevron Colapsar -->
+          <div class="flex items-center gap-1.5 shrink-0" @click.stop draggable="false">
+            <!-- Flechas de Reordenamiento Rápido (Modo Edición) -->
+            <template x-if="$store.app.editMode && ($store.characters.active?.weapons?.length || 0) > 1">
+              <div class="flex items-center gap-0.5 bg-black/40 border border-white/10 rounded p-0.5 no-print">
+                <button type="button"
+                  class="p-1 rounded text-ink-slate hover:text-accent-gold hover:bg-white/10 transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                  :disabled="wIndex === 0"
+                  @click.stop="$store.characters.reorderWeapons(wIndex, wIndex - 1)"
+                  title="Mover arriba">
+                  <svg class="w-3.5 h-3.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>
+                  </svg>
+                </button>
+                <button type="button"
+                  class="p-1 rounded text-ink-slate hover:text-accent-gold hover:bg-white/10 transition-colors disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                  :disabled="wIndex === ($store.characters.active?.weapons?.length || 1) - 1"
+                  @click.stop="$store.characters.reorderWeapons(wIndex, wIndex + 1)"
+                  title="Mover abajo">
+                  <svg class="w-3.5 h-3.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>
+                  </svg>
+                </button>
+              </div>
+            </template>
+
+            <!-- Botón Duplicar (Modo Edición) -->
+            <button x-show="$store.app.editMode" type="button"
+              class="header-btn-ghost p-1.5 rounded hover:text-accent-gold transition-colors cursor-pointer"
+              @click.stop="onDuplicateWeapon(weapon.id)" title="Duplicar arma / artefacto">
+              <svg class="w-3.5 h-3.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+              </svg>
+            </button>
+
+            <!-- Botón Eliminar con Confirmación Visible -->
+            <div x-show="$store.app.editMode" class="relative">
+              <template x-if="confirmDeleteWeaponId !== weapon.id">
+                <button type="button"
+                  class="header-btn-ghost p-1.5 rounded text-ink-slate hover:text-accent-ruby hover:bg-accent-ruby/15 transition-colors cursor-pointer"
+                  @click.stop="confirmDeleteWeaponId = weapon.id" title="Eliminar arma">
+                  <svg class="w-3.5 h-3.5 text-accent-ruby pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    <line x1="10" x2="10" y1="11" y2="17"/>
+                    <line x1="14" x2="14" y1="11" y2="17"/>
+                  </svg>
+                </button>
+              </template>
+
+              <template x-if="confirmDeleteWeaponId === weapon.id">
+                <div class="skill-delete-confirm" @click.stop>
+                  <span class="font-bold">¿Borrar?</span>
+                  <button type="button"
+                    class="px-1.5 py-0.5 rounded bg-accent-ruby text-white font-semibold text-[11px] hover:bg-red-600 cursor-pointer"
+                    @click.stop="$store.characters.removeWeapon(weapon.id); confirmDeleteWeaponId = null">
+                    Sí
+                  </button>
+                  <button type="button"
+                    class="px-1.5 py-0.5 rounded bg-white/10 text-parchment-cream text-[11px] hover:bg-white/20 cursor-pointer"
+                    @click.stop="confirmDeleteWeaponId = null">
+                    No
+                  </button>
+                </div>
+              </template>
+            </div>
+
+            <!-- Chevron Colapsar / Expandir -->
+            <button type="button"
+              class="header-btn-ghost p-1.5 rounded text-ink-slate hover:text-parchment-cream cursor-pointer"
+              @click.stop="toggleWeapon(weapon.id)"
+              :title="isWeaponCollapsed(weapon) ? 'Expandir arma' : 'Colapsar arma'">
+              <svg x-show="isWeaponCollapsed(weapon)" class="w-4 h-4 text-accent-gold pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m6 9 6 6 6-6"/>
+              </svg>
+              <svg x-show="!isWeaponCollapsed(weapon)" class="w-4 h-4 text-accent-gold pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m18 15-6-6-6 6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ════ CUERPO EXPANDIDO DE LA TARJETA (HORIZONTAL EN 2 COLUMNAS) ════ -->
+        <div x-show="!isWeaponCollapsed(weapon)" x-collapse x-cloak class="mt-4 pt-4 border-t border-white/10">
+
+          <!-- ──── MODO EDICIÓN ──── -->
+          <template x-if="$store.app.editMode">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+              <!-- ══════════════════════════════════════════════════
+                   COLUMNA IZQUIERDA (VISUAL, RAREZA, HABILIDAD y TAGS)
+                   4 Columnas de 12 en monitores grandes
+                   ══════════════════════════════════════════════════ -->
+              <div class="lg:col-span-4 space-y-4">
+
+                <!-- 1. Visor Multimedia con Soporte Horizontal y Vertical -->
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="form-label mb-0 flex items-center gap-1.5">
+                      <i data-lucide="image" class="w-3.5 h-3.5 text-accent-gold"></i>
+                      <span>Demostración Visual</span>
+                      <span class="normal-case opacity-60 text-xs"
+                        x-text="weapon.imageOrientation === 'vertical' ? '(3:4 Vertical)' : (weapon.imageOrientation === 'tall' ? '(9:16 Alargado)' : (weapon.imageOrientation === 'square' ? '(1:1 Cuadrado)' : '(16:9 Horizontal)'))"></span>
+                    </label>
+                    <span x-show="weapon.imageDataUrl" class="text-[10px] text-accent-cyan font-mono cursor-pointer hover:underline flex items-center gap-1"
+                      @click="$store.app.openLightbox(weapon.imageDataUrl)">
+                      <i data-lucide="maximize-2" class="w-3 h-3"></i>
+                      <span>Ampliar [Lightbox]</span>
+                    </span>
+                  </div>
+
+                  <!-- Frame Adaptable Horizontal y Vertical con Drag y Drop Activo -->
+                  <div class="weapon-media-frame relative group overflow-hidden transition-all duration-200"
+                    :style="'border-color: ' + $store.app.getWeaponRarityColor(weapon)"
+                    :class="{
+                      'is-vertical': weapon.imageOrientation === 'vertical',
+                      'is-tall': weapon.imageOrientation === 'tall',
+                      'is-square': weapon.imageOrientation === 'square',
+                      'ring-2 ring-accent-gold shadow-lg shadow-accent-gold/20 scale-[1.01]': isDraggingWeaponImg === weapon.id
+                    }"
+                    @dragover.prevent="isDraggingWeaponImg = weapon.id"
+                    @dragleave.prevent="if (isDraggingWeaponImg === weapon.id) isDraggingWeaponImg = null"
+                    @drop.prevent="
+                      isDraggingWeaponImg = null;
+                      const f = $event.dataTransfer?.files?.[0];
+                      if (f && f.type.startsWith('image/')) {
+                        $store.app.openCropper(f, 'weapon', weapon.id);
+                      } else {
+                        $store.app.toast('Arrastra un archivo de imagen o GIF válido.', 'warning');
+                      }
+                    ">
+
+                    <!-- Con Imagen Cargada -->
+                    <div x-show="weapon.imageDataUrl" class="w-full h-full relative cursor-pointer"
+                      @click="$store.app.openLightbox(weapon.imageDataUrl)">
+                      <img :src="weapon.imageDataUrl" class="thumb-blur-backdrop" alt="" />
+                      <img :src="weapon.imageDataUrl" alt="Imagen del arma"
+                        class="relative z-10 w-full h-full object-center transition-transform duration-200"
+                        :style="weapon.imageTransform || ''"
+                        :class="(weapon.imageFit || 'cover') === 'contain' ? 'fit-contain' : 'fit-cover'" />
+
+                      <!-- Overlay sutil con indicador Lightbox -->
+                      <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center pointer-events-none">
+                        <span class="px-2.5 py-1 rounded-lg bg-black/75 border border-white/20 text-white font-hud text-[11px] tracking-wider uppercase flex items-center gap-1.5 shadow-lg">
+                          <i data-lucide="zoom-in" class="w-3.5 h-3.5 text-accent-gold"></i>
+                          <span>Ver en Lightbox</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Sin Imagen: Placeholder con Drag y Drop -->
+                    <div x-show="!weapon.imageDataUrl"
+                      class="flex flex-col items-center justify-center w-full h-full p-4 text-center space-y-2 select-none min-h-[140px]">
+                      <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-accent-gold/60 transition-transform group-hover:scale-110">
+                        <i data-lucide="sword" class="w-5 h-5"></i>
+                      </div>
+                      <span class="font-hud text-[11px] font-bold text-white/80 uppercase tracking-wider">
+                        Arrastra una imagen o GIF aquí
+                      </span>
+                      <span class="text-[9px] text-ink-slate font-mono">
+                        Horizontal o Vertical · JPG, PNG, GIF, WebP
+                      </span>
+                    </div>
+
+                    <!-- Indicador visual flotante de DragOver -->
+                    <div x-show="isDraggingWeaponImg === weapon.id"
+                      class="absolute inset-0 bg-accent-gold/20 backdrop-blur-[2px] z-30 flex items-center justify-center border-2 border-dashed border-accent-gold rounded-[inherit]">
+                      <span class="px-3 py-1.5 rounded-lg bg-black/90 text-accent-gold font-hud text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-xl">
+                        <i data-lucide="download" class="w-4 h-4 animate-bounce"></i>
+                        <span>Soltar para Recortar</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Micro-Herramientas (Formato, Recortar, Rotar, Espejo, Ajuste, Quitar) -->
+                  <div x-show="weapon.imageDataUrl" class="flex items-center justify-center gap-1.5 flex-wrap pt-1">
+                    <!-- Alternar Formato Horizontal / Vertical -->
+                    <button type="button" class="visual-tool-btn" @click="$store.characters.toggleWeaponImageOrientation(weapon.id)"
+                      :title="'Formato actual: ' + ((weapon.imageOrientation === 'vertical' || weapon.imageOrientation === 'tall') ? 'Vertical' : 'Horizontal') + '. Clic para alternar formato'">
+                      <svg x-show="weapon.imageOrientation === 'vertical' || weapon.imageOrientation === 'tall'" class="w-3.5 h-3.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="18" height="12" x="3" y="6" rx="2"/>
+                      </svg>
+                      <svg x-show="!weapon.imageOrientation || weapon.imageOrientation === 'horizontal' || weapon.imageOrientation === 'square'" class="w-3.5 h-3.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="12" height="18" x="6" y="3" rx="2"/>
+                      </svg>
+                      <span x-text="(weapon.imageOrientation === 'vertical' || weapon.imageOrientation === 'tall') ? 'Vertical' : 'Horizontal'"></span>
+                    </button>
+
+                    <!-- Recortar / Re-encuadrar -->
+                    <button type="button" class="visual-tool-btn" @click="$store.characters.reCropWeaponImage(weapon.id)"
+                      title="Ajustar recorte y encuadre">
+                      <i data-lucide="crop" class="w-3.5 h-3.5"></i>
+                      <span>Recortar</span>
+                    </button>
+
+                    <!-- Rotar 90° -->
+                    <button type="button" class="visual-tool-btn" @click="$store.characters.rotateWeaponImage(weapon.id)"
+                      title="Rotar 90 grados en sentido horario">
+                      <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                      <span>Rotar</span>
+                    </button>
+
+                    <!-- Efecto Espejo -->
+                    <button type="button" class="visual-tool-btn" @click="$store.characters.flipWeaponImage(weapon.id)"
+                      title="Voltear horizontalmente (Efecto Espejo)">
+                      <i data-lucide="flip-horizontal" class="w-3.5 h-3.5"></i>
+                      <span>Espejo</span>
+                    </button>
+
+                    <!-- Modo de Ajuste (Cover / Contain) -->
+                    <button type="button" class="visual-tool-btn" @click="$store.characters.toggleWeaponImageFit(weapon.id)"
+                      :title="(weapon.imageFit || 'cover') === 'cover' ? 'Modo actual: Rellenar. Clic para Encajar' : 'Modo actual: Encajar. Clic para Rellenar'">
+                      <i :data-lucide="(weapon.imageFit || 'cover') === 'cover' ? 'minimize-2' : 'maximize-2'" class="w-3.5 h-3.5"></i>
+                      <span x-text="(weapon.imageFit || 'cover') === 'cover' ? 'Encajar' : 'Rellenar'"></span>
+                    </button>
+
+                    <!-- Eliminar Imagen -->
+                    <button type="button" class="visual-tool-btn danger" @click="$store.characters.removeWeaponImage(weapon.id)"
+                      title="Eliminar imagen del arma">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                      <span>Quitar</span>
+                    </button>
+                  </div>
+
+                  <!-- Botones de Carga: Archivo Local + Enlace URL -->
+                  <div class="grid grid-cols-2 gap-2 w-full pt-1">
+                    <!-- Botón Subir Archivo Local -->
+                    <label class="chamfer-btn-primary w-full cursor-pointer select-none text-xs py-1.5">
+                      <i data-lucide="upload" class="w-3.5 h-3.5 shrink-0"></i>
+                      <span class="truncate" x-text="weapon.imageDataUrl ? 'CAMBIAR' : 'SUBIR ARCHIVO'"></span>
+                      <input type="file" accept="image/*,image/gif" class="hidden"
+                        @change="$store.characters.uploadWeaponImage($event, weapon.id)" />
+                    </label>
+
+                    <!-- Botón Alternar Carga por URL -->
+                    <button type="button" class="chamfer-btn-outline w-full cursor-pointer select-none text-xs py-1.5"
+                      :class="{ 'is-active': weaponUrlInputId === weapon.id }"
+                      @click="weaponUrlInputId = weaponUrlInputId === weapon.id ? null : weapon.id; weaponUrlValue = '';">
+                      <i data-lucide="link" class="w-3.5 h-3.5 shrink-0"></i>
+                      <span>DESDE URL</span>
+                    </button>
+                  </div>
+
+                  <!-- Input Desplegable de Carga por URL -->
+                  <div x-show="weaponUrlInputId === weapon.id" x-transition
+                    class="p-2.5 rounded-xl bg-black/85 border border-accent-gold/40 space-y-2">
+                    <label class="text-[10px] font-mono text-accent-gold uppercase tracking-wider flex items-center gap-1">
+                      <i data-lucide="globe" class="w-3 h-3"></i> Enlace Web (Pinterest, ArtStation, Imgur, etc.)
+                    </label>
+                    <div class="flex items-center gap-1.5">
+                      <input type="url" class="form-input text-xs py-1.5 flex-1"
+                        placeholder="https://... (enlace directo o galería)"
+                        x-model="weaponUrlValue"
+                        @keydown.enter.prevent="
+                          if (weaponUrlValue.trim()) {
+                            $store.characters.loadWeaponImageFromUrl(weaponUrlValue.trim(), weapon.id);
+                            weaponUrlValue = '';
+                            weaponUrlInputId = null;
+                          }
+                        " />
+                      <button type="button"
+                        class="px-3 py-1.5 bg-accent-gold text-black font-hud text-xs font-bold uppercase rounded-lg hover:bg-accent-gold/80 transition-colors cursor-pointer"
+                        @click="
+                          if (weaponUrlValue.trim()) {
+                            $store.characters.loadWeaponImageFromUrl(weaponUrlValue.trim(), weapon.id);
+                            weaponUrlValue = '';
+                            weaponUrlInputId = null;
+                          }
+                        ">
+                        Cargar
+                      </button>
+                      <button type="button" class="p-1.5 text-ink-slate hover:text-white cursor-pointer"
+                        @click="weaponUrlInputId = null">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 2. Rareza y Color de Aura -->
+                <div class="p-3.5 rounded bg-black/40 border border-white/10 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <label class="form-label mb-0 flex items-center gap-1.5">
+                      <i data-lucide="gem" class="w-3.5 h-3.5 text-accent-gold"></i>
+                      <span>Rareza del Objeto</span>
+                    </label>
+                    <span class="w-3 h-3 rounded-full border border-white/30 shrink-0 inline-block shadow-sm" data-protect-circle data-protect-radius
+                      :style="'background-color: ' + $store.app.getWeaponRarityColor(weapon)"
+                      :title="'Color de aura: ' + $store.app.getWeaponRarityColor(weapon)"></span>
+                  </div>
+
+                  <!-- Dropdown de Rarezas -->
+                  <select class="form-select text-xs py-1.5"
+                    :value="['Común', 'Poco Común', 'Rara', 'Épica', 'Legendaria', 'Mítica', 'Única / Artefacto'].includes(weapon.rarity) ? weapon.rarity : 'Personalizado'"
+                    @change="
+                      if ($event.target.value !== 'Personalizado') {
+                        weapon.rarity = $event.target.value;
+                      } else if (['Común', 'Poco Común', 'Rara', 'Épica', 'Legendaria', 'Mítica', 'Única / Artefacto'].includes(weapon.rarity)) {
+                        weapon.rarity = '';
+                      }
+                      $store.characters.scheduleAutoSave();
+                    ">
+                    <option value="Común">Común</option>
+                    <option value="Poco Común">Poco Común</option>
+                    <option value="Rara">Rara</option>
+                    <option value="Épica">Épica</option>
+                    <option value="Legendaria">Legendaria</option>
+                    <option value="Mítica">Mítica</option>
+                    <option value="Única / Artefacto">Única / Artefacto</option>
+                    <option value="Personalizado">Personalizado...</option>
+                  </select>
+
+                  <div x-show="!['Común', 'Poco Común', 'Rara', 'Épica', 'Legendaria', 'Mítica', 'Única / Artefacto'].includes(weapon.rarity)">
+                    <input type="text" class="form-input text-xs py-1" x-model="weapon.rarity"
+                      @input="$store.characters.scheduleAutoSave()"
+                      placeholder="" />
+                  </div>
+
+                  <!-- Color de Borde Personalizado -->
+                  <div class="pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+                    <span class="text-xs text-ink-slate font-sans flex items-center gap-1">
+                      <i data-lucide="palette" class="w-3 h-3 text-ink-teal"></i>
+                      <span>Color Aura:</span>
+                    </span>
+                    <div class="flex items-center gap-2">
+                      <button type="button" x-show="weapon.rarityColor"
+                        @click="weapon.rarityColor = ''; $store.characters.scheduleAutoSave()"
+                        class="text-[10px] text-accent-ruby hover:underline cursor-pointer"
+                        title="Restablecer a Auto">
+                        Auto
+                      </button>
+                      <input type="color" :value="$store.app.getWeaponRarityColor(weapon)"
+                        @input="weapon.rarityColor = $event.target.value; $store.characters.scheduleAutoSave()"
+                        class="w-7 h-7 p-0.5 border border-white/20 rounded cursor-pointer bg-black/50 shrink-0 shadow transition-transform hover:scale-105"
+                        title="Personalizar color">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 3. Habilidad Vinculada -->
+                <div class="p-3.5 rounded bg-black/40 border border-white/10 space-y-2.5">
+                  <label class="form-label mb-0 flex items-center gap-1.5">
+                    <i data-lucide="zap" class="w-3.5 h-3.5 text-accent-gold"></i>
+                    <span>Habilidad Vinculada</span>
+                  </label>
+                  <select class="form-select text-xs py-1.5" x-model="weapon.linkedSkillId"
+                    @change="$store.characters.scheduleAutoSave()">
+                    <option value="">— Ninguna (Sin vincular) —</option>
+                    <template x-for="sk in ($store.characters.active?.skills || [])" :key="sk.id">
+                      <option :value="sk.id"
+                        x-text="\`\${sk.title || 'Habilidad sin nombre'} (\${sk.type === 'active' ? 'Activa' : 'Pasiva'})\`">
+                      </option>
+                    </template>
+                  </select>
+
+                  <!-- Preview si hay habilidad vinculada -->
+                  <template x-if="weapon.linkedSkillId && getLinkedSkill(weapon)">
+                    <div class="p-2.5 rounded bg-accent-gold/10 border border-accent-gold/30 flex items-center justify-between gap-2 text-xs">
+                      <div class="min-w-0 flex-1">
+                        <span class="font-bold text-accent-gold truncate block"
+                          x-text="getLinkedSkill(weapon).title || 'Habilidad'"></span>
+                        <span class="text-[10px] text-ink-slate truncate block"
+                          x-text="getLinkedSkill(weapon).summary || getLinkedSkill(weapon).effect || 'Sin descripción'"></span>
+                      </div>
+                      <button type="button" @click="$store.app.currentTab = 'skills'"
+                        class="p-1 text-accent-gold hover:text-white cursor-pointer shrink-0"
+                        title="Ir a Habilidades">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                      </button>
+                    </div>
+                  </template>
+                </div>
+
+                <!-- 4. Etiquetas / Tags -->
+                <div>
+                  <label class="form-label mb-1.5 flex items-center gap-1.5">
+                    <i data-lucide="tags" class="w-3.5 h-3.5 text-accent-gold"></i>
+                    <span>Etiquetas</span>
+                    <span class="normal-case opacity-60 text-xs">(Enter para añadir)</span>
+                  </label>
+                  <div class="form-input flex items-center flex-wrap gap-1.5 p-2 min-h-[42px] bg-black/30">
+                    <template x-for="(t, tIndex) in (weapon.tags ?? [])" :key="tIndex">
+                      <span class="weapon-tag-chip">
+                        <span x-text="'#' + t"></span>
+                        <button type="button" class="weapon-tag-chip-remove"
+                          @click="removeWeaponTag(weapon, tIndex)" title="Quitar tag">
+                          <svg class="w-2.5 h-2.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 6 6 18"></path>
+                            <path d="m6 6 12 12"></path>
+                          </svg>
+                        </button>
+                      </span>
+                    </template>
+                    <input type="text" class="weapon-tag-input text-xs" placeholder=""
+                      @keydown.enter.prevent="addWeaponTag(weapon, $event)"
+                      @blur="addWeaponTag(weapon, $event)" />
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- ══════════════════════════════════════════════════
+                   COLUMNA DERECHA (IDENTIDAD, COMBATE, PASIVAS Y LORE)
+                   8 Columnas de 12 en monitores grandes
+                   ══════════════════════════════════════════════════ -->
+              <div class="lg:col-span-8 space-y-4">
+
+                <!-- Fila 1: Nombre del Arma y Tipo / Categoría -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <div class="md:col-span-7">
+                    <div class="flex items-center justify-between gap-1 mb-1.5 min-h-[1.4rem]">
+                      <label class="form-label mb-0 flex items-center gap-1.5">
+                        <i data-lucide="tag" class="w-3.5 h-3.5 text-accent-gold"></i>
+                        <span>Nombre del Arma / Artefacto</span>
+                      </label>
+                      <span class="text-xs font-mono text-ink-slate shrink-0"
+                        :class="(weapon.name || '').length > 60 ? 'text-accent-ruby font-bold' : ''"
+                        x-text="\`\${(weapon.name || '').length}/60\`"></span>
+                    </div>
+                    <input type="text" class="form-input text-sm font-semibold" maxlength="60"
+                      x-model="weapon.name" @input="$store.characters.scheduleAutoSave()"
+                      placeholder="" />
+                  </div>
+
+                  <div class="md:col-span-5">
+                    <div class="flex items-center justify-between gap-1 mb-1.5 min-h-[1.4rem]">
+                      <label class="form-label mb-0 flex items-center gap-1.5">
+                        <i data-lucide="layers" class="w-3.5 h-3.5 text-accent-cyan"></i>
+                        <span>Tipo / Categoría de Objeto</span>
+                      </label>
+                    </div>
+                    <input type="text" class="form-input text-sm" x-model="weapon.weaponType"
+                      @input="$store.characters.scheduleAutoSave()"
+                      placeholder="" />
+                  </div>
+                </div>
+
+                <!-- Fila 2: Módulo de Combate (HUD) -->
+                <div class="weapon-combat-module space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold uppercase tracking-wider text-accent-gold flex items-center gap-1.5">
+                      <i data-lucide="swords" class="w-4 h-4 text-accent-gold"></i>
+                      Parámetros y Estadísticas de Combate
+                    </span>
+                    <span class="text-[10px] text-ink-slate/80 font-mono hidden sm:inline-block">
+                      Admite saltos de línea (Shift+Enter)
+                    </span>
+                  </div>
+
+                  <!-- Daño / Efecto Principal Multilínea -->
+                  <div class="weapon-damage-box">
+                    <div class="flex items-center justify-between mb-1">
+                      <div class="weapon-stat-tile-label text-accent-gold/90 mb-0">
+                        <i data-lucide="swords" class="w-3.5 h-3.5 text-accent-gold"></i>
+                        <span>Daño / Efecto Principal</span>
+                      </div>
+                      <span class="text-[10px] text-accent-gold/60 font-mono">
+                        Explicaciones y efectos de combate
+                      </span>
+                    </div>
+                    <textarea class="weapon-damage-textarea" x-model="weapon.damage"
+                      @input="$store.characters.scheduleAutoSave()"
+                      placeholder=""
+                      rows="2"></textarea>
+                  </div>
+
+                  <!-- 3 Métricas en una Fila Compacta -->
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <!-- Alcance / Rango -->
+                    <div class="weapon-stat-tile">
+                      <div class="weapon-stat-tile-label text-accent-cyan/90">
+                        <i data-lucide="target" class="w-3.5 h-3.5 text-accent-cyan"></i>
+                        <span>Alcance / Rango</span>
+                      </div>
+                      <input type="text" class="weapon-stat-tile-input" x-model="weapon.range"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder="" />
+                    </div>
+
+                    <!-- CD (Enfriamiento) -->
+                    <div class="weapon-stat-tile">
+                      <div class="weapon-stat-tile-label text-sky-400">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 text-sky-400"></i>
+                        <span>CD (Enfriamiento)</span>
+                      </div>
+                      <input type="text" class="weapon-stat-tile-input" x-model="weapon.cd"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder="" />
+                    </div>
+
+                    <!-- TD (Duración) -->
+                    <div class="weapon-stat-tile">
+                      <div class="weapon-stat-tile-label text-purple-400">
+                        <i data-lucide="clock" class="w-3.5 h-3.5 text-purple-400"></i>
+                        <span>TD (Duración)</span>
+                      </div>
+                      <input type="text" class="weapon-stat-tile-input" x-model="weapon.td"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder="" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Fila 3: Propiedades Únicas y Pasivas del Arma -->
+                <div>
+                  <label class="form-label mb-1.5 flex items-center gap-1.5">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-ink-teal"></i>
+                    <span>Propiedades Únicas y Pasivas</span>
+                  </label>
+                  <input type="text" class="form-input text-sm" x-model="weapon.properties"
+                    @input="$store.characters.scheduleAutoSave()"
+                    placeholder="" />
+                </div>
+
+                <!-- Fila 4: Historia / Trasfondo del Artefacto -->
+                <div>
+                  <label class="form-label mb-1.5 flex items-center gap-1.5">
+                    <i data-lucide="book-open" class="w-3.5 h-3.5 text-parchment-cream"></i>
+                    <span>Descripción / Historia del Arma o Artefacto</span>
+                  </label>
+                  <textarea class="form-textarea min-h-[90px]" x-model="weapon.lore"
+                    @input="$store.characters.scheduleAutoSave()"
+                    placeholder=""></textarea>
+                </div>
+
+              </div>
+
+            </div>
+          </template>
+
+          <!-- ──── MODO LECTURA / VISTA PREVIA / HUD FINAL ──── -->
+          <template x-if="!$store.app.editMode">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+              <!-- Columna Izquierda Lectura: Gran Imagen 16:9 + Badges -->
+              <div class="lg:col-span-4 space-y-3">
+                <template x-if="weapon.imageDataUrl">
+                  <div class="weapon-media-frame cursor-pointer"
+                    :style="'border-color: ' + $store.app.getWeaponRarityColor(weapon)"
+                    :class="{
+                      'is-vertical': weapon.imageOrientation === 'vertical',
+                      'is-tall': weapon.imageOrientation === 'tall',
+                      'is-square': weapon.imageOrientation === 'square'
+                    }"
+                    @click="$store.app.openLightbox(weapon.imageDataUrl)"
+                    title="Clic para ampliar imagen">
+                    <img :src="weapon.imageDataUrl" class="thumb-blur-backdrop" alt="" />
+                    <img :src="weapon.imageDataUrl" alt="Imagen del arma"
+                      class="relative z-10 w-full h-full object-center"
+                      :style="weapon.imageTransform || ''"
+                      :class="(weapon.imageFit || 'cover') === 'contain' ? 'fit-contain' : 'fit-cover'" />
+                  </div>
+                </template>
+
+                <!-- Badges de Clasificación -->
+                <div class="p-3 rounded bg-black/40 border border-white/10 space-y-2">
+                  <div class="flex items-center justify-between flex-wrap gap-2">
+                    <span class="weapon-rarity-badge shadow-sm"
+                      :style="'color: ' + $store.app.getWeaponRarityColor(weapon) + '; border-color: ' + $store.app.hexToRgba($store.app.getWeaponRarityColor(weapon), 0.6) + '; background-color: ' + $store.app.hexToRgba($store.app.getWeaponRarityColor(weapon), 0.15)">
+                      <span class="w-1.5 h-1.5 rounded-full" :style="'background-color: ' + $store.app.getWeaponRarityColor(weapon)"></span>
+                      <span x-text="weapon.rarity || 'Común'"></span>
+                    </span>
+
+                    <span x-show="weapon.weaponType?.trim()"
+                      class="text-xs px-2.5 py-0.5 rounded border border-parchment-brown/40 text-ink-sage bg-parchment-brown/10 font-medium"
+                      x-text="weapon.weaponType"></span>
+                  </div>
+
+                  <!-- Habilidad Vinculada en Lectura -->
+                  <template x-if="weapon.linkedSkillId && getLinkedSkill(weapon)">
+                    <div class="pt-2 border-t border-white/10 flex items-center justify-between gap-2 text-xs">
+                      <div class="flex items-center gap-1.5 text-accent-gold font-semibold truncate">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 shrink-0"></i>
+                        <span class="truncate" x-text="getLinkedSkill(weapon).title || 'Habilidad'"></span>
+                      </div>
+                      <button type="button" @click="$store.app.currentTab = 'skills'"
+                        class="text-[11px] text-accent-gold/80 hover:text-accent-gold underline cursor-pointer shrink-0">
+                        Ver Habilidad
+                      </button>
+                    </div>
+                  </template>
+                </div>
+
+                <!-- Chips de Tags en Lectura -->
+                <div x-show="Array.isArray(weapon.tags) && weapon.tags.length > 0"
+                  class="flex items-center flex-wrap gap-1.5">
+                  <template x-for="t in (weapon.tags || [])" :key="t">
+                    <span class="text-xs px-2.5 py-0.5 rounded bg-white/5 border border-white/10 text-ink-slate font-mono"
+                      x-text="'#' + t"></span>
+                  </template>
+                </div>
+              </div>
+
+              <!-- Columna Derecha Lectura: Datos, Combate y Lore -->
+              <div class="lg:col-span-8 space-y-3.5">
+                <!-- Título -->
+                <div>
+                  <h4 class="font-title text-2xl text-accent-gold font-bold leading-tight"
+                    x-html="$store.app.formatRichText(weapon.name || 'Arma sin nombre')"></h4>
+                </div>
+
+                <!-- Daño / Efecto Principal Destacado -->
+                <div x-show="weapon.damage?.trim()" class="p-3.5 rounded bg-accent-gold/5 border border-accent-gold/25 shadow-sm space-y-1">
+                  <div class="weapon-stat-tile-label text-accent-gold mb-0">
+                    <svg class="w-3.5 h-3.5 pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="14.5 17.5 3 6 3 3 6 3 17.5 14.5"/>
+                      <line x1="13" x2="19" y1="19" y2="13"/>
+                      <line x1="16" x2="20" y1="16" y2="20"/>
+                      <line x1="19" x2="21" y1="21" y2="19"/>
+                      <polyline points="14.5 6.5 18 3 21 3 21 6 17.5 9.5"/>
+                      <line x1="5" x2="9" y1="14" y2="18"/>
+                      <line x1="7" x2="4" y1="17" y2="20"/>
+                      <line x1="3" x2="5" y1="19" y2="21"/>
+                    </svg> Daño / Efecto Principal
+                  </div>
+                  <div class="text-sm font-semibold text-parchment-cream whitespace-pre-line leading-relaxed" x-html="$store.app.formatRichText(weapon.damage)"></div>
+                </div>
+
+                <!-- Métricas de Combate Secundarias (Alcance, CD, TD) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3"
+                  x-show="weapon.range?.trim() || weapon.cd?.trim() || weapon.td?.trim()">
+                  
+                  <div x-show="weapon.range?.trim()" class="weapon-stat-display-tile border-accent-cyan/20">
+                    <div class="weapon-stat-tile-label text-accent-cyan">
+                      <svg class="w-3.5 h-3.5 pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <circle cx="12" cy="12" r="6"/>
+                        <circle cx="12" cy="12" r="2"/>
+                      </svg> Alcance / Rango
+                    </div>
+                    <div class="weapon-stat-display-value" x-text="weapon.range"></div>
+                  </div>
+
+                  <div x-show="weapon.cd?.trim()" class="weapon-stat-display-tile border-sky-400/20">
+                    <div class="weapon-stat-tile-label text-sky-400">
+                      <svg class="w-3.5 h-3.5 pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                        <path d="M21 3v5h-5"/>
+                        <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                        <path d="M8 16H3v5"/>
+                      </svg> CD (Enfriamiento)
+                    </div>
+                    <div class="weapon-stat-display-value" x-text="weapon.cd"></div>
+                  </div>
+
+                  <div x-show="weapon.td?.trim()" class="weapon-stat-display-tile border-purple-400/20">
+                    <div class="weapon-stat-tile-label text-purple-400">
+                      <svg class="w-3.5 h-3.5 pointer-events-none shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                      </svg> TD (Duración)
+                    </div>
+                    <div class="weapon-stat-display-value" x-text="weapon.td"></div>
+                  </div>
+                </div>
+
+                <!-- Propiedades Únicas y Pasivas -->
+                <div x-show="weapon.properties?.trim()" class="flex items-start gap-2.5 p-3 rounded bg-black/30 border border-white/10">
+                  <svg class="w-4 h-4 text-ink-teal shrink-0 mt-0.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+                    <path d="m9 12 2 2 4-4"/>
+                  </svg>
+                  <div class="space-y-0.5">
+                    <span class="text-[11px] font-bold text-ink-teal uppercase tracking-wider block">Propiedades Únicas:</span>
+                    <div class="text-xs text-ink-sage leading-relaxed font-medium" x-html="$store.app.formatRichText(weapon.properties)"></div>
+                  </div>
+                </div>
+
+                <!-- Historia / Lore -->
+                <div x-show="weapon.lore?.trim()" class="weapon-lore-card"
+                  x-html="$store.app.formatRichText(weapon.lore)"></div>
+              </div>
+
+            </div>
+          </template>
+
+        </div>
+      </div>
+    </template>
+  </div>
+
+</div>
+`;
+}
