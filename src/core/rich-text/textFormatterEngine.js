@@ -548,11 +548,14 @@ class TextFormatterEngine {
     const bar = document.createElement('div');
     bar.id = 'tactical-floating-text-toolbar';
     bar.className = 'fixed z-[9999999] flex items-center gap-1 p-1 rounded-xl transition-all duration-150 select-none pointer-events-auto opacity-0 scale-95 pointer-events-none';
+    bar.setAttribute('data-protect-contrast', 'true');
     bar.style.top = '-9999px';
     bar.style.left = '-9999px';
     bar.style.visibility = 'hidden';
     bar.style.backgroundColor = '#0b0e14';
-    bar.style.border = '1px solid rgba(211, 193, 146, 0.55)';
+    bar.style.borderWidth = 'var(--border-width, 1px)';
+    bar.style.borderStyle = 'solid';
+    bar.style.borderColor = 'var(--border-accent, rgba(211, 193, 146, 0.55))';
     bar.style.boxShadow = '0 14px 38px rgba(0, 0, 0, 0.98), 0 0 0 1px rgba(255, 255, 255, 0.08)';
     bar.setAttribute('role', 'toolbar');
     bar.setAttribute('aria-label', 'Formato de Texto');
@@ -576,11 +579,11 @@ class TextFormatterEngine {
       <!-- Botón de color (bolita con halo de color activo) -->
       <div class="relative flex items-center">
         <button type="button" id="tf-color-btn" class="tf-color-trigger px-2 py-1 rounded-lg hover:bg-white/10 active:scale-95 transition-all flex items-center justify-center cursor-pointer group" title="Color de Texto Personalizado">
-          <span id="tf-color-dot" class="w-3.5 h-3.5 rounded-full bg-white border border-black/50 shadow-[0_0_8px_rgba(255,255,255,0.7)] group-hover:scale-110 transition-transform pointer-events-none"></span>
+          <span id="tf-color-dot" data-protect-circle data-protect-radius class="w-3.5 h-3.5 rounded-full bg-white border border-black/50 shadow-[0_0_8px_rgba(255,255,255,0.7)] group-hover:scale-110 transition-transform pointer-events-none"></span>
         </button>
 
         <!-- Popover flotante del Selector de Color Profesional -->
-        <div id="tf-color-popover" class="absolute top-full right-0 mt-2 p-3.5 rounded-2xl flex flex-col gap-2.5 transition-all duration-150 z-[99999999] opacity-0 scale-95 pointer-events-none w-72" style="display: none; background-color: #0b0e14; border: 1px solid rgba(211, 193, 146, 0.55); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.98), 0 0 0 1px rgba(255, 255, 255, 0.1);">
+        <div id="tf-color-popover" class="absolute top-full right-0 mt-2 p-3.5 rounded-2xl flex flex-col gap-2.5 transition-all duration-150 z-[99999999] opacity-0 scale-95 pointer-events-none w-72" style="display: none; background-color: #0b0e14; border-width: var(--border-width, 1px); border-style: solid; border-color: var(--border-accent, rgba(211, 193, 146, 0.55)); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.98), 0 0 0 1px rgba(255, 255, 255, 0.1);">
           
           <!-- Encabezado con muestra y botón Quitar -->
           <div class="flex items-center justify-between gap-2 pb-2 border-b border-white/10">
@@ -602,7 +605,7 @@ class TextFormatterEngine {
               <span>Tono</span>
               <span id="tf-hue-val">0°</span>
             </div>
-            <div id="tf-hue-slider" class="w-full h-3.5 rounded-full relative cursor-pointer border border-black/70 select-none touch-none" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);">
+            <div id="tf-hue-slider" data-protect-radius class="w-full h-3.5 rounded-full relative cursor-pointer border border-black/70 select-none touch-none" style="background: linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%);">
               <div id="tf-hue-handle" class="absolute top-1/2 -translate-y-1/2 w-4.5 h-4.5 rounded-full bg-white border border-black/80 shadow-[0_0_4px_rgba(0,0,0,0.8)] -translate-x-1/2 pointer-events-none" data-protect-circle data-protect-radius style="left: 0%;"></div>
             </div>
           </div>

@@ -1,0 +1,78 @@
+/**
+ * @file src/ui/views/tierlist/modalTierlistConfirm.ts
+ */
+
+export function renderModalTierlistConfirm(): string {
+  return `<!-- Modal de Confirmación Estilizado HUD para Tier List -->
+<div id="tierlist-confirm-modal"
+  class="fixed inset-0 z-[100050] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+  x-show="$store.tierlist.confirmDialog.isOpen" x-cloak
+  @keydown.escape.window="$store.tierlist.closeConfirm()"
+  @keydown.enter.window="$store.tierlist.confirmDialog.isOpen && $store.tierlist.executeConfirm()"
+  role="dialog" aria-modal="true">
+
+  <!-- Backdrop click -->
+  <div class="absolute inset-0" @click="$store.tierlist.closeConfirm()"></div>
+
+  <div
+    data-protect-contrast="true" class="relative w-full max-w-md bg-[#0b0e17] rounded-2xl shadow-2xl overflow-hidden flex flex-col text-slate-100 transition-all border select-none"
+    :class="$store.tierlist.confirmDialog.confirmType === 'warning' 
+      ? 'border-amber-500/50 shadow-[0_0_35px_rgba(245,158,11,0.25)]' 
+      : 'border-rose-500/50 shadow-[0_0_35px_rgba(244,63,94,0.25)]'"
+    @click.stop>
+
+    <!-- Top Accent Bar -->
+    <div class="h-1.5 w-full"
+      :class="$store.tierlist.confirmDialog.confirmType === 'warning' 
+        ? 'bg-gradient-to-r from-amber-500 to-orange-500' 
+        : 'bg-gradient-to-r from-rose-500 to-red-600'"></div>
+
+    <div class="p-6 sm:p-7 space-y-4">
+      <!-- Icon y Title -->
+      <div class="flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border"
+          :class="$store.tierlist.confirmDialog.confirmType === 'warning' 
+            ? 'bg-amber-500/20 text-amber-300 border-amber-400/40 shadow-[0_0_15px_rgba(245,158,11,0.3)]' 
+            : 'bg-rose-500/20 text-rose-300 border-rose-400/40 shadow-[0_0_15px_rgba(244,63,94,0.3)]'">
+          <i :data-lucide="$store.tierlist.confirmDialog.icon || 'triangle-alert'" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h3 class="font-title text-lg font-bold text-white uppercase tracking-wider"
+            x-text="$store.tierlist.confirmDialog.title"></h3>
+          <span class="text-[10px] font-mono uppercase tracking-wider font-bold"
+            :class="$store.tierlist.confirmDialog.confirmType === 'warning' ? 'text-amber-400' : 'text-rose-400'">
+            Confirmación Requerida
+          </span>
+        </div>
+      </div>
+
+      <!-- Message y Submessage -->
+      <div class="space-y-1.5 text-xs font-mono">
+        <p class="text-slate-200 text-sm leading-relaxed" x-text="$store.tierlist.confirmDialog.message"></p>
+        <template x-if="$store.tierlist.confirmDialog.submessage">
+          <p class="text-slate-400 text-xs leading-normal" x-text="$store.tierlist.confirmDialog.submessage"></p>
+        </template>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
+        <button type="button" @click="$store.tierlist.closeConfirm()"
+          class="px-5 py-2.5 rounded-xl text-xs font-mono font-bold text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer">
+          Cancelar
+        </button>
+
+        <button type="button" @click="$store.tierlist.executeConfirm()"
+          class="px-6 py-2.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg transition-all hover:scale-[1.02] cursor-pointer"
+          :class="$store.tierlist.confirmDialog.confirmType === 'warning' 
+            ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black shadow-amber-900/40' 
+            : 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-rose-900/40'">
+          <i :data-lucide="$store.tierlist.confirmDialog.icon || 'check'" class="w-4 h-4 stroke-[2.5]"></i>
+          <span x-text="$store.tierlist.confirmDialog.confirmText"></span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+`;
+}

@@ -4,7 +4,7 @@
    Cero mecánicas de rol intrusivas (sin dados, HP ni atributos D&D).
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,300..900;1,8..60,400..700&display=swap');
 
 :root {
   /* Paleta Base (Modo Oscuro Fandom Slate / Grafito Suave - Cero Negro Absoluto) */
@@ -98,6 +98,7 @@ body:not(.sheet-mode-classic) {
   background-color: var(--wiki-bg-outer) !important;
   color: var(--wiki-text-main) !important;
   font-family: var(--font-sans) !important;
+  font-weight: var(--font-weight-body, 400);
   line-height: 1.65;
   margin: 0;
   padding: 0;
@@ -105,9 +106,9 @@ body:not(.sheet-mode-classic) {
   overflow-y: visible !important;
 }
 
-body:not(.sheet-mode-classic) *,
-body:not(.sheet-mode-classic) *::before,
-body:not(.sheet-mode-classic) *::after {
+body.no-glow-effects:not(.sheet-mode-classic) *,
+body.no-glow-effects:not(.sheet-mode-classic) *::before,
+body.no-glow-effects:not(.sheet-mode-classic) *::after {
   box-shadow: none !important;
   text-shadow: none !important;
 }
@@ -181,9 +182,9 @@ html:not(.sheet-mode-classic) #app-content {
 }
 
 .wiki-page-title {
-  font-family: var(--font-wiki-serif);
+  font-family: var(--font-wiki-heading, var(--font-wiki-serif));
   font-size: 2.15rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-display, 600);
   color: var(--wiki-text-main);
   margin: 0;
   line-height: 1.2;
@@ -206,7 +207,7 @@ html:not(.sheet-mode-classic) #app-content {
 .wiki-article-tab {
   padding: 8px 16px;
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-hud, 500);
   color: var(--wiki-text-muted);
   background: transparent;
   border: 1px solid transparent;
@@ -214,7 +215,7 @@ html:not(.sheet-mode-classic) #app-content {
   cursor: pointer;
   transition: color 0.15s ease, background-color 0.15s ease;
   white-space: nowrap;
-  font-family: var(--font-sans);
+  font-family: var(--font-hud, var(--font-sans));
 }
 
 .wiki-article-tab:hover {
@@ -262,12 +263,12 @@ html:not(.sheet-mode-classic) #app-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-weight: 600;
+  font-weight: var(--font-weight-hud, 600);
   padding-bottom: 6px;
   margin-bottom: 8px;
   border-bottom: 1px solid var(--wiki-border);
   color: var(--wiki-text-main);
-  font-family: var(--font-sans);
+  font-family: var(--font-hud, var(--font-sans));
 }
 
 .wiki-toc-list {
@@ -298,9 +299,9 @@ html:not(.sheet-mode-classic) #app-content {
 
 /* Títulos de sección dentro del artículo (H2 con línea inferior estilo Wikipedia/Fandom) */
 .wiki-h2 {
-  font-family: var(--font-wiki-serif);
+  font-family: var(--font-wiki-heading, var(--font-wiki-serif));
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-display, 600);
   color: var(--wiki-text-main);
   border-bottom: 1px solid var(--wiki-border);
   padding-bottom: 6px;
@@ -483,7 +484,8 @@ html:not(.sheet-mode-classic) #app-content {
   border-radius: var(--wiki-radius-sm, 0px);
   color: var(--wiki-text-main) !important;
   padding: 7px 10px !important;
-  font-family: var(--font-sans);
+  font-family: var(--font-input, var(--font-sans)) !important;
+  font-weight: var(--font-weight-input, 400);
   font-size: 0.9rem;
   transition: border-color 0.15s ease;
 }
@@ -511,14 +513,16 @@ html:not(.sheet-mode-classic) #app-content {
   padding: 0 10px !important;
   border: 1px solid var(--wiki-border-strong) !important;
   color: var(--wiki-text-main) !important;
-  font-family: var(--font-wiki-serif);
+  font-family: var(--font-input, var(--font-wiki-serif));
+  font-weight: var(--font-weight-input, 400);
   font-size: 1rem;
   resize: vertical;
 }
 
 /* Botones editoriales sobrios */
 .souls-btn {
-  font-family: var(--font-display);
+  font-family: var(--font-hud, var(--font-display));
+  font-weight: var(--font-weight-hud, 500);
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -560,7 +564,26 @@ html:not(.sheet-mode-classic) #app-content {
   -webkit-backdrop-filter: none !important;
   height: 56px !important;
   min-height: 56px !important;
-  padding: 0 20px !important;
+  padding: 0 12px !important;
+  overflow: hidden !important;
+}
+
+#app-header .souls-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+#app-header #main-nav-tabs .souls-btn {
+  padding: 6px 10px !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.05em !important;
+}
+
+#app-header .souls-btn:not(#main-nav-tabs .souls-btn) {
+  padding: 5px 9px;
+  font-size: 0.74rem;
 }
 
 body:not(.sheet-mode-classic) #app-sidebar {
@@ -579,6 +602,7 @@ body:not(.sheet-mode-classic) .read-card {
 body:not(.sheet-mode-classic) .form-card-title,
 body:not(.sheet-mode-classic) .category-header-title {
   font-family: var(--font-display) !important;
+  font-weight: var(--font-weight-display, 600);
   color: var(--wiki-accent) !important;
   letter-spacing: 0.08em !important;
   text-transform: uppercase !important;
@@ -591,7 +615,8 @@ body:not(.sheet-mode-classic) .form-textarea {
   border: var(--border-width, 1px) solid var(--wiki-border) !important;
   border-radius: var(--wiki-radius-sm, 0px);
   color: var(--wiki-text-main) !important;
-  font-family: var(--font-sans) !important;
+  font-family: var(--font-input, var(--font-sans)) !important;
+  font-weight: var(--font-weight-input, 400);
 }
 
 body:not(.sheet-mode-classic) .form-input:focus,
@@ -614,14 +639,16 @@ body:not(.sheet-mode-classic) .section-header-bar {
 }
 
 body:not(.sheet-mode-classic) .section-title {
-  font-family: var(--font-wiki-serif) !important;
+  font-family: var(--font-wiki-heading, var(--font-wiki-serif)) !important;
+  font-weight: var(--font-weight-display, 600);
   color: var(--wiki-text-main) !important;
 }
 
 body:not(.sheet-mode-classic) .tab-btn {
   border-radius: var(--wiki-radius-sm, 0px);
   border-left-width: 2px !important;
-  font-family: var(--font-sans) !important;
+  font-family: var(--font-hud, var(--font-sans)) !important;
+  font-weight: var(--font-weight-hud, 500);
 }
 
 body:not(.sheet-mode-classic) .tab-btn.active {
@@ -809,9 +836,9 @@ body.sheet-mode-classic {
 }
 
 .rpg-header-label {
-  font-family: var(--font-display);
+  font-family: var(--font-hud, var(--font-display));
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-hud, 700);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--wiki-accent);
@@ -820,9 +847,9 @@ body.sheet-mode-classic {
 }
 
 .rpg-header-val {
-  font-family: var(--font-wiki-serif);
+  font-family: var(--font-wiki-heading, var(--font-wiki-serif));
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-display, 600);
   color: var(--wiki-text-main);
   line-height: 1.2;
 }
@@ -862,9 +889,9 @@ body.sheet-mode-classic {
 }
 
 .rpg-box-header {
-  font-family: var(--font-display);
+  font-family: var(--font-hud, var(--font-display));
   font-size: 0.78rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-hud, 700);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   color: var(--wiki-accent);
@@ -933,7 +960,8 @@ body.sheet-mode-classic {
   );
   line-height: 27px;
   padding: 6px 12px;
-  font-family: var(--font-wiki-serif);
+  font-family: var(--font-input, var(--font-wiki-serif));
+  font-weight: var(--font-weight-input, 400);
   font-size: 0.95rem;
   color: var(--wiki-text-main);
   min-height: 200px;
@@ -945,7 +973,7 @@ body.sheet-mode-classic {
    ========================================================================== */
 
 .fandom-community-banner {
-  background: linear-gradient(180deg, #2b2e3c 0%, #232531 100%);
+  background: linear-gradient(180deg, var(--wiki-bg-elevated) 0%, var(--wiki-bg-canvas) 100%);
   border: 1px solid var(--wiki-border);
   margin-bottom: 24px;
   position: relative;
@@ -1013,9 +1041,9 @@ body.sheet-mode-classic {
 }
 
 .fandom-community-badge {
-  font-family: var(--font-display);
+  font-family: var(--font-hud, var(--font-display));
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: var(--font-weight-hud, 700);
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--wiki-accent);
@@ -1026,9 +1054,9 @@ body.sheet-mode-classic {
 }
 
 .fandom-community-title {
-  font-family: var(--font-wiki-serif);
+  font-family: var(--font-wiki-heading, var(--font-wiki-serif));
   font-size: 1.85rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-display, 600);
   color: var(--wiki-text-main);
   margin: 0;
   line-height: 1.15;
@@ -1122,9 +1150,9 @@ body.sheet-mode-classic {
 
 .fandom-subnav-tab {
   padding: 10px 16px;
-  font-family: var(--font-sans);
+  font-family: var(--font-hud, var(--font-sans));
   font-size: 0.82rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-hud, 500);
   color: var(--wiki-text-muted);
   background: transparent;
   border: none;
@@ -1179,7 +1207,8 @@ body.sheet-mode-classic {
   background-color: var(--wiki-bg-canvas) !important;
   border: var(--border-width, 1px) solid var(--wiki-border-strong) !important;
   color: var(--wiki-text-main) !important;
-  font-family: var(--font-sans);
+  font-family: var(--font-input, var(--font-sans));
+  font-weight: var(--font-weight-input, 400);
   font-size: 0.9rem;
   border-radius: var(--wiki-radius-md, 0px);
   box-sizing: border-box;
@@ -1276,9 +1305,9 @@ body.sheet-mode-classic {
 }
 
 .fandom-card-title {
-  font-family: var(--font-wiki-serif);
+  font-family: var(--font-wiki-heading, var(--font-wiki-serif));
   font-size: 1.15rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-display, 600);
   color: var(--wiki-text-main);
   margin: 0 0 4px;
   line-height: 1.25;
@@ -1292,6 +1321,193 @@ body.sheet-mode-classic {
   font-family: var(--font-mono);
 }
 
+/* Vista Panorámica Horizontal 16:5 (Banner Mode) */
+.fandom-roster-banner-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  width: 100%;
+}
+
+@media (max-width: 960px) {
+  .fandom-roster-banner-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fandom-card-banner {
+  min-height: 196px;
+  background-color: var(--wiki-bg-canvas);
+  isolation: isolate;
+}
+
+.fandom-card-banner.has-banner {
+  background-color: #0b0c10;
+}
+
+.fandom-banner-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.fandom-banner-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  opacity: 1;
+  transition: transform 0.35s ease, filter 0.2s ease;
+}
+
+.fandom-card-banner:hover .fandom-banner-bg-img:not([style*="transform"]) {
+  transform: scale(1.03);
+}
+
+.fandom-banner-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      90deg,
+      rgba(8, 10, 14, 0.72) 0%,
+      rgba(8, 10, 14, 0.38) 44%,
+      rgba(8, 10, 14, 0.08) 76%,
+      rgba(8, 10, 14, 0.22) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(8, 10, 14, 0.06) 0%,
+      transparent 44%,
+      rgba(8, 10, 14, 0.64) 100%
+    );
+}
+
+.fandom-banner-fallback-tint {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--wiki-bg-elevated) 0%, var(--wiki-bg-canvas) 68%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.fandom-banner-accent-rail {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  z-index: 2;
+  background-color: var(--char-accent, var(--wiki-accent));
+}
+
+.fandom-banner-inner {
+  position: relative;
+  z-index: 1;
+  padding: 16px 18px 14px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fandom-banner-alias {
+  color: var(--wiki-text-muted);
+}
+
+.fandom-banner-date {
+  color: var(--wiki-text-dim);
+}
+
+.fandom-banner-avatar {
+  position: relative;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 2px solid var(--char-accent, var(--wiki-border-strong));
+  background-color: var(--wiki-bg-outer);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.fandom-card-banner:hover .fandom-banner-avatar {
+  transform: scale(1.03);
+}
+
+.fandom-banner-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--wiki-text-main);
+  background-color: var(--wiki-bg-elevated);
+  border: 1px solid var(--wiki-border);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fandom-banner-quote {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: fit-content;
+  max-width: 100%;
+  font-family: var(--font-wiki-serif);
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--wiki-text-muted);
+  border-left: 2px solid var(--wiki-accent);
+  padding: 2px 10px;
+}
+
+.fandom-banner-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--wiki-border);
+}
+
+/* Contraste legible sobre banner fotográfico en tema claro y oscuro */
+.fandom-card-banner.has-banner .fandom-card-title {
+  color: #f4f4f8;
+}
+
+.fandom-card-banner.has-banner .fandom-banner-alias {
+  color: rgba(235, 236, 242, 0.86);
+}
+
+.fandom-card-banner.has-banner .fandom-banner-meta-pill {
+  background-color: rgba(12, 14, 18, 0.78);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f0f1f6;
+}
+
+.fandom-card-banner.has-banner .fandom-banner-quote {
+  color: #f0f1f6;
+  background-color: rgba(10, 12, 16, 0.48);
+}
+
+.fandom-card-banner.has-banner .fandom-banner-footer {
+  border-top-color: rgba(255, 255, 255, 0.16);
+}
+
+.fandom-card-banner.has-banner .fandom-banner-date {
+  color: rgba(226, 228, 236, 0.86);
+}
+
 /* ==========================================================================
    10. CONFIGURACIÓN EDITORIAL SOBRIA (#main-settings-view)
    ========================================================================== */
@@ -1299,6 +1515,30 @@ body.sheet-mode-classic {
 body:not(.sheet-mode-classic) #main-settings-view {
   background-color: var(--wiki-bg-outer) !important;
   color: var(--wiki-text-main) !important;
+  position: relative;
+}
+
+#main-settings-view > .wiki-shell {
+  position: relative;
+  z-index: 2;
+}
+
+body:not(.sheet-mode-classic) #main-settings-view:has(#settings-interactive-grid-container:not([style*="display: none"])) > .wiki-shell {
+  background-color: color-mix(in srgb, var(--wiki-bg-canvas) 92%, transparent);
+}
+
+#settings-interactive-grid-container {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+#settings-interactive-grid-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .wiki-settings-header {
@@ -1320,9 +1560,9 @@ body:not(.sheet-mode-classic) #main-settings-view {
 }
 
 .wiki-settings-title {
-  font-family: var(--font-wiki-serif);
+  font-family: var(--font-wiki-heading, var(--font-wiki-serif));
   font-size: 1.75rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-display, 600);
   color: var(--wiki-text-main);
   margin: 0;
   line-height: 1.2;
@@ -1358,7 +1598,7 @@ body:not(.sheet-mode-classic) #main-settings-view {
 }
 
 .wiki-settings-nav-label {
-  font-family: var(--font-sans);
+  font-family: var(--font-hud, var(--font-sans));
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -1377,9 +1617,9 @@ body:not(.sheet-mode-classic) #main-settings-view {
   gap: 9px;
   width: 100%;
   padding: 8px 11px;
-  font-family: var(--font-sans);
+  font-family: var(--font-hud, var(--font-sans));
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-hud, 500);
   color: var(--wiki-text-muted);
   background: transparent;
   border: none;
@@ -1414,9 +1654,9 @@ body:not(.sheet-mode-classic) #main-settings-view {
 }
 
 .wiki-settings-pane-title {
-  font-family: var(--font-wiki-serif);
+  font-family: var(--font-wiki-heading, var(--font-wiki-serif));
   font-size: 1.35rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-display, 600);
   color: var(--wiki-text-main);
   margin: 0;
   line-height: 1.25;
@@ -1477,9 +1717,9 @@ body:not(.sheet-mode-classic) #main-settings-view {
 }
 
 .wiki-settings-section-title {
-  font-family: var(--font-display);
+  font-family: var(--font-hud, var(--font-display));
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: var(--font-weight-hud, 600);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--wiki-accent);
@@ -1549,9 +1789,9 @@ body:not(.sheet-mode-classic) #main-settings-view {
 
 .wiki-segmented-btn {
   padding: 6px 12px;
-  font-family: var(--font-sans);
+  font-family: var(--font-hud, var(--font-sans));
   font-size: 0.76rem;
-  font-weight: 500;
+  font-weight: var(--font-weight-hud, 500);
   color: var(--wiki-text-muted);
   background: transparent;
   border: 1px solid transparent;
@@ -1664,6 +1904,11 @@ body:not(.sheet-mode-classic) #main-settings-view {
   --wiki-radius-sm: 7px;
   --wiki-radius-xs: 4px;
   --wiki-radius-pill: 9999px;
+  --radius-lg: 14px;
+  --radius-md: 10px;
+  --radius-sm: 7px;
+  --radius-xs: 4px;
+  --radius-pill: 9999px;
 }
 
 [data-corner-style="sharp"],
@@ -1673,15 +1918,27 @@ body:not(.sheet-mode-classic) #main-settings-view {
   --wiki-radius-sm: 0px;
   --wiki-radius-xs: 0px;
   --wiki-radius-pill: 0px;
+  --radius-lg: 0px;
+  --radius-md: 0px;
+  --radius-sm: 0px;
+  --radius-xs: 0px;
+  --radius-pill: 0px;
 }
 
-/* Radio adaptativo base en componentes Wiki / Fandom / Settings */
+/* Radio adaptativo base en componentes Wiki / Fandom / Settings / Dashboard / Tierlist / Modals */
 .fandom-community-banner,
 .fandom-card,
 .souls-panel,
 .wiki-infobox,
 .wiki-toc,
-.wiki-settings-section {
+.wiki-settings-section,
+.dashboard-header-panel,
+.dashboard-char-card,
+.tierlist-cyber-panel,
+.tierlist-board-container,
+#modals-root .modal-box,
+#modals-root .confirm-box,
+#sheet-converter-modal > div {
   border-radius: var(--wiki-radius-lg, 14px);
 }
 
@@ -1702,7 +1959,12 @@ body:not(.sheet-mode-classic) #main-settings-view {
 .wiki-quote,
 .wiki-accordion-header,
 .fandom-community-avatar,
-.wiki-infobox-image {
+.wiki-infobox-image,
+.tierlist-row-lane,
+.tier-monument,
+.custom-dropdown-menu,
+.tactical-toast,
+#tactical-floating-text-toolbar {
   border-radius: var(--wiki-radius-md, 10px);
 }
 
@@ -1717,7 +1979,14 @@ body:not(.sheet-mode-classic) #main-settings-view {
 }
 
 .wiki-segmented-btn,
-.wiki-settings-nav-item {
+.wiki-settings-nav-item,
+.header-btn,
+.brand-tag,
+.dashboard-search-input,
+.dashboard-filter-select,
+.tier-control-btn,
+.custom-dropdown-item,
+.tier-collapse-pill {
   border-radius: var(--wiki-radius-sm, 7px);
 }
 
@@ -1728,35 +1997,101 @@ body:not(.sheet-mode-classic) #main-settings-view {
 }
 
 .wiki-settings-kbd,
-.fandom-community-badge {
+.tactical-kbd,
+.kbd-badge,
+.fandom-community-badge,
+.fandom-banner-meta-pill,
+.tier-modifier-badge {
   border-radius: var(--wiki-radius-xs, 4px);
 }
 
 .wiki-switch,
-.wiki-switch-thumb {
+.wiki-switch-thumb,
+[role="switch"],
+[role="switch"] > * {
   border-radius: var(--wiki-radius-pill, 9999px);
 }
 
-/* Grosor dinámico de borde (--border-width: 1px..5px) en contenedores principales */
+/* Grosor dinámico de borde (--border-width: 1px..5px) en contenedores principales y controles */
+[data-corner-style] #app-header {
+  border-bottom-width: var(--border-width, 1px);
+}
+
+[data-corner-style] #app-sidebar {
+  border-right-width: var(--border-width, 1px);
+}
+
 [data-corner-style] .fandom-community-banner,
+[data-corner-style] .fandom-community-avatar,
+[data-corner-style] .fandom-community-badge,
+[data-corner-style] .fandom-banner-meta-pill,
+[data-corner-style] .fandom-subnav-tab,
+[data-corner-style] .fandom-search-input,
 [data-corner-style] .fandom-card,
 [data-corner-style] .souls-panel,
+[data-corner-style] .souls-input,
+[data-corner-style] .souls-select,
+[data-corner-style] .souls-textarea,
 [data-corner-style] .wiki-infobox,
+[data-corner-style] .wiki-infobox-image,
 [data-corner-style] .wiki-toc,
+[data-corner-style] .wiki-quote,
+[data-corner-style] .wiki-article-tab,
 [data-corner-style] .wiki-settings-section,
 [data-corner-style] .wiki-settings-card,
+[data-corner-style] .wiki-settings-nav-item,
 [data-corner-style] .wiki-accordion-header,
 [data-corner-style] .wiki-accordion-body,
 [data-corner-style] .wiki-segmented,
 [data-corner-style] .wiki-switch,
 [data-corner-style] .wiki-settings-kbd,
+[data-corner-style] .tactical-kbd,
+[data-corner-style] .kbd-badge,
+[data-corner-style] .header-btn,
+[data-corner-style] .header-btn-ghost,
+[data-corner-style] .header-btn-accent,
+[data-corner-style] .header-btn-danger-solid,
+[data-corner-style] .brand-tag,
+[data-corner-style] .dashboard-header-panel,
+[data-corner-style] .dashboard-char-card,
+[data-corner-style] .dashboard-search-input,
+[data-corner-style] .dashboard-filter-select,
+[data-corner-style] .tierlist-cyber-panel,
+[data-corner-style] .tierlist-board-container,
+[data-corner-style] .tierlist-row-lane,
+[data-corner-style] .tier-monument,
+[data-corner-style] .tier-control-btn,
+[data-corner-style] .tier-modifier-badge,
+[data-corner-style] .tier-collapse-pill,
+[data-corner-style] .rpg-sheet-shell,
 [data-corner-style] .rpg-header-field,
 [data-corner-style] .rpg-box,
 [data-corner-style] .rpg-stat-bubble,
+[data-corner-style] .rpg-portrait-frame,
+[data-corner-style] body:not(.sheet-mode-classic) .form-card,
+[data-corner-style] body:not(.sheet-mode-classic) .read-card,
+[data-corner-style] body:not(.sheet-mode-classic) .form-input,
+[data-corner-style] body:not(.sheet-mode-classic) .form-select,
+[data-corner-style] body:not(.sheet-mode-classic) .form-textarea,
+[data-corner-style] body:not(.sheet-mode-classic) .tab-btn,
+[data-corner-style] body:not(.sheet-mode-classic) .mode-badge,
 [data-corner-style] .souls-btn:not(#main-nav-tabs .souls-btn):not([role="group"] .souls-btn):not([class*="border-0"]),
 [data-corner-style] #btn-create-sheet-unified,
-[data-corner-style] #btn-create-sheet-classic {
+[data-corner-style] #btn-create-sheet-classic,
+[data-corner-style] #modals-root .modal-box,
+[data-corner-style] #modals-root .confirm-box,
+[data-corner-style] #sheet-converter-modal > div,
+[data-corner-style] .custom-dropdown-menu,
+[data-corner-style] .tactical-toast,
+[data-corner-style] #tactical-floating-text-toolbar,
+[data-corner-style] #tf-color-popover,
+[data-corner-style] :is(#main-settings-view, #main-dashboard-view, #main-tierlist-view, #app-header, #app-sidebar, #modals-root) :is(.border, .border-2):not(.border-0):not(.border-none):not([class*="border-t"]):not([class*="border-b"]):not([class*="border-l"]):not([class*="border-r"]):not(.rounded-full):not([data-protect-circle]):not([data-protect-radius]):not([data-protect-border]):not(.tf-color-swatch):not(.tf-color-dot):not(.sanity-dot):not(.animate-spin):not(.cropper-point):not([data-avatar-container]):not(.tier-token-avatar-box):not(.steam-avatar-frame-overlay) {
   border-width: var(--border-width, 1px);
+}
+
+[data-corner-style] .fandom-subnav-tab,
+[data-corner-style] .wiki-article-tab {
+  border-bottom-width: 0;
 }
 
 [data-corner-style] .wiki-accordion-body {
@@ -1765,6 +2100,10 @@ body:not(.sheet-mode-classic) #main-settings-view {
 
 /* ── MODO SUAVE (ROUNDED) ── */
 [data-corner-style="rounded"] .fandom-community-banner,
+[data-corner-style="rounded"] .fandom-community-avatar,
+[data-corner-style="rounded"] .fandom-community-badge,
+[data-corner-style="rounded"] .fandom-banner-meta-pill,
+[data-corner-style="rounded"] .fandom-subnav-tab,
 [data-corner-style="rounded"] .fandom-card,
 [data-corner-style="rounded"] .fandom-card-thumb,
 [data-corner-style="rounded"] .fandom-search-input,
@@ -1774,23 +2113,59 @@ body:not(.sheet-mode-classic) #main-settings-view {
 [data-corner-style="rounded"] .souls-select,
 [data-corner-style="rounded"] .souls-textarea,
 [data-corner-style="rounded"] .wiki-infobox,
+[data-corner-style="rounded"] .wiki-infobox-title,
+[data-corner-style="rounded"] .wiki-infobox-image,
 [data-corner-style="rounded"] .wiki-toc,
 [data-corner-style="rounded"] .wiki-quote,
+[data-corner-style="rounded"] .wiki-article-tab,
 [data-corner-style="rounded"] .wiki-settings-section,
 [data-corner-style="rounded"] .wiki-settings-card,
+[data-corner-style="rounded"] .wiki-settings-nav-item,
+[data-corner-style="rounded"] .wiki-settings-kbd,
 [data-corner-style="rounded"] .wiki-accordion-header,
 [data-corner-style="rounded"] .wiki-accordion-body,
 [data-corner-style="rounded"] .wiki-segmented,
 [data-corner-style="rounded"] .wiki-segmented-btn,
 [data-corner-style="rounded"] .wiki-switch,
 [data-corner-style="rounded"] .wiki-switch-thumb,
+[data-corner-style="rounded"] [role="switch"],
+[data-corner-style="rounded"] [role="switch"] > *,
+[data-corner-style="rounded"] .header-btn,
+[data-corner-style="rounded"] .header-btn-ghost,
+[data-corner-style="rounded"] .header-btn-accent,
+[data-corner-style="rounded"] .header-btn-danger-solid,
+[data-corner-style="rounded"] .brand-tag,
+[data-corner-style="rounded"] .dashboard-header-panel,
+[data-corner-style="rounded"] .dashboard-char-card,
+[data-corner-style="rounded"] .dashboard-search-input,
+[data-corner-style="rounded"] .dashboard-filter-select,
+[data-corner-style="rounded"] .tierlist-cyber-panel,
+[data-corner-style="rounded"] .tierlist-board-container,
+[data-corner-style="rounded"] .tierlist-row-lane,
+[data-corner-style="rounded"] .tier-monument,
+[data-corner-style="rounded"] .tier-control-btn,
+[data-corner-style="rounded"] .tier-modifier-badge,
+[data-corner-style="rounded"] .tier-collapse-pill,
 [data-corner-style="rounded"] .rpg-sheet-shell,
 [data-corner-style="rounded"] .rpg-header-field,
 [data-corner-style="rounded"] .rpg-box,
+[data-corner-style="rounded"] .rpg-box-header,
 [data-corner-style="rounded"] .rpg-stat-bubble,
 [data-corner-style="rounded"] .rpg-portrait-frame,
 [data-corner-style="rounded"] #btn-create-sheet-unified,
 [data-corner-style="rounded"] #btn-create-sheet-classic,
+[data-corner-style="rounded"] #modals-root .modal-box,
+[data-corner-style="rounded"] #modals-root .confirm-box,
+[data-corner-style="rounded"] #sheet-converter-modal > div,
+[data-corner-style="rounded"] #modals-root [id$="-modal"] > div[class*="max-w-"],
+[data-corner-style="rounded"] #main-tierlist-view [id*="modal"] > div[class*="max-w-"],
+[data-corner-style="rounded"] .custom-dropdown-menu,
+[data-corner-style="rounded"] .custom-dropdown-item,
+[data-corner-style="rounded"] .tactical-toast,
+[data-corner-style="rounded"] .tactical-kbd,
+[data-corner-style="rounded"] .kbd-badge,
+[data-corner-style="rounded"] #tactical-floating-text-toolbar,
+[data-corner-style="rounded"] #tf-color-popover,
 [data-corner-style="rounded"] body:not(.sheet-mode-classic) .form-card,
 [data-corner-style="rounded"] body:not(.sheet-mode-classic) .read-card,
 [data-corner-style="rounded"] body:not(.sheet-mode-classic) .form-input,
@@ -1802,13 +2177,18 @@ body:not(.sheet-mode-classic) #main-settings-view {
 }
 
 [data-corner-style="rounded"] #btn-create-sheet-unified,
-[data-corner-style="rounded"] #btn-create-sheet-classic {
+[data-corner-style="rounded"] #btn-create-sheet-classic,
+[data-corner-style="rounded"] #modals-root .modal-box,
+[data-corner-style="rounded"] #modals-root .confirm-box,
+[data-corner-style="rounded"] #sheet-converter-modal > div {
   border-radius: var(--wiki-radius-lg) !important;
 }
 
 [data-corner-style="rounded"] #main-settings-view .border:not(.rounded-full):not([data-protect-circle]):not([data-protect-radius]):not([class*="border-t"]):not([class*="border-b"]):not([class*="border-l"]):not([class*="border-r"]),
-[data-corner-style="rounded"] #dashboard-view .border:not(.rounded-full):not([data-protect-circle]):not([data-protect-radius]):not([style*="border-radius"]):not([class*="border-t"]):not([class*="border-b"]):not([class*="border-l"]):not([class*="border-r"]),
+[data-corner-style="rounded"] #main-dashboard-view .border:not(.rounded-full):not([data-protect-circle]):not([data-protect-radius]):not([data-avatar-container]):not([style*="border-radius"]):not([class*="border-t"]):not([class*="border-b"]):not([class*="border-l"]):not([class*="border-r"]),
+[data-corner-style="rounded"] #main-tierlist-view .border:not(.rounded-full):not([data-protect-circle]):not([data-protect-radius]):not(.tier-token-avatar-box):not([style*="border-radius"]):not([class*="border-t"]):not([class*="border-b"]):not([class*="border-l"]):not([class*="border-r"]),
 [data-corner-style="rounded"] #app-header .border:not(.rounded-full):not([data-protect-circle]):not([data-protect-radius]):not([class*="border-b"]):not([class*="border-l"]),
+[data-corner-style="rounded"] #app-sidebar .border:not(.rounded-full):not([data-protect-circle]):not([data-protect-radius]):not([data-avatar-container]):not([style*="border-radius"]):not([class*="border-t"]):not([class*="border-b"]):not([class*="border-l"]):not([class*="border-r"]),
 [data-corner-style="rounded"] #create-sheet-modal button.border {
   border-radius: var(--wiki-radius-sm) !important;
 }
@@ -1826,6 +2206,7 @@ body:not(.sheet-mode-classic) #main-settings-view {
 [data-corner-style="sharp"] .fandom-card,
 [data-corner-style="sharp"] .fandom-card-thumb,
 [data-corner-style="sharp"] .fandom-card-thumb > div,
+[data-corner-style="sharp"] .fandom-banner-meta-pill,
 [data-corner-style="sharp"] .souls-panel,
 [data-corner-style="sharp"] .souls-btn,
 [data-corner-style="sharp"] .souls-input,
@@ -1841,12 +2222,32 @@ body:not(.sheet-mode-classic) #main-settings-view {
 [data-corner-style="sharp"] .wiki-settings-card,
 [data-corner-style="sharp"] .wiki-settings-nav-item,
 [data-corner-style="sharp"] .wiki-settings-kbd,
+[data-corner-style="sharp"] .tactical-kbd,
+[data-corner-style="sharp"] .kbd-badge,
 [data-corner-style="sharp"] .wiki-accordion-header,
 [data-corner-style="sharp"] .wiki-accordion-body,
 [data-corner-style="sharp"] .wiki-segmented,
 [data-corner-style="sharp"] .wiki-segmented-btn,
 [data-corner-style="sharp"] .wiki-switch,
 [data-corner-style="sharp"] .wiki-switch-thumb,
+[data-corner-style="sharp"] [role="switch"],
+[data-corner-style="sharp"] [role="switch"] > *,
+[data-corner-style="sharp"] .header-btn,
+[data-corner-style="sharp"] .header-btn-ghost,
+[data-corner-style="sharp"] .header-btn-accent,
+[data-corner-style="sharp"] .header-btn-danger-solid,
+[data-corner-style="sharp"] .brand-tag,
+[data-corner-style="sharp"] .dashboard-header-panel,
+[data-corner-style="sharp"] .dashboard-char-card,
+[data-corner-style="sharp"] .dashboard-search-input,
+[data-corner-style="sharp"] .dashboard-filter-select,
+[data-corner-style="sharp"] .tierlist-cyber-panel,
+[data-corner-style="sharp"] .tierlist-board-container,
+[data-corner-style="sharp"] .tierlist-row-lane,
+[data-corner-style="sharp"] .tier-monument,
+[data-corner-style="sharp"] .tier-control-btn,
+[data-corner-style="sharp"] .tier-modifier-badge,
+[data-corner-style="sharp"] .tier-collapse-pill,
 [data-corner-style="sharp"] .rpg-sheet-shell,
 [data-corner-style="sharp"] .rpg-header-field,
 [data-corner-style="sharp"] .rpg-box,
@@ -1855,6 +2256,17 @@ body:not(.sheet-mode-classic) #main-settings-view {
 [data-corner-style="sharp"] .rpg-portrait-frame,
 [data-corner-style="sharp"] #btn-create-sheet-unified,
 [data-corner-style="sharp"] #btn-create-sheet-classic,
+[data-corner-style="sharp"] #modals-root .modal-box,
+[data-corner-style="sharp"] #modals-root .confirm-box,
+[data-corner-style="sharp"] #sheet-converter-modal > div,
+[data-corner-style="sharp"] #modals-root [id$="-modal"] > div[class*="max-w-"],
+[data-corner-style="sharp"] #main-tierlist-view [id*="modal"] > div[class*="max-w-"],
+[data-corner-style="sharp"] .custom-dropdown-menu,
+[data-corner-style="sharp"] .custom-dropdown-item,
+[data-corner-style="sharp"] .tactical-toast,
+[data-corner-style="sharp"] .toast,
+[data-corner-style="sharp"] #tactical-floating-text-toolbar,
+[data-corner-style="sharp"] #tf-color-popover,
 [data-corner-style="sharp"] body:not(.sheet-mode-classic) .form-card,
 [data-corner-style="sharp"] body:not(.sheet-mode-classic) .read-card,
 [data-corner-style="sharp"] body:not(.sheet-mode-classic) .form-input,
@@ -1866,8 +2278,8 @@ body:not(.sheet-mode-classic) #main-settings-view {
 [data-corner-style="sharp"] body:not(.sheet-mode-classic) .char-card,
 [data-corner-style="sharp"] body:not(.sheet-mode-classic) .tier-row,
 [data-corner-style="sharp"] body:not(.sheet-mode-classic) .tier-item,
-[data-corner-style="sharp"] #main-settings-view [class*="rounded"]:not([data-protect-circle]):not([data-protect-radius]):not([style*="border-radius"]),
-[data-corner-style="sharp"] #dashboard-view [class*="rounded"]:not([data-protect-circle]):not([data-protect-radius]):not([style*="border-radius"]) {
+[data-corner-style="sharp"] :is(#app, #modals-root, #tactical-floating-text-toolbar, #tactical-toast-container) [class*="rounded"]:not(.rounded-full):not([data-protect-circle]):not([data-protect-radius]):not([data-avatar-container]):not(.tier-token-avatar-box):not(.steam-avatar-frame-overlay):not(.tf-color-swatch):not(.tf-color-dot):not(.sanity-dot):not(.animate-spin):not(.cropper-point):not([style*="border-radius"]),
+[data-corner-style="sharp"] :is(#app, #modals-root) button.rounded-full[class*="px-"]:not([data-protect-circle]):not([data-protect-radius]):not(.tf-color-swatch):not(.tf-color-dot):not([style*="border-radius"]) {
   border-radius: 0 !important;
   clip-path: none !important;
 }
@@ -1876,6 +2288,7 @@ body:not(.sheet-mode-classic) #main-settings-view {
 [data-corner-style="chamfer"] .fandom-community-banner,
 [data-corner-style="chamfer"] .fandom-community-avatar,
 [data-corner-style="chamfer"] .fandom-community-badge,
+[data-corner-style="chamfer"] .fandom-banner-meta-pill,
 [data-corner-style="chamfer"] .fandom-subnav-tab,
 [data-corner-style="chamfer"] .fandom-search-input,
 [data-corner-style="chamfer"] .fandom-card,
@@ -1887,6 +2300,8 @@ body:not(.sheet-mode-classic) #main-settings-view {
 [data-corner-style="chamfer"] .souls-select,
 [data-corner-style="chamfer"] .souls-textarea,
 [data-corner-style="chamfer"] .wiki-infobox,
+[data-corner-style="chamfer"] .wiki-infobox-title,
+[data-corner-style="chamfer"] .wiki-infobox-image,
 [data-corner-style="chamfer"] .wiki-toc,
 [data-corner-style="chamfer"] .wiki-quote,
 [data-corner-style="chamfer"] .wiki-article-tab,
@@ -1894,27 +2309,67 @@ body:not(.sheet-mode-classic) #main-settings-view {
 [data-corner-style="chamfer"] .wiki-settings-card,
 [data-corner-style="chamfer"] .wiki-settings-nav-item,
 [data-corner-style="chamfer"] .wiki-settings-kbd,
+[data-corner-style="chamfer"] .tactical-kbd,
+[data-corner-style="chamfer"] .kbd-badge,
 [data-corner-style="chamfer"] .wiki-accordion-header,
 [data-corner-style="chamfer"] .wiki-accordion-body,
 [data-corner-style="chamfer"] .wiki-segmented,
 [data-corner-style="chamfer"] .wiki-segmented-btn,
 [data-corner-style="chamfer"] .wiki-switch,
 [data-corner-style="chamfer"] .wiki-switch-thumb,
+[data-corner-style="chamfer"] [role="switch"],
+[data-corner-style="chamfer"] [role="switch"] > *,
+[data-corner-style="chamfer"] .header-btn,
+[data-corner-style="chamfer"] .header-btn-ghost,
+[data-corner-style="chamfer"] .header-btn-accent,
+[data-corner-style="chamfer"] .header-btn-danger-solid,
+[data-corner-style="chamfer"] .brand-tag,
+[data-corner-style="chamfer"] .dashboard-header-panel,
+[data-corner-style="chamfer"] .dashboard-char-card,
+[data-corner-style="chamfer"] .dashboard-search-input,
+[data-corner-style="chamfer"] .dashboard-filter-select,
+[data-corner-style="chamfer"] .tierlist-cyber-panel,
+[data-corner-style="chamfer"] .tierlist-board-container,
+[data-corner-style="chamfer"] .tierlist-row-lane,
+[data-corner-style="chamfer"] .tier-monument,
+[data-corner-style="chamfer"] .tier-control-btn,
+[data-corner-style="chamfer"] .tier-modifier-badge,
+[data-corner-style="chamfer"] .tier-collapse-pill,
 [data-corner-style="chamfer"] .rpg-sheet-shell,
 [data-corner-style="chamfer"] .rpg-header-field,
 [data-corner-style="chamfer"] .rpg-box,
+[data-corner-style="chamfer"] .rpg-box-header,
 [data-corner-style="chamfer"] .rpg-stat-bubble,
 [data-corner-style="chamfer"] .rpg-portrait-frame,
 [data-corner-style="chamfer"] #btn-create-sheet-unified,
 [data-corner-style="chamfer"] #btn-create-sheet-classic,
-[data-corner-style="chamfer"] #main-settings-view [class*="rounded"]:not([data-protect-circle]):not([data-protect-radius]):not([style*="border-radius"]),
-[data-corner-style="chamfer"] #dashboard-view [class*="rounded"]:not([data-protect-circle]):not([data-protect-radius]):not([style*="border-radius"]) {
+[data-corner-style="chamfer"] #modals-root .modal-box,
+[data-corner-style="chamfer"] #modals-root .confirm-box,
+[data-corner-style="chamfer"] #sheet-converter-modal > div,
+[data-corner-style="chamfer"] #modals-root [id$="-modal"] > div[class*="max-w-"],
+[data-corner-style="chamfer"] #main-tierlist-view [id*="modal"] > div[class*="max-w-"],
+[data-corner-style="chamfer"] .custom-dropdown-menu,
+[data-corner-style="chamfer"] .custom-dropdown-item,
+[data-corner-style="chamfer"] .tactical-toast,
+[data-corner-style="chamfer"] .toast,
+[data-corner-style="chamfer"] #tactical-floating-text-toolbar,
+[data-corner-style="chamfer"] #tf-color-popover,
+[data-corner-style="chamfer"] :is(#app, #modals-root, #tactical-floating-text-toolbar, #tactical-toast-container) [class*="rounded"]:not(.rounded-full):not([data-protect-circle]):not([data-protect-radius]):not([data-avatar-container]):not(.tier-token-avatar-box):not(.steam-avatar-frame-overlay):not(.tf-color-swatch):not(.tf-color-dot):not(.sanity-dot):not(.animate-spin):not(.cropper-point):not([style*="border-radius"]),
+[data-corner-style="chamfer"] :is(#app, #modals-root) button.rounded-full[class*="px-"]:not([data-protect-circle]):not([data-protect-radius]):not(.tf-color-swatch):not(.tf-color-dot):not([style*="border-radius"]) {
   border-radius: 0 !important;
 }
 
-/* Bisel amplio en contenedores mayores y cabeceras */
+/* Bisel amplio en contenedores mayores, cabeceras y modales */
 [data-corner-style="chamfer"] .fandom-community-banner,
-[data-corner-style="chamfer"] .rpg-sheet-shell {
+[data-corner-style="chamfer"] .rpg-sheet-shell,
+[data-corner-style="chamfer"] .dashboard-header-panel,
+[data-corner-style="chamfer"] .tierlist-cyber-panel,
+[data-corner-style="chamfer"] .tierlist-board-container,
+[data-corner-style="chamfer"] #modals-root .modal-box:not(.overflow-visible):not(:has(.cyber-color-popover:not([style*="display: none"]))):not(:has(.custom-dropdown-menu:not([style*="display: none"]))),
+[data-corner-style="chamfer"] #modals-root .confirm-box,
+[data-corner-style="chamfer"] #sheet-converter-modal > div,
+[data-corner-style="chamfer"] #modals-root [id$="-modal"] > div[class*="max-w-"]:not(.modal-backdrop):not(.overflow-visible):not(:has(.cyber-color-popover:not([style*="display: none"]))):not(:has(.custom-dropdown-menu:not([style*="display: none"]))),
+[data-corner-style="chamfer"] #main-tierlist-view [id*="modal"] > div[class*="max-w-"]:not(.modal-backdrop):not(.overflow-visible):not(:has(.cyber-color-popover:not([style*="display: none"]))):not(:has(.custom-dropdown-menu:not([style*="display: none"]))) {
   clip-path: polygon(
     14px 0,
     calc(100% - 14px) 0,
@@ -1927,16 +2382,21 @@ body:not(.sheet-mode-classic) #main-settings-view {
   );
 }
 
-/* Bisel mediano en tarjetas, infobox, TOC y secciones */
-[data-corner-style="chamfer"] .fandom-card:not(.is-menu-open),
+/* Bisel mediano en tarjetas, infobox, TOC, carriles y secciones */
+[data-corner-style="chamfer"] .fandom-card:not(.is-menu-open):not(:has(.custom-dropdown-menu:not([style*="display: none"]))),
+[data-corner-style="chamfer"] .dashboard-char-card:not(.is-menu-open):not(:has(.custom-dropdown-menu:not([style*="display: none"]))),
 [data-corner-style="chamfer"] .souls-panel,
 [data-corner-style="chamfer"] .wiki-infobox,
 [data-corner-style="chamfer"] .wiki-toc,
 [data-corner-style="chamfer"] .rpg-box,
+[data-corner-style="chamfer"] .tierlist-row-lane,
+[data-corner-style="chamfer"] .tier-monument,
+[data-corner-style="chamfer"] .tactical-toast,
+[data-corner-style="chamfer"] .toast,
 [data-corner-style="chamfer"] .wiki-settings-section:not(.is-menu-open):not(:has(.cyber-color-popover:not([style*="display: none"]))),
 [data-corner-style="chamfer"] #btn-create-sheet-unified,
 [data-corner-style="chamfer"] #btn-create-sheet-classic,
-[data-corner-style="chamfer"] body:not(.sheet-mode-classic) .form-card:not(:focus-within),
+[data-corner-style="chamfer"] body:not(.sheet-mode-classic) .form-card:not(:focus-within):not(.overflow-visible),
 [data-corner-style="chamfer"] body:not(.sheet-mode-classic) .read-card {
   clip-path: polygon(
     10px 0,
@@ -1950,8 +2410,12 @@ body:not(.sheet-mode-classic) #main-settings-view {
   );
 }
 
-/* Bisel táctico diagonal en botones, inputs, accordions y cajas internas */
+/* Bisel táctico diagonal en botones, inputs, accordions, menús y cajas internas */
 [data-corner-style="chamfer"] .souls-btn:not(#main-nav-tabs .souls-btn),
+[data-corner-style="chamfer"] .header-btn,
+[data-corner-style="chamfer"] .header-btn-ghost,
+[data-corner-style="chamfer"] .header-btn-accent,
+[data-corner-style="chamfer"] .header-btn-danger-solid,
 [data-corner-style="chamfer"] .wiki-settings-card:not(:has(.cyber-color-popover:not([style*="display: none"]))),
 [data-corner-style="chamfer"] .wiki-accordion-header,
 [data-corner-style="chamfer"] .wiki-accordion-body:not(:has(.cyber-color-popover:not([style*="display: none"]))),
@@ -1960,6 +2424,12 @@ body:not(.sheet-mode-classic) #main-settings-view {
 [data-corner-style="chamfer"] .souls-select,
 [data-corner-style="chamfer"] .souls-textarea,
 [data-corner-style="chamfer"] .fandom-search-input,
+[data-corner-style="chamfer"] .dashboard-search-input,
+[data-corner-style="chamfer"] .dashboard-filter-select,
+[data-corner-style="chamfer"] .tier-control-btn,
+[data-corner-style="chamfer"] .custom-dropdown-menu,
+[data-corner-style="chamfer"] #tactical-floating-text-toolbar:not(:has(#tf-color-popover:not([style*="display: none"]))),
+[data-corner-style="chamfer"] #tf-color-popover,
 [data-corner-style="chamfer"] .rpg-header-field,
 [data-corner-style="chamfer"] .rpg-stat-bubble,
 [data-corner-style="chamfer"] .rpg-portrait-frame,
@@ -1982,9 +2452,18 @@ body:not(.sheet-mode-classic) #main-settings-view {
 /* Micro-bisel octogonal en switches, badges y pills */
 [data-corner-style="chamfer"] .wiki-switch,
 [data-corner-style="chamfer"] .wiki-switch-thumb,
+[data-corner-style="chamfer"] [role="switch"],
+[data-corner-style="chamfer"] [role="switch"] > *,
 [data-corner-style="chamfer"] .wiki-segmented-btn,
+[data-corner-style="chamfer"] .wiki-settings-nav-item,
 [data-corner-style="chamfer"] .fandom-community-badge,
+[data-corner-style="chamfer"] .fandom-banner-meta-pill,
 [data-corner-style="chamfer"] .wiki-settings-kbd,
+[data-corner-style="chamfer"] .tactical-kbd,
+[data-corner-style="chamfer"] .kbd-badge,
+[data-corner-style="chamfer"] .tier-modifier-badge,
+[data-corner-style="chamfer"] .tier-collapse-pill,
+[data-corner-style="chamfer"] .brand-tag,
 [data-corner-style="chamfer"] body:not(.sheet-mode-classic) .mode-badge {
   clip-path: polygon(
     4px 0,
@@ -1998,15 +2477,355 @@ body:not(.sheet-mode-classic) #main-settings-view {
   );
 }
 
-/* Protección al abrir menús o popovers de color dentro de tarjetas biseladas */
+/* Protección al abrir menús o popovers de color dentro de tarjetas/modales/toolbars biselados */
 [data-corner-style="chamfer"] .fandom-card.is-menu-open,
+[data-corner-style="chamfer"] .dashboard-char-card.is-menu-open,
+[data-corner-style="chamfer"] .dashboard-char-card:has(.custom-dropdown-menu:not([style*="display: none"])),
 [data-corner-style="chamfer"] .wiki-settings-section.is-menu-open,
 [data-corner-style="chamfer"] .wiki-settings-section:has(.cyber-color-popover:not([style*="display: none"])),
 [data-corner-style="chamfer"] .wiki-settings-card:has(.cyber-color-popover:not([style*="display: none"])),
-[data-corner-style="chamfer"] .wiki-accordion-body:has(.cyber-color-popover:not([style*="display: none"])) {
+[data-corner-style="chamfer"] .wiki-accordion-body:has(.cyber-color-popover:not([style*="display: none"])),
+[data-corner-style="chamfer"] #tactical-floating-text-toolbar:has(#tf-color-popover:not([style*="display: none"])),
+[data-corner-style="chamfer"] #modals-root .overflow-visible {
   clip-path: none !important;
   overflow: visible !important;
 }
 
 
 
+
+/* ==========================================================================
+   12. DENSIDAD VISUAL (COMPACTA / NORMAL / CÓMODA) EN TODO EL SHELL WIKI
+   ========================================================================== */
+
+[data-density="compact"] .wiki-shell,
+[data-density="compact"] #character-sheet-skeleton {
+  padding: 16px 22px;
+}
+
+[data-density="compact"] .fandom-community-banner {
+  margin-bottom: 14px;
+}
+
+[data-density="compact"] .fandom-community-banner-content {
+  padding: 14px 18px 12px;
+  gap: 14px;
+}
+
+[data-density="compact"] .fandom-search-bar-row {
+  margin-bottom: 14px;
+  gap: 10px;
+}
+
+[data-density="compact"] .fandom-roster-grid,
+[data-density="compact"] .fandom-roster-banner-grid {
+  gap: 12px;
+}
+
+[data-density="compact"] .fandom-card-thumb {
+  height: 170px;
+}
+
+[data-density="compact"] .fandom-card-body {
+  padding: 10px 12px;
+}
+
+[data-density="compact"] .fandom-card-banner {
+  min-height: 164px;
+}
+
+[data-density="compact"] .fandom-banner-inner {
+  padding: 11px 14px 10px 16px;
+  gap: 8px;
+}
+
+[data-density="compact"] .rpg-sheet-3col {
+  gap: 12px;
+}
+
+[data-density="compact"] .rpg-box {
+  margin-bottom: 12px;
+}
+
+[data-density="compact"] .rpg-box-header {
+  padding: 6px 10px;
+}
+
+[data-density="compact"] .rpg-box-body {
+  padding: 9px 10px;
+}
+
+[data-density="compact"] .wiki-settings-layout {
+  gap: 18px;
+  margin-top: 14px;
+}
+
+[data-density="compact"] .wiki-settings-section {
+  padding: 12px 14px;
+}
+
+[data-density="compact"] .wiki-settings-card {
+  padding: 10px 12px;
+}
+
+[data-density="compact"] .souls-input,
+[data-density="compact"] .souls-select,
+[data-density="compact"] .souls-textarea {
+  padding: 4px 8px !important;
+  font-size: 0.84rem;
+}
+
+[data-density="compact"] .souls-btn {
+  padding: 5px 11px;
+  font-size: 0.74rem;
+}
+
+[data-density="comfortable"] .wiki-shell,
+[data-density="comfortable"] #character-sheet-skeleton {
+  padding: 36px 46px;
+}
+
+[data-density="comfortable"] .fandom-community-banner {
+  margin-bottom: 32px;
+}
+
+[data-density="comfortable"] .fandom-community-banner-content {
+  padding: 30px 34px 26px;
+  gap: 28px;
+}
+
+[data-density="comfortable"] .fandom-search-bar-row {
+  margin-bottom: 30px;
+  gap: 20px;
+}
+
+[data-density="comfortable"] .fandom-roster-grid,
+[data-density="comfortable"] .fandom-roster-banner-grid {
+  gap: 24px;
+}
+
+[data-density="comfortable"] .fandom-card-thumb {
+  height: 255px;
+}
+
+[data-density="comfortable"] .fandom-card-body {
+  padding: 18px 20px;
+}
+
+[data-density="comfortable"] .fandom-card-banner {
+  min-height: 224px;
+}
+
+[data-density="comfortable"] .fandom-banner-inner {
+  padding: 20px 22px 18px 24px;
+  gap: 16px;
+}
+
+[data-density="comfortable"] .rpg-sheet-3col {
+  gap: 28px;
+}
+
+[data-density="comfortable"] .rpg-box {
+  margin-bottom: 26px;
+}
+
+[data-density="comfortable"] .rpg-box-header {
+  padding: 11px 16px;
+}
+
+[data-density="comfortable"] .rpg-box-body {
+  padding: 18px 20px;
+}
+
+[data-density="comfortable"] .wiki-settings-layout {
+  gap: 40px;
+  margin-top: 28px;
+}
+
+[data-density="comfortable"] .wiki-settings-section {
+  padding: 24px 26px;
+}
+
+[data-density="comfortable"] .wiki-settings-card {
+  padding: 18px 20px;
+}
+
+[data-density="comfortable"] .souls-input,
+[data-density="comfortable"] .souls-select,
+[data-density="comfortable"] .souls-textarea {
+  padding: 10px 13px !important;
+  font-size: 0.96rem;
+}
+
+[data-density="comfortable"] .souls-btn {
+  padding: 10px 20px;
+}
+
+/* ==========================================================================
+   13. DENSIDAD ADICIONAL EN MODALES Y TIERLIST
+   ========================================================================== */
+
+[data-density="compact"] #modals-root .modal-box {
+  padding: 1rem !important;
+  gap: 0.65rem;
+}
+
+[data-density="compact"] #main-tierlist-view .tier-pool-card {
+  padding: 0.45rem !important;
+}
+
+[data-density="comfortable"] #modals-root .modal-box {
+  padding: 1.75rem !important;
+  gap: 1.1rem;
+}
+
+[data-density="comfortable"] #main-tierlist-view .tier-pool-card {
+  padding: 0.9rem !important;
+}
+
+/* ==========================================================================
+   14. RESPLANDORES Y EFECTOS LUMINOSOS ACTIVOS (CUANDO !disableGlowEffects)
+   ========================================================================== */
+
+body:not(.no-glow-effects):not(.sheet-mode-classic) .fandom-community-banner,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .wiki-infobox,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .rpg-box {
+  box-shadow: 0 0 18px var(--accent-glow-lg);
+}
+
+body:not(.no-glow-effects):not(.sheet-mode-classic) .fandom-card:hover,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .souls-btn:hover {
+  box-shadow: 0 0 14px var(--accent-glow);
+}
+
+body:not(.no-glow-effects):not(.sheet-mode-classic) .souls-btn-primary,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .wiki-switch.is-on {
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+body:not(.no-glow-effects):not(.sheet-mode-classic) .souls-input:focus,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .souls-select:focus,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .souls-textarea:focus,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .fandom-search-input:focus {
+  box-shadow: 0 0 0 2px var(--accent-dim), 0 0 12px var(--accent-glow);
+}
+
+body:not(.no-glow-effects):not(.sheet-mode-classic) .wiki-page-title,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .fandom-community-title,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .wiki-settings-title {
+  text-shadow: 0 0 14px var(--accent-glow-lg);
+}
+
+body:not(.no-glow-effects):not(.sheet-mode-classic) .wiki-infobox-title,
+body:not(.no-glow-effects):not(.sheet-mode-classic) .rpg-box-header {
+  text-shadow: 0 0 8px var(--accent-glow-lg);
+}
+
+body.no-glow-effects .fandom-community-banner,
+body.no-glow-effects .wiki-infobox,
+body.no-glow-effects .rpg-box,
+body.no-glow-effects .fandom-card:hover,
+body.no-glow-effects .souls-btn:hover,
+body.no-glow-effects .souls-btn-primary,
+body.no-glow-effects .wiki-switch.is-on {
+  box-shadow: none !important;
+}
+
+/* ==========================================================================
+   15. MODO SOBRIO (disableCustomColors) Y JERARQUÍA DE ÍCONOS EN SHELL WIKI Y MODALES
+   ========================================================================== */
+
+body.disable-custom-colors :is(.wiki-shell, #main-dashboard-view, #unified-character-sheet, #modals-root) :is(
+  h2, h3, h4, span, p, i, svg
+):is(
+  [class*="text-emerald-"], [class*="text-cyan-"], [class*="text-indigo-"],
+  [class*="text-violet-"], [class*="text-purple-"], [class*="text-sky-"],
+  [class*="text-amber-"], [class*="text-rose-"], [class*="text-pink-"],
+  [class*="text-teal-"], [class*="text-blue-"], [class*="text-orange-"]
+):not([data-swatch]):not(.tier-badge):not(.steam-rarity-badge) {
+  color: var(--text-secondary, var(--wiki-text-muted)) !important;
+}
+
+body.disable-custom-colors :is(.wiki-shell, #main-dashboard-view, #unified-character-sheet, #modals-root) [class*="border-"]:is(
+  [class*="border-emerald-"], [class*="border-cyan-"], [class*="border-indigo-"],
+  [class*="border-violet-"], [class*="border-purple-"], [class*="border-sky-"],
+  [class*="border-amber-"], [class*="border-rose-"], [class*="border-pink-"]
+):not([data-swatch]):not(.tier-badge):not(.steam-rarity-badge) {
+  border-color: var(--border-custom, var(--wiki-border-strong)) !important;
+}
+
+body.disable-custom-colors :is(.wiki-shell, #main-dashboard-view, #unified-character-sheet, #modals-root) [class*="bg-"]:is(
+  [class*="bg-emerald-"], [class*="bg-cyan-"], [class*="bg-indigo-"],
+  [class*="bg-violet-"], [class*="bg-purple-"], [class*="bg-sky-"],
+  [class*="bg-amber-"], [class*="bg-rose-"], [class*="bg-pink-"]
+):not([data-swatch]):not(.tier-badge):not(.wiki-switch):not(.steam-rarity-badge) {
+  background-color: var(--wiki-bg-elevated) !important;
+}
+
+body.hide-icons-h1 .wiki-page-title i,
+body.hide-icons-h1 .wiki-page-title svg,
+body.hide-icons-h1 .wiki-h2 i,
+body.hide-icons-h1 .wiki-h2 svg,
+body.hide-icons-h1 .fandom-community-title i,
+body.hide-icons-h1 .fandom-community-title svg,
+body.hide-icons-h1 .wiki-settings-title i,
+body.hide-icons-h1 .wiki-settings-title svg,
+body.hide-icons-h1 .wiki-settings-pane-title i,
+body.hide-icons-h1 .wiki-settings-pane-title svg,
+body.hide-icons-h1 .rpg-header-val i,
+body.hide-icons-h1 .rpg-header-val svg {
+  display: none !important;
+}
+
+body.hide-icons-h2 .fandom-card-title i,
+body.hide-icons-h2 .fandom-card-title svg,
+body.hide-icons-h2 .rpg-box-header i,
+body.hide-icons-h2 .rpg-box-header svg,
+body.hide-icons-h2 .wiki-infobox-title i,
+body.hide-icons-h2 .wiki-infobox-title svg,
+body.hide-icons-h2 .wiki-infobox-section-header i,
+body.hide-icons-h2 .wiki-infobox-section-header svg,
+body.hide-icons-h2 .wiki-settings-section-title i,
+body.hide-icons-h2 .wiki-settings-section-title svg,
+body.hide-icons-h2 .wiki-settings-section h3 i,
+body.hide-icons-h2 .wiki-settings-section h3 svg,
+body.hide-icons-h2 #modals-root .modal-box h2 i,
+body.hide-icons-h2 #modals-root .modal-box h2 svg,
+body.hide-icons-h2 #modals-root .modal-box h3 i,
+body.hide-icons-h2 #modals-root .modal-box h3 svg {
+  display: none !important;
+}
+
+body.hide-icons-h3 .wiki-toc-header i,
+body.hide-icons-h3 .wiki-toc-header svg,
+body.hide-icons-h3 .rpg-box-body h3 i,
+body.hide-icons-h3 .rpg-box-body h3 svg,
+body.hide-icons-h3 .rpg-box-body h4 i,
+body.hide-icons-h3 .rpg-box-body h4 svg,
+body.hide-icons-h3 .wiki-settings-card h4 i,
+body.hide-icons-h3 .wiki-settings-card h4 svg,
+body.hide-icons-h3 #modals-root h4 i,
+body.hide-icons-h3 #modals-root h4 svg {
+  display: none !important;
+}
+
+body.hide-icons-labels .rpg-header-label i,
+body.hide-icons-labels .rpg-header-label svg,
+body.hide-icons-labels .rpg-stat-label i,
+body.hide-icons-labels .rpg-stat-label svg,
+body.hide-icons-labels .wiki-infobox-label i,
+body.hide-icons-labels .wiki-infobox-label svg,
+body.hide-icons-labels .wiki-settings-nav-item i,
+body.hide-icons-labels .wiki-settings-nav-item svg,
+body.hide-icons-labels .fandom-subnav-tab i,
+body.hide-icons-labels .fandom-subnav-tab svg,
+body.hide-icons-labels .wiki-article-tab i,
+body.hide-icons-labels .wiki-article-tab svg,
+body.hide-icons-labels .wiki-segmented-btn i,
+body.hide-icons-labels .wiki-segmented-btn svg,
+body.hide-icons-labels .wiki-shell label i,
+body.hide-icons-labels .wiki-shell label svg,
+body.hide-icons-labels #modals-root label i,
+body.hide-icons-labels #modals-root label svg {
+  display: none !important;
+}

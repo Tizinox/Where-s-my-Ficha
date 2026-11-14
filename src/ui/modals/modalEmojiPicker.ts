@@ -1,0 +1,247 @@
+/**
+ * @file src/ui/modals/modalEmojiPicker.ts
+ */
+
+export function renderModalEmojiPicker(): string {
+  return `<!-- ==============================================================
+     MODAL FLOTANTE: SELECTOR RÁPIDO DE EMOTICONOS
+     ============================================================== -->
+<div id="emoji-picker-modal"
+  x-data
+  x-show="$store.customEmojis.isPickerOpen"
+  x-cloak
+  @keydown.escape.window="$store.customEmojis.closePicker()"
+  x-transition:enter="transition ease-out duration-150"
+  x-transition:enter-start="opacity-0 scale-95"
+  x-transition:enter-end="opacity-100 scale-100"
+  x-transition:leave="transition ease-in duration-100"
+  x-transition:leave-start="opacity-100 scale-100"
+  x-transition:leave-end="opacity-0 scale-95"
+  class="fixed inset-0 z-[9999999] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-sm"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Selector de Emoticonos Personalizados">
+
+  <!-- Backdrop click to close -->
+  <div class="absolute inset-0" @click="$store.customEmojis.closePicker()"></div>
+
+  <!-- Contenedor del Modal -->
+  <div data-protect-contrast="true" class="relative w-full max-w-lg bg-[#0a0d14] border border-accent-gold/40 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_25px_rgba(212,175,55,0.2)] overflow-hidden flex flex-col max-h-[85vh] z-10"
+    @click.stop>
+
+    <!-- Cabecera del Picker -->
+    <div class="p-3.5 sm:p-4 border-b border-white/10 flex items-center justify-between bg-black/40">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-accent-gold/15 border border-accent-gold/30 flex items-center justify-center text-accent-gold">
+          <i data-lucide="smile" class="w-4 h-4"></i>
+        </div>
+        <div>
+          <h3 class="font-title text-sm sm:text-base font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span>Selector de Emoticonos</span>
+            <span class="text-[10px] font-mono px-2 py-0.2 rounded bg-white/10 text-parchment-cream/70 font-normal">
+              :<span x-text="$store.customEmojis.totalCount"></span> disponibles:
+            </span>
+          </h3>
+          <p class="text-[10px] text-ink-slate font-sans">
+            Haz clic para insertar en el texto activo o copiar código.
+          </p>
+        </div>
+      </div>
+
+      <button type="button" @click="$store.customEmojis.closePicker()"
+        class="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-ink-slate hover:text-white transition-all cursor-pointer"
+        title="Cerrar selector (Esc)">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Buscador y Filtros -->
+    <div class="p-3 border-b border-white/10 space-y-2 bg-[#0d121a]/80">
+      <!-- Buscador Rápido (Sin colisión visual de ícono) -->
+      <div class="flex items-center rounded-xl bg-black/60 border border-white/15 focus-within:border-accent-gold px-3 py-1.5 transition-colors">
+        <i data-lucide="search" class="w-4 h-4 text-ink-slate shrink-0 mr-2.5"></i>
+        <input type="text" id="emoji-picker-search-input"
+          x-model="$store.customEmojis.pickerQuery"
+          class="bg-transparent text-xs font-mono text-parchment-cream w-full focus:outline-none placeholder:text-white/30"
+          placeholder="Buscar por :código: o nombre..." />
+        <button type="button" x-show="$store.customEmojis.pickerQuery" @click="$store.customEmojis.pickerQuery = ''"
+          class="text-ink-slate hover:text-white cursor-pointer shrink-0 ml-1.5">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+
+      <!-- Filtro de Categorías -->
+      <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-0.5">
+        <button type="button" @click="$store.customEmojis.pickerCategory = 'all'"
+          class="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap"
+          :class="$store.customEmojis.pickerCategory === 'all' ? 'bg-accent-gold text-black font-bold' : 'bg-white/5 hover:bg-white/10 text-parchment-cream/70 border border-white/10'">
+          Todos
+        </button>
+
+        <template x-if="$store.customEmojis.favoriteEmojis.length > 0">
+          <button type="button" @click="$store.customEmojis.pickerCategory = 'favorites'"
+            class="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1"
+            :class="$store.customEmojis.pickerCategory === 'favorites' ? 'bg-amber-400 text-black font-bold shadow-sm' : 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-400/30'">
+            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+            <span>Favoritos (<span x-text="$store.customEmojis.favoriteEmojis.length"></span>)</span>
+          </button>
+        </template>
+
+        <template x-if="$store.customEmojis.recentEmojis.length > 0">
+          <button type="button" @click="$store.customEmojis.pickerCategory = 'recents'"
+            class="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap flex items-center gap-1"
+            :class="$store.customEmojis.pickerCategory === 'recents' ? 'bg-accent-cyan text-black font-bold shadow-sm' : 'bg-accent-cyan/10 hover:bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30'">
+            <i data-lucide="clock" class="w-3 h-3"></i>
+            <span>Recientes</span>
+          </button>
+        </template>
+
+        <template x-for="cat in $store.customEmojis.categories" :key="'pcat-' + cat">
+          <button type="button" @click="$store.customEmojis.pickerCategory = cat"
+            class="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase tracking-wider transition-all cursor-pointer whitespace-nowrap"
+            :class="$store.customEmojis.pickerCategory === cat ? 'bg-accent-gold text-black font-bold' : 'bg-white/5 hover:bg-white/10 text-parchment-cream/70 border border-white/10'">
+            <span x-text="cat"></span>
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <!-- Lista / Grilla de Emojis -->
+    <div class="p-3 overflow-y-auto custom-scrollbar flex-1 min-h-[220px] max-h-[380px] space-y-3">
+
+      <!-- Fila de Acceso Rápido: Favoritos y Recientes (visible cuando no hay búsqueda activa y en modo "Todos") -->
+      <template x-if="!$store.customEmojis.pickerQuery && $store.customEmojis.pickerCategory === 'all' && ($store.customEmojis.favoriteEmojis.length > 0 || $store.customEmojis.recentEmojis.length > 0)">
+        <div class="space-y-2 pb-2 border-b border-white/10">
+          <!-- Favoritos -->
+          <template x-if="$store.customEmojis.favoriteEmojis.length > 0">
+            <div class="space-y-1">
+              <span class="text-[10px] font-mono font-bold text-amber-400 flex items-center gap-1 uppercase tracking-wider">
+                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                <span>Favoritos Frecuentes</span>
+              </span>
+              <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+                <template x-for="fav in $store.customEmojis.favoriteEmojis.slice(0, 10)" :key="'fav-strip-' + fav.id">
+                  <button type="button" @click="$store.customEmojis.selectEmoji(fav)"
+                    class="w-8 h-8 rounded-lg bg-black/60 hover:bg-amber-400/20 border border-amber-400/40 hover:border-amber-400 flex items-center justify-center p-1 shrink-0 transition-transform hover:scale-110 active:scale-95 cursor-pointer shadow-sm"
+                    :title="fav.name + ' (:' + fav.shortcode + ':)'">
+                    <img :src="fav.url" :alt="':' + fav.shortcode + ':'" class="max-w-full max-h-full object-contain filter drop-shadow select-none pointer-events-none" />
+                  </button>
+                </template>
+              </div>
+            </div>
+          </template>
+
+          <!-- Recientes -->
+          <template x-if="$store.customEmojis.recentEmojis.length > 0">
+            <div class="space-y-1">
+              <span class="text-[10px] font-mono font-bold text-accent-cyan flex items-center gap-1 uppercase tracking-wider">
+                <i data-lucide="clock" class="w-3 h-3"></i>
+                <span>Usados Recientemente</span>
+              </span>
+              <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+                <template x-for="rec in $store.customEmojis.recentEmojis.slice(0, 10)" :key="'rec-strip-' + rec.id">
+                  <button type="button" @click="$store.customEmojis.selectEmoji(rec)"
+                    class="w-8 h-8 rounded-lg bg-black/60 hover:bg-cyan-400/20 border border-cyan-400/30 hover:border-cyan-400 flex items-center justify-center p-1 shrink-0 transition-transform hover:scale-110 active:scale-95 cursor-pointer shadow-sm"
+                    :title="rec.name + ' (:' + rec.shortcode + ':)'">
+                    <img :src="rec.url" :alt="':' + rec.shortcode + ':'" class="max-w-full max-h-full object-contain filter drop-shadow select-none pointer-events-none" />
+                  </button>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <!-- Caso: Galería Vacía (Sin Emojis creados todavía) -->
+      <template x-if="$store.customEmojis.list.length === 0">
+        <div class="py-10 px-4 text-center flex flex-col items-center justify-center space-y-3">
+          <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-accent-gold">
+            <i data-lucide="smile" class="w-6 h-6"></i>
+          </div>
+          <div class="space-y-1 max-w-xs">
+            <p class="text-xs font-bold text-parchment-cream uppercase tracking-wider font-title">
+              Aún no tienes emoticonos guardados
+            </p>
+            <p class="text-[11px] text-ink-slate font-sans">
+              Puedes subir tus propios PNG, WebP o GIFs animados en las configuraciones para usarlos aquí.
+            </p>
+          </div>
+          <button type="button"
+            @click="$store.customEmojis.closePicker(); $store.settings.openModal('emojis');"
+            class="px-3.5 py-1.5 rounded-xl font-mono text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer shadow-md bg-accent-gold text-black hover:brightness-110">
+            <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+            <span>Ir a Añadir Emojis en Ajustes</span>
+          </button>
+        </div>
+      </template>
+
+      <!-- Caso: Búsqueda sin coincidencias -->
+      <template x-if="$store.customEmojis.list.length > 0 && $store.customEmojis.filteredPickerList.length === 0">
+        <div class="py-8 text-center space-y-2">
+          <i data-lucide="search-x" class="w-6 h-6 text-ink-slate mx-auto"></i>
+          <p class="text-xs text-ink-slate font-mono">No se encontraron emoticonos para esta búsqueda.</p>
+        </div>
+      </template>
+
+      <!-- Grilla interactiva de selección rápida -->
+      <template x-if="$store.customEmojis.filteredPickerList.length > 0">
+        <div class="grid grid-cols-5 sm:grid-cols-6 gap-2">
+          <template x-for="emoji in $store.customEmojis.filteredPickerList" :key="'pick-' + emoji.id">
+            <button type="button" @click="$store.customEmojis.selectEmoji(emoji)"
+              class="p-2 rounded-xl bg-black/40 hover:bg-accent-gold/15 border border-white/10 hover:border-accent-gold/60 transition-all flex flex-col items-center justify-center gap-1 group cursor-pointer relative shadow-sm hover:scale-105 active:scale-95"
+              :title="emoji.name + ' (:' + emoji.shortcode + ':)'">
+              
+              <!-- Estrella de Favorito (Toggle rápido) -->
+              <button type="button" @click.stop="$store.customEmojis.toggleFavorite(emoji.id)"
+                class="absolute top-1 right-1 p-0.5 rounded transition-all cursor-pointer z-10"
+                :class="$store.customEmojis.isFavorite(emoji.id) ? 'opacity-100 text-amber-400' : 'opacity-0 group-hover:opacity-100 text-slate-500 hover:text-amber-300'"
+                :title="$store.customEmojis.isFavorite(emoji.id) ? 'Quitar de favoritos' : 'Marcar como favorito'">
+                <svg class="w-3 h-3" :class="$store.customEmojis.isFavorite(emoji.id) ? 'fill-current' : 'fill-none'" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              </button>
+
+              <!-- Miniatura -->
+              <div class="w-9 h-9 flex items-center justify-center p-0.5 pointer-events-none">
+                <img :src="emoji.url" :alt="':' + emoji.shortcode + ':'"
+                  class="max-w-full max-h-full object-contain filter drop-shadow select-none group-hover:scale-115 transition-transform"
+                  @error="$event.target.style.display='none'" />
+              </div>
+
+              <!-- Shortcode recortado -->
+              <span class="text-[9px] font-mono text-ink-slate group-hover:text-accent-gold truncate w-full text-center px-0.5"
+                x-text="':' + emoji.shortcode + ':'"></span>
+            </button>
+          </template>
+        </div>
+      </template>
+    </div>
+
+    <!-- Pie del Picker -->
+    <div class="p-2.5 sm:p-3 border-t border-white/10 bg-black/60 flex items-center justify-between gap-2 text-[11px] font-mono">
+      <div class="text-ink-slate flex items-center gap-1.5 truncate">
+        <i data-lucide="sparkle" class="w-3 h-3 text-accent-gold shrink-0"></i>
+        <span class="truncate">Sintaxis: escribe <code>:nombre:</code> en cualquier texto</span>
+      </div>
+
+      <div class="flex items-center gap-3 shrink-0">
+        <button type="button"
+          @click="$store.customEmojis.closePicker(); $store.steamEmojis.open('packs');"
+          class="text-[#66c0f4] hover:text-white flex items-center gap-1 cursor-pointer transition-colors font-bold">
+          <i data-lucide="steam" class="w-3 h-3"></i>
+          <span>Packs Steam</span>
+        </button>
+
+        <button type="button"
+          @click="$store.customEmojis.closePicker(); $store.settings.openModal('emojis');"
+          class="text-accent-gold hover:text-white flex items-center gap-1 cursor-pointer transition-colors">
+          <i data-lucide="sliders" class="w-3 h-3"></i>
+          <span>Gestionar</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+`;
+}

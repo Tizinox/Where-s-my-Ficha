@@ -161,6 +161,8 @@ export function registerDevConsoleStore(Alpine) {
       { label: '🔒 Bloquear', cmd: 'lock', title: 'Alternar bloqueo contra ediciones' },
       { label: '★ Favorito', cmd: 'fav', title: 'Marcar o desmarcar como favorito' },
       { label: '👁️ Vista Previa', cmd: 'preview', title: 'Alternar modo edición / vista lectura' },
+      { label: '🖼️ Exportar PNG', cmd: 'export img', title: 'Abrir exportador de imagen PNG legible' },
+      { label: '📄 Exportar PDF', cmd: 'export pdf', title: 'Abrir exportador de PDF organizado con imágenes' },
       { label: '📥 Exportar JSON', cmd: 'export json', title: 'Descargar archivo JSON de la ficha activa' },
       { label: '📋 Discord', cmd: 'discord', title: 'Abrir exportador para Discord' },
       { label: '💾 Guardar', cmd: 'save', title: 'Forzar guardado inmediato en IndexedDB' },
@@ -859,14 +861,18 @@ _Pega este bloque en el canal de soporte técnico de Discord para recibir asiste
         case 'export':
         case 'exportar': {
           const fmt = rawArgs.toLowerCase().trim();
-          if (fmt === 'img' || fmt === 'imagen' || fmt === 'png') {
-            this.addLog('WARN', '> La exportación a imagen ha sido deshabilitada en el sistema.');
+          const charStore = Alpine.store('characters');
+          if (!charStore?.active) {
+            this.addLog('WARN', '> No hay ningún personaje activo para exportar.');
+            break;
+          }
+          if (fmt === 'pdf') {
+            Alpine.store('app')?.openExportModal?.(null, 'pdf');
+            this.addLog('CMD_OUTPUT', `✓ Abriendo exportador PDF organizado para «${charStore.active.name}».`);
+          } else if (fmt === 'img' || fmt === 'imagen' || fmt === 'png') {
+            Alpine.store('app')?.openExportModal?.(null, 'image');
+            this.addLog('CMD_OUTPUT', `✓ Abriendo exportador de imagen PNG legible para «${charStore.active.name}».`);
           } else {
-            const charStore = Alpine.store('characters');
-            if (!charStore?.active) {
-              this.addLog('WARN', '> No hay ningún personaje activo para exportar.');
-              break;
-            }
             charStore.exportJSON();
             this.addLog('CMD_OUTPUT', `✓ Respaldo JSON de «${charStore.active.name}» descargado.`);
           }

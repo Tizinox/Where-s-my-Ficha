@@ -1,0 +1,220 @@
+/**
+ * @file src/ui/views/tierlist/modalTierlistBatchGuests.ts
+ */
+
+export function renderModalTierlistBatchGuests(): string {
+  return `<!-- Modal de Importación en Lote de Personajes Invitados (Drag y Drop en Banco) -->
+<div id="tierlist-batch-guests-modal"
+  class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+  x-show="$store.tierlist.showBatchGuestsModal" x-cloak
+  @keydown.escape.window="!$store.tierlist.isProcessingBatch && $store.tierlist.closeBatchGuestsModal()"
+  role="dialog" aria-modal="true">
+
+  <!-- Fondo oscuro que captura clics afuera -->
+  <div class="absolute inset-0" @click="!$store.tierlist.isProcessingBatch && $store.tierlist.closeBatchGuestsModal()"></div>
+
+  <div
+    data-protect-contrast="true" class="relative w-full max-w-2xl sm:max-w-3xl rounded-2xl border overflow-hidden flex flex-col text-parchment-cream transition-all"
+    :style="'background-color: ' + ($store.settings.surfaceColor || '#0b0e17') + '; border-color: ' + ($store.settings.borderColor || $store.settings.accentColor || '#00f0ff') + '70; box-shadow: 0 0 40px ' + ($store.settings.activeGlowColor || 'rgba(0,240,255,0.25)') + ', 0 25px 60px rgba(0,0,0,0.95);'"
+    @click.stop>
+
+    <!-- Modal Header (Espacioso y con respiración visual) -->
+    <div
+      class="px-7 sm:px-9 py-6 sm:py-7 border-b flex items-center justify-between gap-5 transition-colors"
+      :style="'border-color: ' + ($store.settings.borderColor || 'rgba(255,255,255,0.1)') + '; background: linear-gradient(135deg, rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.16) 0%, rgba(0, 0, 0, 0.88) 100%);'">
+      <div class="flex items-center gap-4 sm:gap-5 min-w-0">
+        <div
+          class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg"
+          :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.2); border: 1px solid ' + ($store.settings.accentColor || '#00f0ff') + '80; color: ' + ($store.settings.accentColor || '#00f0ff') + '; box-shadow: 0 0 18px rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.3);'">
+          <i data-lucide="images" class="w-6 h-6"></i>
+        </div>
+        <div class="min-w-0 space-y-1">
+          <div class="flex items-center gap-3 flex-wrap">
+            <h3 class="font-title text-xl sm:text-2xl font-bold text-white uppercase tracking-wider leading-tight"
+              :style="'font-family: \\'' + ($store.settings.fontDisplay || 'Barlow Condensed') + '\\', sans-serif;'">
+              Añadir Operativos en Lote
+            </h3>
+            <span class="text-[10px] font-mono px-2.5 py-0.5 rounded-full border font-bold"
+              :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.18); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '80; color: ' + ($store.settings.accentColor || '#00f0ff') + '; font-family: \\'' + ($store.settings.fontHud || 'Chakra Petch') + '\\', monospace;'"
+              x-text="\`\${$store.tierlist.batchGuestsQueue.length} \${$store.tierlist.batchGuestsQueue.length === 1 ? 'Operativo' : 'Operativos'}\`">
+            </span>
+          </div>
+          <p class="text-xs sm:text-[13px] font-mono text-slate-300 leading-snug truncate">
+            Imágenes y GIFs listos para ingresar como invitados independientes al banco de la Tier List.
+          </p>
+        </div>
+      </div>
+      <button type="button" :disabled="$store.tierlist.isProcessingBatch"
+        @click="$store.tierlist.closeBatchGuestsModal()"
+        class="p-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0 disabled:opacity-40"
+        title="Cerrar ventana">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="p-6 sm:p-7 space-y-5 overflow-y-auto max-h-[72vh]">
+      <!-- Banner Informativo -->
+      <div class="p-4 rounded-xl border text-xs font-mono flex items-start gap-3.5 leading-relaxed"
+        :style="'background: rgba(' + ($store.settings.rgbChannels || '0, 240, 255') + ', 0.08); border-color: ' + ($store.settings.accentColor || '#00f0ff') + '40;'">
+        <i data-lucide="file-check-2" class="w-4.5 h-4.5 shrink-0 mt-0.5"
+          :style="'color: ' + ($store.settings.accentColor || '#00f0ff')"></i>
+        <div class="space-y-0.5 leading-relaxed">
+          <span class="font-bold block text-sm tracking-wide"
+            :style="'color: ' + ($store.settings.accentColor || '#00f0ff')">
+            Nombres detectados automáticamente
+          </span>
+          <span class="text-slate-300 text-xs">
+            Cada archivo se importará como un personaje invitado separado con su respectivo nombre. Puedes editar cualquier nombre abajo antes de añadirlos.
+          </span>
+        </div>
+      </div>
+
+      <!-- Barra de Configuración y Etiquetado Rápido en Lote -->
+      <div class="p-4 rounded-xl border space-y-3 bg-black/60 shadow-inner"
+        :style="'border-color: ' + ($store.settings.borderColor || 'rgba(255,255,255,0.12)') + ';'">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-mono font-bold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5" :style="'color: ' + ($store.settings.accentColor || '#00f0ff')"></i>
+            <span>Acciones Rápidas para todo el Lote</span>
+          </span>
+          <span class="text-[10px] font-mono text-slate-400">Ahorra tiempo aplicando metadatos en un solo clic</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <!-- Herramienta A: Rol / Etiqueta Global -->
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+              <i data-lucide="tag" class="w-3 h-3 text-violet-400"></i>
+              <span>Rol / Categoría Común:</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <input type="text" x-model="$store.tierlist.batchDefaultRole"
+                @keydown.enter.prevent="$store.tierlist.applyBatchRoleToAll()"
+                placeholder="Ej: DLC 1, Villano, Boss, JoJo..."
+                class="flex-1 px-3 py-1.5 rounded-lg bg-black/80 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-violet-400 font-mono transition-colors shadow-inner" />
+              <button type="button" @click="$store.tierlist.applyBatchRoleToAll()"
+                class="px-3 py-1.5 rounded-lg bg-violet-600/30 hover:bg-violet-600/50 border border-violet-500/40 text-violet-200 hover:text-white font-mono text-xs font-bold transition-all cursor-pointer shrink-0 shadow-sm">
+                Aplicar
+              </button>
+            </div>
+          </div>
+
+          <!-- Herramienta B: Prefijo Rápido a Nombres -->
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+              <i data-lucide="type" class="w-3 h-3 text-cyan-400"></i>
+              <span>Prefijo a Nombres:</span>
+            </label>
+            <div class="flex items-center gap-1.5">
+              <input type="text" x-model="$store.tierlist.batchNamePrefix"
+                @keydown.enter.prevent="$store.tierlist.applyBatchPrefixToAll()"
+                placeholder="Ej: SF6 - , Parte 5 - "
+                class="flex-1 px-3 py-1.5 rounded-lg bg-black/80 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 font-mono transition-colors shadow-inner" />
+              <button type="button" @click="$store.tierlist.applyBatchPrefixToAll()"
+                class="px-3 py-1.5 rounded-lg bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-500/40 text-cyan-200 hover:text-white font-mono text-xs font-bold transition-all cursor-pointer shrink-0 shadow-sm">
+                Añadir
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de Progreso durante Importación -->
+      <div x-show="$store.tierlist.isProcessingBatch" x-transition class="p-4 rounded-xl bg-black/70 border space-y-2"
+        :style="'border-color: ' + ($store.settings.accentColor || '#00f0ff') + '50;'">
+        <div class="flex items-center justify-between text-xs font-mono">
+          <span class="font-bold flex items-center gap-2"
+            :style="'color: ' + ($store.settings.accentColor || '#00f0ff')">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>
+            Procesando e importando operativos...
+          </span>
+          <span class="text-white font-bold" x-text="\`\${$store.tierlist.batchProcessingProgress}%\`"></span>
+        </div>
+        <div class="w-full h-2.5 rounded-full bg-white/10 overflow-hidden">
+          <div class="h-full rounded-full transition-all duration-200"
+            :style="\`width: \${$store.tierlist.batchProcessingProgress}%; background: linear-gradient(90deg, \${$store.settings.accentColor || '#00f0ff'}, \${$store.settings.secondaryColor || '#ff0077'});\`"></div>
+        </div>
+      </div>
+
+      <!-- Lista de Operativos Detectados -->
+      <div class="space-y-2.5 max-h-[46vh] overflow-y-auto pr-1.5 custom-scrollbar">
+        <template x-for="(item, index) in $store.tierlist.batchGuestsQueue" :key="item.id">
+          <div class="p-3 rounded-xl border border-white/10 bg-black/60 hover:border-white/20 transition-all flex items-center gap-3.5">
+            <!-- Miniatura / Avatar -->
+            <div class="w-12 h-12 rounded-xl border border-white/15 bg-black overflow-hidden relative shrink-0 shadow-md">
+              <img :src="item.previewUrl" class="w-full h-full object-cover" alt="" />
+              <template x-if="item.isGif">
+                <span class="absolute bottom-0 inset-x-0 text-center text-[8px] font-mono font-black bg-pink-600/90 text-white tracking-widest uppercase">GIF</span>
+              </template>
+            </div>
+
+            <!-- Entrada de Nombre y Metadatos -->
+            <div class="flex-1 min-w-0 space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <label class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold flex items-center gap-1.5">
+                  <span :style="'color: ' + ($store.settings.accentColor || '#00f0ff')">#<span x-text="index + 1"></span></span>
+                  <span>Nombre del Personaje</span>
+                </label>
+                <span class="text-[9.5px] font-mono text-slate-400" x-text="\`\${item.sizeKB} KB\`"></span>
+              </div>
+              <div class="flex flex-col sm:flex-row items-center gap-2">
+                <input type="text" x-model="item.name" :disabled="$store.tierlist.isProcessingBatch"
+                  placeholder="Nombre del personaje..."
+                  @focus="$el.style.borderColor = ($store.settings.accentColor || '#00f0ff')"
+                  @blur="$el.style.borderColor = 'rgba(255,255,255,0.15)'"
+                  class="flex-1 w-full px-3 py-1.5 rounded-lg bg-black/80 border border-white/15 text-xs text-white placeholder-slate-500 focus:outline-none font-mono transition-colors shadow-inner" />
+                <div class="w-full sm:w-44 flex items-center gap-1">
+                  <i data-lucide="tag" class="w-3 h-3 text-violet-400 shrink-0"></i>
+                  <input type="text" x-model="item.role" :disabled="$store.tierlist.isProcessingBatch"
+                    placeholder="Rol / Etiqueta..."
+                    @focus="$el.style.borderColor = '#a855f7'"
+                    @blur="$el.style.borderColor = 'rgba(255,255,255,0.15)'"
+                    class="w-full px-2.5 py-1.5 rounded-lg bg-black/80 border border-white/15 text-xs text-violet-200 placeholder-slate-500 focus:outline-none font-mono transition-colors shadow-inner"
+                    title="Rol, franquicia o etiqueta para este personaje" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Botón de Descarte Individual -->
+            <button type="button" :disabled="$store.tierlist.isProcessingBatch"
+              @click="$store.tierlist.removeBatchGuestItem(item.id)"
+              class="p-2 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer shrink-0 disabled:opacity-40"
+              title="Descartar este archivo">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="px-7 py-4.5 border-t bg-black/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+      :style="'border-color: ' + ($store.settings.borderColor || 'rgba(255,255,255,0.1)') + ';'">
+      <div class="text-xs font-mono text-slate-400 flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full animate-pulse"
+          :style="'background-color: ' + ($store.settings.accentColor || '#00f0ff') + '; box-shadow: 0 0 10px ' + ($store.settings.accentColor || '#00f0ff')"></span>
+        <span x-text="\`\${$store.tierlist.batchGuestsQueue.length} \${$store.tierlist.batchGuestsQueue.length === 1 ? 'operativo listo para añadir' : 'operativos listos para añadir'}\`"></span>
+      </div>
+
+      <div class="flex items-center gap-2.5 justify-end">
+        <button type="button" :disabled="$store.tierlist.isProcessingBatch"
+          @click="$store.tierlist.closeBatchGuestsModal()"
+          class="px-4 py-2 rounded-xl border border-white/15 hover:border-white/30 text-slate-300 hover:text-white text-xs font-mono font-bold transition-all cursor-pointer disabled:opacity-40">
+          Cancelar
+        </button>
+
+        <button type="button" :disabled="$store.tierlist.isProcessingBatch || $store.tierlist.batchGuestsQueue.length === 0"
+          @click="$store.tierlist.confirmBatchGuestsImport()"
+          class="px-5 py-2 rounded-xl text-black font-bold font-mono text-xs flex items-center gap-2 shadow-lg transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none hover:scale-[1.02]"
+          :style="\`background: \${$store.settings.accentColor || '#00f0ff'}; box-shadow: 0 0 20px \${$store.settings.accentColor || '#00f0ff'}60;\`">
+          <i data-lucide="image-plus" class="w-4 h-4"></i>
+          <span x-text="\`Añadir a la Tier List (\${$store.tierlist.batchGuestsQueue.length})\`"></span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+`;
+}

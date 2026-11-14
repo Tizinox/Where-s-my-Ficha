@@ -20,20 +20,19 @@
 .modal-box {
   background: var(--bg-panel);
   background-image: var(--diagonal-stripe);
-  border: 1px solid var(--border-accent);
-  clip-path: polygon(0 0,
-      calc(100% - var(--cut-lg)) 0,
-      100% var(--cut-lg),
-      100% calc(100% - var(--cut-sm)),
-      calc(100% - var(--cut-sm)) 100%,
-      0 100%);
+  border: var(--border-width, 1px) solid var(--border-custom, var(--border-accent));
+  border-radius: var(--wiki-radius-lg, 14px);
   width: 100%;
   max-width: 680px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: 0 0 40px rgba(0, 240, 255, 0.15), 0 24px 80px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8);
+}
+
+body:not(.no-glow-effects) .modal-box {
+  box-shadow: 0 0 36px var(--accent-glow-lg, rgba(0, 240, 255, 0.15)), 0 24px 80px rgba(0, 0, 0, 0.8);
 }
 
 .modal-header {
@@ -93,12 +92,12 @@
   font-size: 0.8rem;
   font-weight: 600;
   max-width: 300px;
-  border: 1px solid;
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+  border: var(--border-width, 1px) solid;
+  border-radius: var(--wiki-radius-md, 10px);
   cursor: pointer;
   transition: opacity 0.25s ease, transform 0.25s ease;
   font-family: var(--font-hud, 'Inter Tight', sans-serif);
-  font-weight: var(--font-weight-hud, 600);
+  font-weight: var(--font-weight-hud, 500);
 }
 
 .toast-enter {
@@ -161,13 +160,13 @@
 
 .confirm-box {
   background: var(--bg-panel);
-  border: 1px solid rgba(255, 0, 60, 0.4);
-  clip-path: polygon(0 0, calc(100% - var(--cut-md)) 0, 100% var(--cut-md), 100% 100%, var(--cut-sm) 100%, 0 calc(100% - var(--cut-sm)));
+  border: var(--border-width, 1px) solid rgba(255, 0, 60, 0.45);
+  border-radius: var(--wiki-radius-lg, 14px);
   padding: 28px 24px;
   max-width: 360px;
   width: 100%;
   text-align: center;
-  box-shadow: 0 0 30px rgba(255, 0, 60, 0.15);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
 }
 
 
@@ -175,8 +174,8 @@
 .rename-input {
   width: 100%;
   background: var(--bg-panel-3);
-  border: 1px solid var(--border-subtle);
-  clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 0 100%);
+  border: var(--border-width, 1px) solid var(--border-custom, var(--border-subtle));
+  border-radius: var(--wiki-radius-sm, 7px);
   padding: 9px 13px;
   font-family: var(--font-input, 'Inter Tight', sans-serif);
   font-size: 0.88rem;
@@ -254,14 +253,14 @@
   align-items: center;
   justify-content: center;
   padding: 0.15rem 0.45rem;
-  font-family: var(--font-hud, 'JetBrains Mono', monospace);
+  font-family: var(--font-hud, 'Inter Tight', sans-serif);
   font-size: 0.72rem;
   font-weight: 700;
   color: #f1f5f9;
   background: #0f1319;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.35);
-  border-radius: 6px;
+  border: var(--border-width, 1px) solid rgba(255, 255, 255, 0.2);
+  border-bottom: calc(var(--border-width, 1px) + 1px) solid rgba(255, 255, 255, 0.35);
+  border-radius: var(--wiki-radius-xs, 4px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
   line-height: 1;
 }
@@ -272,8 +271,10 @@
   min-width: 280px;
   max-width: 440px;
   padding: 10px 14px;
-  border-radius: 12px;
-  background: rgba(10, 14, 20, 0.92);
+  border-radius: var(--wiki-radius-md, 10px);
+  border-width: var(--border-width, 1px);
+  border-style: solid;
+  background: rgba(10, 14, 20, 0.94);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   font-family: var(--font-body, sans-serif);
@@ -287,25 +288,25 @@
 }
 
 .tactical-toast.toast-success {
-  border: 1px solid rgba(16, 185, 129, 0.5);
+  border-color: rgba(16, 185, 129, 0.5);
   color: #ecfdf5;
   box-shadow: 0 8px 24px -4px rgba(16, 185, 129, 0.25);
 }
 
 .tactical-toast.toast-error {
-  border: 1px solid rgba(244, 63, 94, 0.6);
+  border-color: rgba(244, 63, 94, 0.6);
   color: #fff1f2;
   box-shadow: 0 8px 24px -4px rgba(244, 63, 94, 0.3);
 }
 
 .tactical-toast.toast-warning {
-  border: 1px solid rgba(245, 158, 11, 0.5);
+  border-color: rgba(245, 158, 11, 0.5);
   color: #fffbeb;
   box-shadow: 0 8px 24px -4px rgba(245, 158, 11, 0.25);
 }
 
 .tactical-toast.toast-info {
-  border: 1px solid var(--border-accent, rgba(0, 240, 255, 0.4));
+  border-color: var(--border-accent, rgba(0, 240, 255, 0.4));
   color: #f0fdfa;
   box-shadow: 0 8px 24px -4px var(--accent-glow-lg, rgba(0, 240, 255, 0.2));
 }
@@ -352,7 +353,7 @@
 .discord-chat-container {
   background-color: #313338;
   color: #dbdee1;
-  font-family: 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: var(--font-body, 'Inter Tight'), 'gg sans', 'Noto Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .discord-message-group {
@@ -393,19 +394,19 @@
 .discord-rendered-body code {
   background: #1e1f22;
   color: #e0af68;
-  border-radius: 4px;
+  border-radius: var(--wiki-radius-xs, 4px);
   padding: 0.15rem 0.35rem;
-  font-family: Consolas, 'Andale Mono WT', 'Andale Mono', 'Lucida Console', 'Courier New', monospace;
+  font-family: var(--font-input, 'JetBrains Mono'), Consolas, 'Andale Mono WT', 'Andale Mono', monospace;
   font-size: 0.825em;
 }
 
 .discord-rendered-body pre {
   background: #1e1f22;
-  border: 1px solid #2b2d31;
-  border-radius: 6px;
+  border: var(--border-width, 1px) solid #2b2d31;
+  border-radius: var(--wiki-radius-sm, 6px);
   padding: 0.75rem;
   margin: 0.5rem 0;
-  font-family: Consolas, 'Andale Mono WT', 'Andale Mono', 'Lucida Console', 'Courier New', monospace;
+  font-family: var(--font-input, 'JetBrains Mono'), Consolas, 'Andale Mono WT', 'Andale Mono', monospace;
   color: #dbdee1;
   overflow-x: auto;
 }

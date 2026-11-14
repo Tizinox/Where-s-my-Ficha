@@ -273,15 +273,15 @@ i[data-lucide].w-16, i[data-lucide].h-16 { width: 4rem; height: 4rem; }
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  font-family: var(--font-hud, 'Chakra Petch', sans-serif);
+  font-family: var(--font-hud, 'Inter Tight', sans-serif);
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   background: var(--accent-secondary-dim, rgba(255, 0, 119, 0.15));
   color: var(--accent-secondary, #FF0077);
-  border: 1px solid var(--border-secondary, rgba(255, 0, 119, 0.4));
-  border-radius: 4px;
+  border: var(--border-width, 1px) solid var(--border-secondary, rgba(255, 0, 119, 0.4));
+  border-radius: var(--wiki-radius-xs, 4px);
 }
 
 .badge-tertiary {
@@ -289,15 +289,15 @@ i[data-lucide].w-16, i[data-lucide].h-16 { width: 4rem; height: 4rem; }
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  font-family: var(--font-hud, 'Chakra Petch', sans-serif);
+  font-family: var(--font-hud, 'Inter Tight', sans-serif);
   font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   background: var(--accent-tertiary-dim, rgba(212, 175, 55, 0.15));
   color: var(--accent-tertiary, #D4AF37);
-  border: 1px solid var(--border-tertiary, rgba(212, 175, 55, 0.4));
-  border-radius: 4px;
+  border: var(--border-width, 1px) solid var(--border-tertiary, rgba(212, 175, 55, 0.4));
+  border-radius: var(--wiki-radius-xs, 4px);
 }
 
 .gradient-accent-bar {
@@ -529,7 +529,7 @@ body::before {
 /* ── Tipografías del Sistema ────────────────────────────── */
 .font-title {
   font-family: var(--font-display, 'Barlow Condensed', sans-serif);
-  font-weight: var(--font-weight-display, 800);
+  font-weight: var(--font-weight-display, 600);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -540,13 +540,13 @@ body::before {
 }
 
 .font-input {
-  font-family: var(--font-input, 'JetBrains Mono', monospace);
+  font-family: var(--font-input, 'Inter Tight', sans-serif);
   font-weight: var(--font-weight-input, 400);
 }
 
 .font-hud {
-  font-family: var(--font-hud, 'Chakra Petch', sans-serif);
-  font-weight: var(--font-weight-hud, 600);
+  font-family: var(--font-hud, 'Inter Tight', sans-serif);
+  font-weight: var(--font-weight-hud, 500);
 }
 
 /* ── Densidad de Interfaz (Compacta, Normal, Cómoda) ─────── */
@@ -565,6 +565,10 @@ body::before {
   padding: 12px 14px !important;
 }
 
+[data-density="compact"] .p-2 { padding: 0.35rem !important; }
+[data-density="compact"] .p-2\.5 { padding: 0.45rem !important; }
+[data-density="compact"] .p-3 { padding: 0.55rem !important; }
+[data-density="compact"] .p-3\.5 { padding: 0.6rem !important; }
 [data-density="compact"] .p-4 { padding: 0.65rem !important; }
 [data-density="compact"] .p-5 { padding: 0.85rem !important; }
 [data-density="compact"] .p-6 { padding: 1rem !important; }
@@ -589,10 +593,41 @@ body::before {
 /* Espaciados entre columnas y filas (Gaps) */
 [data-density="compact"] .gap-8 { gap: 1rem !important; }
 [data-density="compact"] .gap-6 { gap: 0.75rem !important; }
+[data-density="compact"] .gap-5 { gap: 0.65rem !important; }
 [data-density="compact"] .gap-4 { gap: 0.5rem !important; }
 [data-density="compact"] .gap-3 { gap: 0.4rem !important; }
 [data-density="compact"] .gap-2\.5 { gap: 0.35rem !important; }
 [data-density="compact"] .gap-2 { gap: 0.3rem !important; }
+[data-density="compact"] .gap-1\.5 { gap: 0.25rem !important; }
+[data-density="compact"] .gap-1 { gap: 0.18rem !important; }
+
+/* Modales, Header, Sidebar y Tierlist */
+[data-density="compact"] #app-header {
+  min-height: 42px;
+  height: 42px;
+  gap: 5px;
+  padding: 0 12px;
+}
+
+[data-density="compact"] .modal-header {
+  padding: 12px 16px;
+}
+
+[data-density="compact"] .modal-body {
+  padding: 14px 16px;
+}
+
+[data-density="compact"] .modal-footer {
+  padding: 10px 16px;
+}
+
+[data-density="compact"] .tierlist-row-lane:not(.tier-collapsed) {
+  min-height: 68px;
+}
+
+[data-density="compact"] .tier-monument {
+  padding: 6px 4px;
+}
 
 /* Controles de Entrada (Inputs, Textareas, Selects) */
 [data-density="compact"] .form-input,
@@ -682,6 +717,10 @@ body::before {
   padding: 28px !important;
 }
 
+[data-density="comfortable"] .p-2 { padding: 0.7rem !important; }
+[data-density="comfortable"] .p-2\.5 { padding: 0.85rem !important; }
+[data-density="comfortable"] .p-3 { padding: 1rem !important; }
+[data-density="comfortable"] .p-3\.5 { padding: 1.15rem !important; }
 [data-density="comfortable"] .p-4 { padding: 1.35rem !important; }
 [data-density="comfortable"] .p-5 { padding: 1.65rem !important; }
 [data-density="comfortable"] .p-6 { padding: 1.85rem !important; }
@@ -706,10 +745,45 @@ body::before {
 /* Espaciados entre columnas y filas (Gaps) */
 [data-density="comfortable"] .gap-8 { gap: 2.25rem !important; }
 [data-density="comfortable"] .gap-6 { gap: 1.75rem !important; }
+[data-density="comfortable"] .gap-5 { gap: 1.5rem !important; }
 [data-density="comfortable"] .gap-4 { gap: 1.25rem !important; }
 [data-density="comfortable"] .gap-3 { gap: 1rem !important; }
 [data-density="comfortable"] .gap-2\.5 { gap: 0.85rem !important; }
 [data-density="comfortable"] .gap-2 { gap: 0.75rem !important; }
+[data-density="comfortable"] .gap-1\.5 { gap: 0.55rem !important; }
+[data-density="comfortable"] .gap-1 { gap: 0.45rem !important; }
+
+/* Modales, Header, Sidebar y Tierlist */
+[data-density="comfortable"] #app-header {
+  min-height: 54px;
+  height: 54px;
+  gap: 10px;
+  padding: 0 20px;
+}
+
+[data-density="comfortable"] .modal-header {
+  padding: 20px 28px;
+}
+
+[data-density="comfortable"] .modal-body {
+  padding: 24px 28px;
+}
+
+[data-density="comfortable"] .modal-footer {
+  padding: 18px 28px;
+}
+
+[data-density="comfortable"] .tierlist-row-lane:not(.tier-collapsed) {
+  min-height: 112px;
+}
+
+[data-density="comfortable"] .tier-monument {
+  padding: 14px 10px;
+}
+
+[data-density="comfortable"] .text-sm {
+  font-size: 0.94rem !important;
+}
 
 /* Controles de Entrada (Inputs, Textareas, Selects) */
 [data-density="comfortable"] .form-input,
@@ -968,30 +1042,32 @@ body::before {
 }
 
 /* Títulos y textos principales en modo claro */
-[data-surface-theme="light"] .text-parchment-cream,
-[data-surface-theme="light"] .text-parchment-peach,
-[data-surface-theme="light"] .text-parchment-light,
-[data-surface-theme="light"] .text-parchment-soft,
-.surface-light .text-parchment-cream,
-.surface-light .text-parchment-peach,
-.surface-light .text-parchment-light,
-.surface-light .text-parchment-soft {
+[data-surface-theme="light"] .text-parchment-cream:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+[data-surface-theme="light"] .text-parchment-peach:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+[data-surface-theme="light"] .text-parchment-light:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+[data-surface-theme="light"] .text-parchment-soft:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+.surface-light .text-parchment-cream:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+.surface-light .text-parchment-peach:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+.surface-light .text-parchment-light:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+.surface-light .text-parchment-soft:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *) {
   color: #0B0F19 !important;
 }
 
-/* Textos blancos estándar se adaptan a oscuro excepto en botones o elementos con fondo propio */
+/* Textos blancos estándar se adaptan a oscuro excepto en botones, fondos sólidos/oscuros o elementos protegidos */
 [data-surface-theme="light"] .text-white:not([class*="bg-"]):not([class*="badge"]):not([class*="btn"]):not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
-.surface-light .text-white:not([class*="bg-"]):not([class*="badge"]):not([class*="btn"]):not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *) {
+.surface-light .text-white:not([class*="bg-"]):not([class*="badge"]):not([class*="btn"]):not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+[data-surface-theme="light"] .text-white:is([class*="bg-white/"], .bg-transparent):not([class*="badge"]):not([class*="btn"]):not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+.surface-light .text-white:is([class*="bg-white/"], .bg-transparent):not([class*="badge"]):not([class*="btn"]):not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *) {
   color: #0B0F19 !important;
 }
 
 /* Subtítulos, labels y descripciones secundarias */
-[data-surface-theme="light"] .text-ink-slate,
-[data-surface-theme="light"] .text-ink-gray,
+[data-surface-theme="light"] .text-ink-slate:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+[data-surface-theme="light"] .text-ink-gray:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
 [data-surface-theme="light"] .text-slate-300:not([class*="bg-"]):not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
 [data-surface-theme="light"] .text-slate-400:not([class*="bg-"]):not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
-.surface-light .text-ink-slate,
-.surface-light .text-ink-gray,
+.surface-light .text-ink-slate:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
+.surface-light .text-ink-gray:not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
 .surface-light .text-slate-300:not([class*="bg-"]):not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *),
 .surface-light .text-slate-400:not([class*="bg-"]):not([data-protect-contrast]):not([data-protect-contrast] *):not(.cyber-color-popover *) {
   color: rgba(11, 15, 25, 0.75) !important;
@@ -1016,16 +1092,25 @@ body::before {
   color: rgba(11, 15, 25, 0.55) !important;
 }
 
-/* Proteger el popover del selector de color HUD para que mantenga su estética cyberpunk oscura */
+/* Proteger el popover del selector de color HUD y paneles oscuros protegidos */
 .cyber-color-popover,
 [data-protect-contrast] {
   color-scheme: dark !important;
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
 }
-.cyber-color-popover .text-white {
+.cyber-color-popover .text-white,
+[data-protect-contrast] .text-white {
   color: #FFFFFF !important;
 }
-.cyber-color-popover .text-parchment-cream {
+.cyber-color-popover .text-parchment-cream,
+[data-protect-contrast] .text-parchment-cream {
   color: #F8FAFC !important;
+}
+[data-protect-contrast] .text-ink-slate,
+[data-protect-contrast] .text-ink-gray {
+  color: #94A3B8 !important;
 }
 
 /* ── Modo Mate / Desactivar Resplandores Neón Globalmente ── */

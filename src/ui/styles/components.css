@@ -1255,14 +1255,18 @@
    PREFERENCIAS DE RENDERIZADO VISUAL
    ══════════════════════════════════════════════════════════ */
 .hide-steam-frames .steam-avatar-frame-overlay,
-body.hide-steam-frames .steam-avatar-frame-overlay {
+body.hide-steam-frames .steam-avatar-frame-overlay,
+.hide-steam-frames .steam-foil-badge,
+body.hide-steam-frames .steam-foil-badge {
   display: none !important;
 }
 
-.hide-kbd-badges kbd:not(#modal-hotkeys kbd),
+.hide-kbd-badges kbd:not(#tactical-hotkeys-modal kbd),
 .hide-kbd-badges .kbd-badge,
-body.hide-kbd-badges kbd:not(#modal-hotkeys kbd),
-body.hide-kbd-badges .kbd-badge {
+.hide-kbd-badges .wiki-settings-kbd,
+body.hide-kbd-badges kbd:not(#tactical-hotkeys-modal kbd),
+body.hide-kbd-badges .kbd-badge,
+body.hide-kbd-badges .wiki-settings-kbd {
   display: none !important;
 }
 
@@ -1273,10 +1277,26 @@ body.no-glow-effects * {
 .no-glow-effects .glow,
 .no-glow-effects [class*="shadow-[0_0_"],
 .no-glow-effects [class*="shadow-neon"],
+.no-glow-effects .search-match-tag,
+.no-glow-effects .tier-collapse-pill.pill-collapsed,
+.no-glow-effects .tierlist-board-container,
 body.no-glow-effects .glow,
 body.no-glow-effects [class*="shadow-[0_0_"],
-body.no-glow-effects [class*="shadow-neon"] {
+body.no-glow-effects [class*="shadow-neon"],
+body.no-glow-effects .search-match-tag,
+body.no-glow-effects .tier-collapse-pill.pill-collapsed,
+body.no-glow-effects .tierlist-board-container,
+body.no-glow-effects .category-header-icon-box,
+body.no-glow-effects .custom-dropdown-item.is-selected {
   box-shadow: none !important;
+}
+.no-glow-effects .modal-box,
+.no-glow-effects #modals-root [id$="-modal"] > div[class*="max-w-"],
+.no-glow-effects #main-tierlist-view [id*="modal"] > div[class*="max-w-"],
+body.no-glow-effects .modal-box,
+body.no-glow-effects #modals-root [id$="-modal"] > div[class*="max-w-"],
+body.no-glow-effects #main-tierlist-view [id*="modal"] > div[class*="max-w-"] {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8) !important;
 }
 
 /* ══════════════════════════════════════════════════════════

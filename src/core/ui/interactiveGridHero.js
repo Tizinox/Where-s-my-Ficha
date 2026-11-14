@@ -251,13 +251,16 @@ export class InteractiveGridHeroEngine {
     // Obtener paleta activa de Alpine store 'settings'
     const settings = window.Alpine?.store('settings');
     const rgbChannels = settings?.rgbChannels || '16, 185, 129';
-    const surfaceColor = settings?.surfaceColor || '#0a0c0e';
+    const isLightSurface = Boolean(settings?.isLightSurface);
+    const cornerStyle = settings?.cornerStyle || 'rounded';
+    const disableGlow = Boolean(settings?.disableGlowEffects);
+    const useSquareCorners = cornerStyle === 'sharp' || cornerStyle === 'chamfer';
 
     // Limpiar canvas
     ctx.clearRect(0, 0, width, height);
 
     // 1. Capa Base Subyacente (Accent Glow cuando el cursor está activo)
-    if (this.currentActive > 0.01 && this.pointerX > -500) {
+    if (!disableGlow && this.currentActive > 0.01 && this.pointerX > -500) {
       const glowRadius = responseRadius * 1.15;
       const glow = ctx.createRadialGradient(
         this.pointerX,
@@ -267,8 +270,8 @@ export class InteractiveGridHeroEngine {
         this.pointerY,
         glowRadius
       );
-      glow.addColorStop(0, `rgba(${rgbChannels}, ${0.32 * this.currentActive})`);
-      glow.addColorStop(0.35, `rgba(${rgbChannels}, ${0.12 * this.currentActive})`);
+      glow.addColorStop(0, `rgba(${rgbChannels}, ${(isLightSurface ? 0.22 : 0.32) * this.currentActive})`);
+      glow.addColorStop(0.35, `rgba(${rgbChannels}, ${(isLightSurface ? 0.09 : 0.12) * this.currentActive})`);
       glow.addColorStop(0.7, `rgba(${rgbChannels}, ${0.03 * this.currentActive})`);
       glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
@@ -300,9 +303,9 @@ export class InteractiveGridHeroEngine {
           }
         }
 
-        // Efectos dinámicos en base a la influencia
+        // Efectos dinámicos en base a la influencia y cornerStyle
         const inset = cellSize * baseInsetPercent * influence;
-        const cornerRad = Math.max(2, 3 + influence * (baseCornerRadius - 3));
+        const cornerRad = useSquareCorners ? 0 : Math.max(2, 3 + influence * (baseCornerRadius - 3));
         const opacity = restingOpacity + influence * (activeOpacity - restingOpacity);
 
         const x = cellLeft + inset;
@@ -310,12 +313,22 @@ export class InteractiveGridHeroEngine {
         const w = Math.max(1, cellSize - inset * 2);
         const h = Math.max(1, cellSize - inset * 2);
 
-        // Geometría con esquinas redondeadas
+        // Geometría adaptativa (redondeada vs rectilínea)
         ctx.beginPath();
-        ctx.roundRect(x, y, w, h, Math.min(cornerRad, w / 2));
+        if (cornerRad <= 0) {
+          ctx.rect(x, y, w, h);
+        } else {
+          ctx.roundRect(x, y, w, h, Math.min(cornerRad, w / 2));
+        }
 
-        // Relleno de la celda (adaptado dinámicamente al tono superficial de la app)
-        if (influence > 0.05) {
+        // Relleno de la celda (adaptado dinámicamente al tono superficial oscuro/claro)
+        if (isLightSurface) {
+          if (influence > 0.05) {
+            ctx.fillStyle = `rgba(15, 23, 42, ${Math.min(0.14, 0.04 + influence * 0.08)})`;
+          } else {
+            ctx.fillStyle = `rgba(15, 23, 42, ${Math.min(0.05, opacity * 0.045)})`;
+          }
+        } else if (influence > 0.05) {
           // Celda activa: Más luminosa y con matiz táctico
           ctx.fillStyle = `rgba(18, 24, 34, ${Math.min(1, opacity * 0.95)})`;
         } else {
@@ -328,10 +341,10 @@ export class InteractiveGridHeroEngine {
         // En reposo: borde sutil elegante
         // Cerca del puntero: se ilumina suavemente con el color de acento del tema
         if (influence > 0.02) {
-          ctx.strokeStyle = `rgba(${rgbChannels}, ${0.15 + influence * 0.55})`;
+          ctx.strokeStyle = `rgba(${rgbChannels}, ${(isLightSurface ? 0.22 : 0.15) + influence * 0.55})`;
           ctx.lineWidth = 1 + influence * 0.5;
         } else {
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+          ctx.strokeStyle = isLightSurface ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.06)';
           ctx.lineWidth = 1;
         }
         ctx.stroke();

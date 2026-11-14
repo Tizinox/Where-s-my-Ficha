@@ -1842,16 +1842,16 @@ export function registerTierListStore(Alpine) {
     },
 
     getTokenAvatarBoxRadius(char) {
-      if (!char) return 25;
+      if (!char) return 12;
       const settings = Alpine.store('settings');
-      if (!settings) return 25;
+      if (!settings) return 12;
       if (char.isTemplate) {
-        return settings.tierlistBorderRadiusTemplate !== undefined ? settings.tierlistBorderRadiusTemplate : 25;
+        return settings.tierlistBorderRadiusTemplate !== undefined ? settings.tierlistBorderRadiusTemplate : 12;
       }
       if (char.isGuest) {
-        return settings.tierlistBorderRadiusGuest !== undefined ? settings.tierlistBorderRadiusGuest : 25;
+        return settings.tierlistBorderRadiusGuest !== undefined ? settings.tierlistBorderRadiusGuest : 12;
       }
-      return settings.tierlistBorderRadiusRegistered !== undefined ? settings.tierlistBorderRadiusRegistered : 25;
+      return settings.tierlistBorderRadiusRegistered !== undefined ? settings.tierlistBorderRadiusRegistered : 12;
     },
 
     getTokenAvatarBoxClass(char) {

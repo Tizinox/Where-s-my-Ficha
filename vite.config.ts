@@ -1,5 +1,4 @@
 import { defineConfig, type Plugin, type Connect } from 'vite';
-import fs from 'node:fs';
 import path from 'node:path';
 
 function steamProxyPlugin(): Plugin {
@@ -152,48 +151,8 @@ function mediaProxyPlugin(): Plugin {
   };
 }
 
-function htmlPartialsPlugin(): Plugin {
-  const includeRegex = /<include\s+src=["']([^"']+)["']\s*(?:\/>|><\/include>)/gi;
-
-  function expandIncludes(html: string, rootDir: string, depth = 0): string {
-    if (depth > 10) return html;
-    return html.replace(includeRegex, (_match, srcPath: string) => {
-      const cleanPath = srcPath.startsWith('/') ? srcPath.slice(1) : srcPath;
-      const fullPath = path.resolve(rootDir, cleanPath);
-      if (!fs.existsSync(fullPath)) {
-        console.error(`[html-partials] Include not found: ${fullPath}`);
-        return `<!-- ERROR: Include not found: ${srcPath} -->`;
-      }
-      const partialContent = fs.readFileSync(fullPath, 'utf8');
-      return expandIncludes(partialContent, rootDir, depth + 1);
-    });
-  }
-
-  return {
-    name: 'html-partials-plugin',
-    transformIndexHtml: {
-      order: 'pre',
-      handler(html, ctx) {
-        const rootDir = ctx.server ? ctx.server.config.root : process.cwd();
-        return expandIncludes(html, rootDir);
-      },
-    },
-    configureServer(server) {
-      const partialsDir = path.resolve(__dirname, 'src/ui/partials');
-      if (fs.existsSync(partialsDir)) {
-        server.watcher.add(partialsDir);
-      }
-      server.watcher.on('change', (file) => {
-        if (file.includes('partials') && file.endsWith('.html')) {
-          server.ws.send({ type: 'full-reload' });
-        }
-      });
-    },
-  };
-}
-
 export default defineConfig({
-  plugins: [steamProxyPlugin(), mediaProxyPlugin(), htmlPartialsPlugin()],
+  plugins: [steamProxyPlugin(), mediaProxyPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),

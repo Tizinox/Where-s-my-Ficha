@@ -1,0 +1,420 @@
+/**
+ * @file src/ui/tabs/tabPriorities.ts
+ */
+
+export function renderTabPriorities(): string {
+  return `<!-- =========================================================
+           PESTAÑA 6: PRIORIDADES y METAS
+           ========================================================= -->
+          <div x-show="$store.app.currentTab === 'priorities'" class="space-y-6" data-tab-section="priorities">
+            <div class="form-card space-y-6">
+              <!-- Encabezado Principal de la Pestaña -->
+              <div class="flex items-center justify-between border-b border-parchment-brown/20 pb-3">
+                <div class="flex items-center gap-3">
+                  <div
+                    class="category-header-icon-box w-9 h-9 rounded-xl bg-accent-cyan/15 border border-accent-cyan/40 flex items-center justify-center text-accent-cyan shrink-0"
+                    style="box-shadow: 0 0 12px var(--accent-glow);">
+                    <i data-lucide="list-todo" class="w-4.5 h-4.5"></i>
+                  </div>
+                  <div>
+                    <h3 class="category-header-title">Prioridades, Metas y Eje Teleológico</h3>
+                    <p class="category-header-desc">Arquitectura de ambición, motor psicológico, límites éticos y
+                      respuesta ante el fracaso.</p>
+                  </div>
+                </div>
+                <span
+                  class="text-[11px] font-mono text-ink-slate/80 uppercase tracking-widest px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/5 hidden sm:inline-block">Estructura
+                  Psicológica y Estratégica</span>
+              </div>
+
+              <!-- MODO EDICIÓN -->
+              <div x-show="$store.app.editMode" class="space-y-6">
+
+                <!-- ──── MÓDULO 1: ARQUITECTURA DE METAS y TELEOLOGÍA (Dorado y Ámbar) ──── -->
+                <div class="p-4 rounded-xl border border-accent-gold/25 bg-black/40 space-y-4">
+                  <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                    <div class="flex items-center gap-2">
+                      <i data-lucide="target" class="w-4 h-4 text-accent-gold"></i>
+                      <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-gold">Arquitectura de
+                        Metas, Ambición y Recompensa</h4>
+                    </div>
+                    <button type="button" class="header-btn-secondary text-xs py-0.5 px-2.5 flex items-center gap-1.5"
+                      @click="$store.characters.addSecondaryGoal()">
+                      <i data-lucide="plus" class="w-3.5 h-3.5"></i> Añadir Objetivo
+                    </button>
+                  </div>
+
+                  <!-- Objetivo Principal -->
+                  <div>
+                    <label class="form-label text-accent-gold flex items-center gap-1.5 font-bold">
+                      <i data-lucide="crosshair" class="w-3.5 h-3.5"></i> Objetivo Principal / Meta Cumbre
+                    </label>
+                    <input type="text"
+                      class="form-input text-sm text-parchment-cream bg-black/50 border-accent-gold/40 focus:border-accent-gold"
+                      x-model="$store.characters.active.priorities.mainGoal"
+                      @input="$store.characters.scheduleAutoSave()"
+                      placeholder="" />
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label class="form-label flex items-center gap-1.5 text-amber-300">
+                        <i data-lucide="split" class="w-3.5 h-3.5"></i> Deseo vs. Necesidad (Want vs. Need)
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.priorities.wantVsNeed"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+
+                    <div>
+                      <label class="form-label flex items-center gap-1.5 text-accent-cyan">
+                        <i data-lucide="hourglass" class="w-3.5 h-3.5"></i> Horizonte Temporal y Urgencia
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.priorities.timeHorizonUrgency"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+
+                    <div>
+                      <label class="form-label flex items-center gap-1.5 text-purple-300">
+                        <i data-lucide="trophy" class="w-3.5 h-3.5"></i> Fantasía de Victoria / Recompensa
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.priorities.victoryFantasy"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+                  </div>
+
+                  <!-- Lista Dinámica de Objetivos Secundarios -->
+                  <div class="pt-3 border-t border-white/10 space-y-2">
+                    <label class="form-label flex items-center gap-1.5 text-xs text-accent-gold/90">
+                      <i data-lucide="list-checks" class="w-3.5 h-3.5"></i> Objetivos Secundarios y Hitos Operativos
+                    </label>
+
+                    <div class="space-y-2">
+                      <template x-for="(goal, idx) in ($store.characters.active?.priorities?.secondaryGoals || [])"
+                        :key="goal.id || idx">
+                        <div
+                          class="flex items-center gap-2 p-2 rounded-xl bg-black/50 border border-parchment-brown/25 group">
+                          <!-- Botón de Estado Cíclico -->
+                          <button type="button"
+                            class="px-2 py-1 rounded text-[10px] font-mono font-bold uppercase transition-all shrink-0 cursor-pointer"
+                            :class="{
+                              'bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/40': goal.status === 'in_progress',
+                              'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40': goal.status === 'completed',
+                              'bg-amber-500/20 text-accent-gold border border-amber-500/40': goal.status === 'pending' || !goal.status,
+                              'bg-rose-500/20 text-rose-400 border border-rose-500/40': goal.status === 'abandoned'
+                            }" @click="$store.characters.cycleSecondaryGoalStatus(goal.id)"
+                            :title="'Clic para alternar estado. Actual: ' + (goal.status || 'pending')">
+                            <span x-show="goal.status === 'in_progress'">⚙️ En Curso</span>
+                            <span x-show="goal.status === 'completed'">✓ Cumplido</span>
+                            <span x-show="goal.status === 'pending' || !goal.status">⏳ Pendiente</span>
+                            <span x-show="goal.status === 'abandoned'">✕ Descartado</span>
+                          </button>
+
+                          <!-- Input del Texto de la Meta -->
+                          <input type="text" class="form-input text-xs flex-1" x-model="goal.text"
+                            @input="$store.characters.scheduleAutoSave()"
+                            placeholder="" />
+
+                          <!-- Reordenar Arriba / Abajo -->
+                          <div class="flex items-center gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <button type="button"
+                              class="p-1 text-ink-slate hover:text-white transition-colors cursor-pointer"
+                              :disabled="idx === 0" @click="$store.characters.reorderSecondaryGoals(idx, idx - 1)"
+                              title="Mover arriba">
+                              <i data-lucide="chevron-up" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button type="button"
+                              class="p-1 text-ink-slate hover:text-white transition-colors cursor-pointer"
+                              :disabled="idx === ($store.characters.active?.priorities?.secondaryGoals?.length - 1)"
+                              @click="$store.characters.reorderSecondaryGoals(idx, idx + 1)" title="Mover abajo">
+                              <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                            </button>
+                          </div>
+
+                          <!-- Botón Eliminar -->
+                          <button type="button"
+                            class="p-1 text-ink-slate hover:text-accent-ruby transition-colors cursor-pointer"
+                            @click="$store.characters.removeSecondaryGoal(goal.id)" title="Eliminar objetivo">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                          </button>
+                        </div>
+                      </template>
+
+                      <!-- Estado Vacío -->
+                      <div
+                        x-show="!$store.characters.active?.priorities?.secondaryGoals || $store.characters.active?.priorities?.secondaryGoals?.length === 0"
+                        class="text-xs font-mono text-ink-slate italic py-2.5 text-center border border-dashed border-parchment-brown/20 rounded-xl bg-black/20">
+                        No hay objetivos secundarios registrados. Haz clic en "+ Añadir Objetivo" para crear uno.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 2: MOTOR INTERNO y PSICOLOGÍA BASE (Cian y Púrpura) ──── -->
+                <div class="p-4 rounded-xl border border-accent-cyan/25 bg-black/40 space-y-4">
+                  <div class="flex items-center gap-2 border-b border-white/10 pb-2">
+                    <i data-lucide="compass" class="w-4 h-4 text-accent-cyan"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-cyan">Motor Interno
+                      y Miedos Fundamentales</h4>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="form-label text-ink-teal flex items-center gap-1.5">
+                        <i data-lucide="flame" class="w-3.5 h-3.5"></i> Motivación Profunda / Fuerza Impulsora
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.priorities.deepMotivation"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+
+                    <div>
+                      <label class="form-label text-accent-ruby flex items-center gap-1.5">
+                        <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i> Mayor Temor / Lo que intenta evitar
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="3"
+                        x-model="$store.characters.active.priorities.greatestFear"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="form-label text-accent-copper flex items-center gap-1.5">
+                      <i data-lucide="swords" class="w-3.5 h-3.5"></i> Conflicto Actual y Dilema Activo
+                    </label>
+                    <textarea class="form-textarea text-xs" rows="2"
+                      x-model="$store.characters.active.priorities.currentConflict"
+                      @input="$store.characters.scheduleAutoSave()"
+                      placeholder=""></textarea>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 3: LÍMITES ÉTICOS, SACRIFICIO y JERARQUÍA EN CONFLICTO (Rubí y Cobre) ──── -->
+                <div class="p-4 rounded-xl border border-accent-ruby/25 bg-black/40 space-y-4">
+                  <div class="flex items-center gap-2 border-b border-white/10 pb-2">
+                    <i data-lucide="scale" class="w-4 h-4 text-accent-ruby"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-ruby">Límites de
+                      Sacrificio, Lealtades y Jerarquía de Decisión</h4>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label class="form-label text-accent-copper flex items-center gap-1.5">
+                        <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i> Línea de Sacrificio (Lo que daría sin
+                        dudar)
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="2"
+                        x-model="$store.characters.active.priorities.sacrificeLine"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+
+                    <div>
+                      <label class="form-label text-accent-gold flex items-center gap-1.5">
+                        <i data-lucide="shield" class="w-3.5 h-3.5"></i> Lealtad Máxima / A quién no traicionaría
+                      </label>
+                      <textarea class="form-textarea text-xs" rows="2"
+                        x-model="$store.characters.active.priorities.maxLoyalty"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""></textarea>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label class="form-label text-purple-400 flex items-center gap-1.5">
+                      <i data-lucide="git-merge" class="w-3.5 h-3.5"></i> Escala de Jerarquía en Conflicto
+                    </label>
+                    <textarea class="form-textarea text-xs" rows="2"
+                      x-model="$store.characters.active.priorities.conflictHierarchy"
+                      @input="$store.characters.scheduleAutoSave()"
+                      placeholder=""></textarea>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 4: CONTINGENCIA y REACCIÓN AL FRACASO (Esmeralda y Rosa) ──── -->
+                <div class="p-4 rounded-xl border border-purple-500/25 bg-black/40 space-y-4">
+                  <div class="flex items-center gap-2 border-b border-white/10 pb-2">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-purple-400"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">Reacción al Fracaso
+                      y Plan de Contingencia</h4>
+                  </div>
+
+                  <div>
+                    <label class="form-label text-rose-300 flex items-center gap-1.5">
+                      <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i> Impacto Psicológico y Conducta ante el
+                      Colapso de Objetivos
+                    </label>
+                    <textarea class="form-textarea text-xs" rows="2"
+                      x-model="$store.characters.active.priorities.failureReaction"
+                      @input="$store.characters.scheduleAutoSave()"
+                      placeholder=""></textarea>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- MODO LECTURA / VISTA PREVIA -->
+              <div x-show="!$store.app.editMode" class="space-y-6">
+
+                <!-- ──── MÓDULO 1: METAS y TELEOLOGÍA (LECTURA) ──── -->
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 border-b border-parchment-brown/20 pb-1.5">
+                    <i data-lucide="target" class="w-4 h-4 text-accent-gold"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-gold">Arquitectura de
+                      Metas y Teleología</h4>
+                  </div>
+
+                  <!-- Objetivo Principal Card -->
+                  <div class="read-card border-l-4 border-l-accent-gold">
+                    <span class="read-label text-accent-gold"><i data-lucide="crosshair" class="w-3.5 h-3.5"></i>
+                      Objetivo Principal / Meta Cumbre</span>
+                    <p class="read-value text-sm text-parchment-cream font-medium"
+                      x-html="$store.app.formatRichText($store.characters.active?.priorities.mainGoal) || 'Sin meta cumbre definida'"></p>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="read-card" x-show="$store.characters.active?.priorities.wantVsNeed?.trim()">
+                      <span class="read-label text-amber-300"><i data-lucide="split" class="w-3.5 h-3.5"></i> Deseo vs.
+                        Necesidad</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.priorities.wantVsNeed)"></p>
+                    </div>
+                    <div class="read-card" x-show="$store.characters.active?.priorities.timeHorizonUrgency?.trim()">
+                      <span class="read-label text-accent-cyan"><i data-lucide="hourglass" class="w-3.5 h-3.5"></i>
+                        Horizonte Temporal</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.priorities.timeHorizonUrgency)">
+                      </p>
+                    </div>
+                    <div class="read-card" x-show="$store.characters.active?.priorities.victoryFantasy?.trim()">
+                      <span class="read-label text-purple-300"><i data-lucide="trophy" class="w-3.5 h-3.5"></i>
+                        Fantasía de Victoria</span>
+                      <p class="read-value text-xs italic" x-html="$store.app.formatRichText($store.characters.active?.priorities.victoryFantasy)">
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Lista de Objetivos Secundarios -->
+                  <div
+                    x-show="$store.characters.active?.priorities?.secondaryGoals &amp;&amp; $store.characters.active?.priorities?.secondaryGoals.length > 0"
+                    class="space-y-2 pt-1">
+                    <span class="text-xs font-mono font-bold text-ink-slate uppercase tracking-wider block">Objetivos
+                      Secundarios</span>
+                    <template x-for="goal in ($store.characters.active?.priorities?.secondaryGoals || [])"
+                      :key="goal.id">
+                      <div class="p-2.5 rounded-xl border bg-black/40 flex items-center justify-between gap-3" :class="{
+                          'border-accent-cyan/30': goal.status === 'in_progress',
+                          'border-emerald-500/30': goal.status === 'completed',
+                          'border-amber-500/30': goal.status === 'pending' || !goal.status,
+                          'border-rose-500/30 opacity-60': goal.status === 'abandoned'
+                        }">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                          <span class="w-2 h-2 rounded-full shrink-0" :class="{
+                              'bg-accent-cyan shadow-[0_0_6px_var(--accent-glow)]': goal.status === 'in_progress',
+                              'bg-emerald-400 shadow-[0_0_6px_#10b981]': goal.status === 'completed',
+                              'bg-accent-gold shadow-[0_0_6px_#f59e0b]': goal.status === 'pending' || !goal.status,
+                              'bg-rose-500': goal.status === 'abandoned'
+                            }"></span>
+                          <span class="text-xs text-parchment-cream font-sans truncate"
+                            :class="{ 'line-through text-ink-slate': goal.status === 'abandoned' }"
+                            x-html="$store.app.formatRichText(goal.text) || 'Meta sin definir'"></span>
+                        </div>
+                        <span class="px-2 py-0.5 rounded text-[9px] font-mono uppercase font-bold shrink-0" :class="{
+                            'bg-accent-cyan/20 text-accent-cyan': goal.status === 'in_progress',
+                            'bg-emerald-500/20 text-emerald-400': goal.status === 'completed',
+                            'bg-amber-500/20 text-accent-gold': goal.status === 'pending' || !goal.status,
+                            'bg-rose-500/20 text-rose-400': goal.status === 'abandoned'
+                          }">
+                          <span x-show="goal.status === 'in_progress'">En Curso</span>
+                          <span x-show="goal.status === 'completed'">Cumplido</span>
+                          <span x-show="goal.status === 'pending' || !goal.status">Pendiente</span>
+                          <span x-show="goal.status === 'abandoned'">Descartado</span>
+                        </span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 2: MOTOR INTERNO y REFUGIO EMOCIONAL (LECTURA) ──── -->
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 border-b border-parchment-brown/20 pb-1.5">
+                    <i data-lucide="compass" class="w-4 h-4 text-accent-cyan"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-cyan">Motor Interno
+                      y Miedos Fundamentales</h4>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="read-card border-l-4 border-l-ink-teal"
+                      x-show="$store.characters.active?.priorities.deepMotivation?.trim()">
+                      <span class="read-label text-ink-teal"><i data-lucide="flame" class="w-3.5 h-3.5"></i> Motivación
+                        Profunda</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.priorities.deepMotivation)"></p>
+                    </div>
+                    <div class="read-card border-l-4 border-l-accent-ruby"
+                      x-show="$store.characters.active?.priorities.greatestFear?.trim()">
+                      <span class="read-label text-accent-ruby"><i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+                        Mayor Temor</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.priorities.greatestFear)"></p>
+                    </div>
+                  </div>
+                  <div class="read-card border-l-4 border-l-accent-copper"
+                    x-show="$store.characters.active?.priorities.currentConflict?.trim()">
+                    <span class="read-label text-accent-copper"><i data-lucide="swords" class="w-3.5 h-3.5"></i>
+                      Conflicto Actual / Dilema Activo</span>
+                    <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.priorities.currentConflict)"></p>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 3: LÍMITES ÉTICOS y JERARQUÍA EN CONFLICTO (LECTURA) ──── -->
+                <div class="space-y-3">
+                  <div class="flex items-center gap-2 border-b border-parchment-brown/20 pb-1.5">
+                    <i data-lucide="scale" class="w-4 h-4 text-accent-ruby"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-accent-ruby">Límites de
+                      Sacrificio y Jerarquía de Decisión</h4>
+                  </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="read-card border-l-4 border-l-accent-copper"
+                      x-show="$store.characters.active?.priorities.sacrificeLine?.trim()">
+                      <span class="read-label text-accent-copper"><i data-lucide="heart-handshake"
+                          class="w-3.5 h-3.5"></i> Línea de Sacrificio</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.priorities.sacrificeLine)"></p>
+                    </div>
+                    <div class="read-card border-l-4 border-l-accent-gold"
+                      x-show="$store.characters.active?.priorities.maxLoyalty?.trim()">
+                      <span class="read-label text-accent-gold"><i data-lucide="shield" class="w-3.5 h-3.5"></i> Lealtad
+                        Máxima</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.priorities.maxLoyalty)"></p>
+                    </div>
+                    <div class="read-card border-l-4 border-l-purple-500 sm:col-span-2"
+                      x-show="$store.characters.active?.priorities.conflictHierarchy?.trim()">
+                      <span class="read-label text-purple-400"><i data-lucide="git-merge" class="w-3.5 h-3.5"></i>
+                        Jerarquía en Conflicto</span>
+                      <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.priorities.conflictHierarchy)"></p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ──── MÓDULO 4: REACCIÓN AL FRACASO (LECTURA) ──── -->
+                <div class="space-y-3" x-show="$store.characters.active?.priorities.failureReaction?.trim()">
+                  <div class="flex items-center gap-2 border-b border-parchment-brown/20 pb-1.5">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-purple-400"></i>
+                    <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-purple-400">Reacción al Fracaso
+                      y Contingencia</h4>
+                  </div>
+                  <div class="read-card border-l-4 border-l-rose-600 bg-rose-950/10">
+                    <span class="read-label text-rose-300"><i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
+                      Impacto Psicológico ante el Colapso</span>
+                    <p class="read-value text-xs" x-html="$store.app.formatRichText($store.characters.active?.priorities.failureReaction)"></p>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+`;
+}

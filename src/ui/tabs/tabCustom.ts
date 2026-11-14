@@ -1,0 +1,826 @@
+/**
+ * @file src/ui/tabs/tabCustom.ts
+ */
+
+export function renderTabCustom(): string {
+  return `<!-- ==============================================================
+     PESTAÑA MODULAR PARA SECCIONES PERSONALIZADAS POR FICHA
+     ============================================================== -->
+<div id="tab-custom" class="tab-pane space-y-6"
+  x-show="$store.characters.active?.customTabs?.some(ct => ct.id === $store.app.currentTab)"
+  x-data="{
+    get currentTabObj() {
+      return $store.characters.active?.customTabs?.find(ct => ct.id === $store.app.currentTab) || null;
+    },
+    confirmDeleteSection: false,
+    isDraggingCustomImg: null,
+    customUrlInputId: null,
+    customUrlValue: ''
+  }">
+
+  <template x-if="currentTabObj">
+    <div class="form-card space-y-6"
+      :style="\`border-left-color: \${currentTabObj.accentColor || 'var(--accent, #00F0FF)'};\`">
+
+      <!-- ENCABEZADO PRINCIPAL DE LA SECCIÓN (Idéntico a Extras, Cuerpo, Mente) -->
+      <div class="flex items-center justify-between border-b border-parchment-brown/20 pb-3 gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="category-header-icon-box w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border"
+            :style="\`background-color: \${(currentTabObj.accentColor || 'var(--accent, #00F0FF)') + '15'}; border-color: \${(currentTabObj.accentColor || 'var(--accent, #00F0FF)') + '40'}; color: \${currentTabObj.accentColor || 'var(--accent, #00F0FF)'}; box-shadow: 0 0 12px \${(currentTabObj.accentColor || 'var(--accent, #00F0FF)') + '25'};\`">
+            <i :data-lucide="currentTabObj.icon || 'layers'" class="w-4.5 h-4.5"></i>
+          </div>
+          <div class="min-w-0">
+            <h3 class="category-header-title truncate" x-text="currentTabObj.label"></h3>
+            <p class="category-header-desc truncate" x-text="currentTabObj.description || 'Sección personalizada e independiente de este personaje'"></p>
+          </div>
+        </div>
+
+        <!-- MODO EDICIÓN: ACCIONES DE GESTIÓN -->
+        <div x-show="$store.app.editMode" class="flex items-center gap-2 shrink-0">
+          <!-- Botón Único: [+ Crear Bloque] (Abre la Caja de Herramientas para diseñar sub-secciones) -->
+          <button type="button"
+            @click="$store.characters.openBlockBuilder(currentTabObj.id)"
+            class="px-3 py-1.5 rounded-lg border font-mono text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm cursor-pointer hover:brightness-110"
+            :style="\`background-color: \${(currentTabObj.accentColor || 'var(--accent, #00F0FF)') + '20'}; border-color: \${(currentTabObj.accentColor || 'var(--accent, #00F0FF)') + '50'}; color: \${currentTabObj.accentColor || 'var(--accent, #00F0FF)'};\`">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+            <span>Crear Bloque</span>
+          </button>
+
+          <!-- Configurar Sección (Lápiz) -->
+          <button type="button"
+            @click="$store.characters.openCreateCustomTabModal(currentTabObj.id)"
+            title="Editar nombre, ícono o color de la sección"
+            class="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer">
+            <i data-lucide="pencil" class="w-4 h-4"></i>
+          </button>
+
+          <!-- Eliminar Sección (con confirmación) -->
+          <div class="relative" x-show="!confirmDeleteSection">
+            <button type="button"
+              @click="confirmDeleteSection = true"
+              title="Eliminar esta sección permanentemente"
+              class="p-1.5 rounded-lg border border-rose-500/20 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 transition-colors cursor-pointer">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <!-- Confirmación Inline de Borrado -->
+          <div x-show="confirmDeleteSection" x-cloak class="flex items-center gap-1.5 p-1 rounded-lg bg-rose-950/90 border border-rose-500/40">
+            <span class="text-[10px] font-mono text-rose-300 px-1 font-bold">¿Borrar?</span>
+            <button type="button"
+              @click="$store.characters.deleteCustomTab(currentTabObj.id); confirmDeleteSection = false;"
+              class="px-2 py-0.5 rounded bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-mono font-bold cursor-pointer">
+              Sí
+            </button>
+            <button type="button"
+              @click="confirmDeleteSection = false"
+              class="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-slate-300 text-[10px] font-mono font-bold cursor-pointer">
+              No
+            </button>
+          </div>
+        </div>
+
+        <!-- MODO LECTURA: BADGE DESCRIPTIVO -->
+        <div x-show="!$store.app.editMode" class="shrink-0">
+          <span class="text-[11px] font-mono text-ink-slate/80 uppercase tracking-widest px-2.5 py-1 rounded-md bg-white/[0.03] border border-white/5 hidden sm:inline-block"
+            x-text="(currentTabObj.blocks?.length || 0) + ' Sub-secciones'"></span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           MODO EDICIÓN: FORMULARIO, INPUTS Y CONTROLES INTERACTIVOS
+           ══════════════════════════════════════════════════════════ -->
+      <div x-show="$store.app.editMode" class="space-y-6">
+
+        <!-- ESTADO VACÍO EN MODO EDICIÓN -->
+        <template x-if="!currentTabObj.blocks || currentTabObj.blocks.length === 0">
+          <div class="p-8 sm:p-10 rounded-xl border border-dashed border-white/15 bg-black/30 text-center space-y-4">
+            <div class="w-12 h-12 mx-auto rounded-xl flex items-center justify-center border"
+              :style="\`background-color: \${(currentTabObj.accentColor || 'var(--accent, #00F0FF)') + '15'}; border-color: \${(currentTabObj.accentColor || 'var(--accent, #00F0FF)') + '40'};\`">
+              <i data-lucide="layers" class="w-6 h-6"
+                :style="\`color: \${currentTabObj.accentColor || 'var(--accent, #00F0FF)'};\`"></i>
+            </div>
+            <div class="max-w-md mx-auto space-y-1">
+              <h4 class="text-xs font-mono font-bold uppercase tracking-wider text-parchment-cream">Sección en blanco</h4>
+              <p class="text-[11px] text-text-muted">Diseña tu primera sub-sección modular con la caja de herramientas:</p>
+            </div>
+
+            <div class="pt-2">
+              <button type="button"
+                @click="$store.characters.openBlockBuilder(currentTabObj.id)"
+                class="px-5 py-2.5 rounded-xl border text-xs font-mono font-bold flex items-center gap-2 mx-auto transition-all shadow-lg hover:scale-105 cursor-pointer"
+                :style="\`background-color: \${(currentTabObj.accentColor || 'var(--accent, #00F0FF)') + '25'}; border-color: \${(currentTabObj.accentColor || 'var(--accent, #00F0FF)') + '60'}; color: \${currentTabObj.accentColor || 'var(--accent, #00F0FF)'};\`">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>Abrir Caja de Herramientas y Crear Bloque</span>
+              </button>
+            </div>
+          </div>
+        </template>
+
+        <!-- LISTA DE BLOQUES MODULARES EN MODO EDICIÓN -->
+        <template x-for="(block, bIndex) in (currentTabObj.blocks || [])" :key="block.id || bIndex">
+          <div class="p-4 rounded-xl border bg-black/40 space-y-4"
+            :style="\`border-color: \${(block.accentColor || currentTabObj.accentColor || '#eab308') + '35'};\`">
+            
+            <!-- Barra Superior del Bloque / Sub-sección -->
+            <div class="flex items-center justify-between border-b border-white/10 pb-2.5 gap-2">
+              <div class="flex items-center gap-2 min-w-0 flex-1">
+                <!-- Botón Colapsar / Expandir Sub-sección -->
+                <button type="button"
+                  @click="$store.characters.toggleCustomBlockCollapse(currentTabObj.id, bIndex)"
+                  class="p-1 rounded text-slate-400 hover:text-white transition-transform duration-200 cursor-pointer shrink-0"
+                  :class="{ '-rotate-90': block.isCollapsed }"
+                  :title="block.isCollapsed ? 'Expandir sub-sección' : 'Colapsar sub-sección'">
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+
+                <i :data-lucide="block.icon || 'layers'" class="w-4 h-4 shrink-0"
+                  :style="\`color: \${block.accentColor || currentTabObj.accentColor || '#eab308'};\`"></i>
+                
+                <input type="text" x-model="block.title"
+                  @change="$store.characters.scheduleAutoSave()"
+                  placeholder=""
+                  class="text-xs font-mono font-bold uppercase tracking-wider bg-transparent border-b border-transparent hover:border-white/20 focus:border-accent-primary focus:outline-none w-full transition-colors"
+                  :style="\`color: \${block.accentColor || currentTabObj.accentColor || '#eab308'};\`">
+
+                <!-- Badge cuando está colapsado -->
+                <span x-show="block.isCollapsed" class="text-[9px] font-mono text-slate-400 px-2 py-0.5 rounded bg-white/5 border border-white/10 shrink-0"
+                  x-text="\`\${(block.fields || []).length} campos colapsados\`"></span>
+              </div>
+
+              <!-- Controles de la Sub-sección -->
+              <div class="flex items-center gap-1 shrink-0">
+                <!-- Botón: Editar Estructura en la Caja de Herramientas -->
+                <button type="button" @click="$store.characters.openBlockBuilder(currentTabObj.id, bIndex)"
+                  title="Diseñar campos y estructura en la Caja de Herramientas"
+                  class="px-2 py-1 rounded text-[10px] font-mono font-bold bg-white/5 hover:bg-white/15 text-slate-300 hover:text-white flex items-center gap-1 border border-white/10 cursor-pointer">
+                  <i data-lucide="sliders" class="w-3.5 h-3.5 text-accent-cyan"></i>
+                  <span class="hidden sm:inline">Caja de Herramientas</span>
+                </button>
+
+                <button type="button" @click="$store.characters.moveCustomTabBlock(currentTabObj.id, bIndex, bIndex - 1)"
+                  :disabled="bIndex === 0" title="Mover arriba"
+                  class="p-1 rounded text-slate-400 hover:text-white disabled:opacity-20 cursor-pointer">
+                  <i data-lucide="chevron-up" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" @click="$store.characters.moveCustomTabBlock(currentTabObj.id, bIndex, bIndex + 1)"
+                  :disabled="bIndex === currentTabObj.blocks.length - 1" title="Mover abajo"
+                  class="p-1 rounded text-slate-400 hover:text-white disabled:opacity-20 cursor-pointer">
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                </button>
+                <button type="button" @click="$store.characters.removeCustomTabBlock(currentTabObj.id, bIndex)"
+                  title="Eliminar sub-sección"
+                  class="p-1 rounded text-slate-400 hover:text-rose-400 cursor-pointer ml-1">
+                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- CUERPO EXPANDIBLE DEL BLOQUE EN MODO EDICIÓN -->
+            <div x-show="!block.isCollapsed" x-collapse x-cloak class="space-y-4">
+              <!-- CUADRÍCULA DINÁMICA DE CAMPOS MODULARES (12 COLUMNAS) -->
+              <template x-if="block.fields && block.fields.length > 0">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <template x-for="(field, fIndex) in (block.fields || []).filter(Boolean)" :key="field?.id || fIndex">
+                  <div class="space-y-1.5 relative group"
+                    :class="(field?.type === 'divider' || field?.type === 'spacer') ? 'col-span-12' : (field?.width === 'half') ? 'col-span-12 md:col-span-6' : (field?.width === 'third') ? 'col-span-12 md:col-span-4' : (field?.width === 'quarter') ? 'col-span-12 sm:col-span-6 md:col-span-3' : (field?.width === 'two-thirds') ? 'col-span-12 md:col-span-8' : 'col-span-12'">
+                    
+                    <!-- Encabezado del Campo: Etiqueta + Selector Rápido de Dimensión (Oculto en separadores para un diseño limpio) -->
+                    <div x-show="field?.type !== 'divider' && field?.type !== 'spacer'" class="flex items-center justify-between gap-1">
+                      <label class="form-label !mb-0 flex items-center gap-1.5 font-bold truncate min-w-0"
+                        :style="\`color: \${field?.color || block?.accentColor || currentTabObj?.accentColor || '#eab308'};\`">
+                        <i :data-lucide="field?.icon || (field?.type === 'stat' ? 'gauge' : field?.type === 'input' ? 'tag' : 'file-text')" class="w-3.5 h-3.5 shrink-0"></i>
+                        <span class="truncate" x-text="field?.label || 'Campo'"></span>
+                      </label>
+
+                      <!-- Selector de Ancho Rápido (En 1 Clic ajusta la dimensión) -->
+                      <div class="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity shrink-0">
+                        <div class="inline-flex rounded bg-black/60 border border-white/10 p-0.5">
+                          <button type="button" @click="$store.characters.setCustomFieldWidth(currentTabObj.id, bIndex, fIndex, 'full')"
+                            title="100% Ancho Completo"
+                            class="px-1.5 py-0.2 rounded text-[9px] font-mono cursor-pointer transition-colors"
+                            :class="field?.width === 'full' ? 'bg-accent-gold text-black font-bold' : 'text-slate-400 hover:text-white'">100%</button>
+                          <button type="button" @click="$store.characters.setCustomFieldWidth(currentTabObj.id, bIndex, fIndex, 'half')"
+                            title="50% Medio"
+                            class="px-1.5 py-0.2 rounded text-[9px] font-mono cursor-pointer transition-colors"
+                            :class="field?.width === 'half' ? 'bg-accent-cyan text-black font-bold' : 'text-slate-400 hover:text-white'">50%</button>
+                          <button type="button" @click="$store.characters.setCustomFieldWidth(currentTabObj.id, bIndex, fIndex, 'third')"
+                            title="33% Tercio"
+                            class="px-1.5 py-0.2 rounded text-[9px] font-mono cursor-pointer transition-colors"
+                            :class="field?.width === 'third' ? 'bg-purple-500 text-white font-bold' : 'text-slate-400 hover:text-white'">33%</button>
+                        </div>
+                        <button type="button" @click="$store.characters.removeCustomFieldFromBlock(currentTabObj.id, bIndex, fIndex)"
+                          title="Eliminar campo"
+                          class="text-slate-500 hover:text-rose-400 p-0.5 cursor-pointer">
+                          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- CONTROL SEGÚN TIPO DE CAMPO -->
+
+                    <!-- 1. TEXTAREA (Multilínea para Lore, Resumen, Notas) -->
+                    <template x-if="field?.type === 'textarea'">
+                      <textarea x-model="field.value"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""
+                        class="form-textarea text-xs w-full"
+                        :rows="field?.width === 'full' ? 4 : 3"></textarea>
+                    </template>
+
+                    <!-- 2. INPUT CORTO (Una sola línea para Arquetipos, Estados, Nombres) -->
+                    <template x-if="field?.type === 'input'">
+                      <input type="text" x-model="field.value"
+                        @input="$store.characters.scheduleAutoSave()"
+                        placeholder=""
+                        class="form-input text-xs font-mono font-bold w-full bg-black/50"
+                        :style="\`color: \${field?.color || block?.accentColor || currentTabObj?.accentColor || '#00f0ff'};\`">
+                    </template>
+
+                    <!-- 3. MEDIDOR / PARÁMETRO NUMÉRICO -->
+                    <template x-if="field?.type === 'stat'">
+                      <div class="p-2.5 rounded-lg border border-white/10 bg-black/50 space-y-2">
+                        <div class="flex items-center justify-between text-xs font-mono">
+                          <div class="flex items-center gap-1">
+                            <input type="number" x-model.number="field.current"
+                              @change="$store.characters.scheduleAutoSave()"
+                              class="w-12 text-center font-bold text-parchment-cream bg-white/5 rounded border border-white/10 py-0.5 focus:outline-none focus:border-accent-primary">
+                            <span class="text-slate-500">/</span>
+                            <input type="number" x-model.number="field.max"
+                              @change="$store.characters.scheduleAutoSave()"
+                              placeholder=""
+                              class="w-12 text-center text-slate-400 bg-white/5 rounded border border-white/10 py-0.5 focus:outline-none focus:border-accent-primary">
+                          </div>
+                          <input type="text" x-model="field.unit"
+                            @input="$store.characters.scheduleAutoSave()"
+                            placeholder=""
+                            class="w-12 text-right text-[11px] text-slate-400 bg-transparent focus:outline-none">
+                        </div>
+
+                        <!-- Barra de Progreso Mini -->
+                        <div class="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                          <div class="h-full rounded-full transition-all duration-300"
+                            :style="\`width: \${Math.min(100, Math.max(0, field?.max ? (field.current / field.max) * 100 : 100))}%; background-color: \${field?.color || block?.accentColor || '#a855f7'};\`"></div>
+                        </div>
+
+                        <!-- Controles +/- Rápidos -->
+                        <div class="flex items-center justify-between pt-1 text-xs font-mono">
+                          <div class="flex items-center gap-1">
+                            <button type="button" @click="$store.characters.incrementCustomFieldStat(currentTabObj.id, bIndex, fIndex, -5)"
+                              class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-400 cursor-pointer font-bold">-5</button>
+                            <button type="button" @click="$store.characters.incrementCustomFieldStat(currentTabObj.id, bIndex, fIndex, -1)"
+                              class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-400 cursor-pointer font-bold">-1</button>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <button type="button" @click="$store.characters.incrementCustomFieldStat(currentTabObj.id, bIndex, fIndex, 1)"
+                              class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-400 cursor-pointer font-bold">+1</button>
+                            <button type="button" @click="$store.characters.incrementCustomFieldStat(currentTabObj.id, bIndex, fIndex, 5)"
+                              class="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/15 text-slate-400 cursor-pointer font-bold">+5</button>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- 4. IMAGEN O GIF DEMOSTRATIVO CON SUITE COMPLETA (RESPONSIVE y SIN OVERFLOW) -->
+                    <template x-if="field?.type === 'image'">
+                      <div class="space-y-3 p-3 rounded-xl border border-white/10 bg-black/50 overflow-hidden">
+                        <div class="flex gap-3.5"
+                          :class="(field?.width === 'third' || field?.width === 'quarter') ? 'flex-col' : (field?.width === 'half' ? 'flex-col xl:flex-row items-start' : 'flex-col md:flex-row items-start')">
+                          <!-- Visualizador Box con Widescreen 16:9, Drag y Drop Activo y Fondo Oscuro -->
+                          <div class="skill-thumb-box group cursor-pointer relative overflow-hidden transition-all duration-200"
+                            :class="{
+                              'ring-2 ring-accent-gold shadow-lg shadow-accent-gold/20 scale-[1.01]': isDraggingCustomImg === field.id,
+                              'is-fluid !w-full !max-w-full aspect-video': field?.width === 'third' || field?.width === 'quarter',
+                              'is-fluid !w-full xl:!w-60 xl:shrink-0 aspect-video': field?.width === 'half',
+                              'is-fluid !w-full md:!w-64 md:shrink-0 aspect-video': !field?.width || field?.width === 'full' || field?.width === 'two-thirds'
+                            }"
+                            @dragover.prevent="isDraggingCustomImg = field.id"
+                            @dragleave.prevent="if (isDraggingCustomImg === field.id) isDraggingCustomImg = null"
+                            @drop.prevent="
+                              isDraggingCustomImg = null;
+                              const f = $event.dataTransfer?.files?.[0];
+                              if (f && f.type.startsWith('image/')) {
+                                $store.app.openCropper(f, 'custom_field', \`\${currentTabObj.id}:\${field.id}\`);
+                              } else {
+                                $store.app.toast('Arrastra un archivo de imagen o GIF válido.', 'warning');
+                              }
+                            "
+                            @click="field.value ? $store.app.openLightbox(field.value) : null"
+                            :title="field.value ? 'Clic para ampliar a pantalla completa' : 'Arrastra una imagen o GIF aquí'">
+
+                            <!-- Imagen presente -->
+                            <div x-show="field.value" class="w-full h-full relative">
+                              <img :src="field.value" class="thumb-blur-backdrop" alt="" />
+                              <img :src="field.value" :alt="field.label || 'Imagen'"
+                                class="relative z-10 w-full h-full object-center transition-transform duration-200"
+                                :style="field.imageTransform || ''"
+                                :class="(field.imageFit || 'cover') === 'contain' ? 'fit-contain' : 'fit-cover'" />
+
+                              <!-- Overlay sutil de Lightbox -->
+                              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center pointer-events-none">
+                                <span class="px-2 py-0.5 rounded bg-black/75 border border-white/20 text-white font-hud text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-lg">
+                                  <i data-lucide="zoom-in" class="w-3 h-3 text-accent-gold"></i>
+                                  <span>Lightbox</span>
+                                </span>
+                              </div>
+                            </div>
+
+                            <!-- Placeholder para subir / arrastrar cuando no hay imagen -->
+                            <div x-show="!field.value"
+                              class="flex flex-col items-center justify-center gap-1 text-ink-slate p-3 pointer-events-none text-center select-none w-full h-full">
+                              <i data-lucide="image-plus" class="w-6 h-6 text-accent-gold/60 transition-transform group-hover:scale-110"></i>
+                              <span class="text-[10px] font-hud font-bold text-white/70 uppercase tracking-wider">
+                                Arrastra Imagen / GIF
+                              </span>
+                              <span class="text-[9px] font-mono text-ink-slate">16:9 Widescreen</span>
+                            </div>
+
+                            <!-- Indicador visual flotante de DragOver -->
+                            <div x-show="isDraggingCustomImg === field.id"
+                              class="absolute inset-0 bg-accent-gold/20 backdrop-blur-[2px] z-30 flex items-center justify-center border-2 border-dashed border-accent-gold rounded-[inherit]">
+                              <span class="px-2.5 py-1 rounded-lg bg-black/90 text-accent-gold font-hud text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-xl">
+                                <i data-lucide="download" class="w-3.5 h-3.5 animate-bounce"></i>
+                                <span>Soltar para Recortar</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          <!-- Controles de Manipulación y Carga -->
+                          <div class="space-y-2.5 flex-1 min-w-0 w-full">
+                            <!-- Barra de Micro-Herramientas (si tiene imagen) -->
+                            <div x-show="field.value" class="flex items-center gap-1.5 flex-wrap w-full">
+                              <!-- Recortar / Re-encuadrar -->
+                              <button type="button" class="visual-tool-btn"
+                                :class="(field?.width === 'third' || field?.width === 'quarter') ? 'is-compact' : ''"
+                                @click="$store.characters.reCropCustomFieldImage(currentTabObj.id, field.id)"
+                                title="Ajustar recorte y encuadre (16:9)">
+                                <i data-lucide="crop" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span>Recortar</span>
+                              </button>
+
+                              <!-- Rotar 90° -->
+                              <button type="button" class="visual-tool-btn"
+                                :class="(field?.width === 'third' || field?.width === 'quarter') ? 'is-compact' : ''"
+                                @click="$store.characters.rotateCustomFieldImage(currentTabObj.id, field.id)"
+                                title="Rotar 90 grados">
+                                <i data-lucide="rotate-cw" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span>Rotar</span>
+                              </button>
+
+                              <!-- Efecto Espejo -->
+                              <button type="button" class="visual-tool-btn"
+                                :class="(field?.width === 'third' || field?.width === 'quarter') ? 'is-compact' : ''"
+                                @click="$store.characters.flipCustomFieldImage(currentTabObj.id, field.id)"
+                                title="Voltear horizontalmente (Efecto Espejo)">
+                                <i data-lucide="flip-horizontal" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span>Espejo</span>
+                              </button>
+
+                              <!-- Toggle Modo de Ajuste (Encajar vs Rellenar) -->
+                              <button type="button" class="visual-tool-btn"
+                                :class="(field?.width === 'third' || field?.width === 'quarter') ? 'is-compact' : ''"
+                                @click="$store.characters.toggleCustomFieldImageFit(currentTabObj.id, field.id)"
+                                :title="(field.imageFit || 'cover') === 'cover' ? 'Modo actual: Rellenar (Cover). Clic para Encajar (Contain)' : 'Modo actual: Encajar (Contain). Clic para Rellenar (Cover)'">
+                                <i :data-lucide="(field.imageFit || 'cover') === 'cover' ? 'minimize-2' : 'maximize-2'"
+                                  class="w-3.5 h-3.5 shrink-0"></i>
+                                <span x-text="(field.imageFit || 'cover') === 'cover' ? 'Encajar' : 'Rellenar'"></span>
+                              </button>
+
+                              <!-- Quitar -->
+                              <button type="button" class="visual-tool-btn danger"
+                                :class="(field?.width === 'third' || field?.width === 'quarter') ? 'is-compact' : ''"
+                                @click="$store.characters.removeCustomFieldImage(currentTabObj.id, field.id)" title="Eliminar imagen del campo">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span>Quitar</span>
+                              </button>
+                            </div>
+
+                            <!-- Botones Principales de Carga: Archivo Local + URL Externa -->
+                            <div class="grid gap-2 w-full"
+                              :class="(field?.width === 'third' || field?.width === 'quarter') ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2'">
+                              <!-- Subir / Cambiar Archivo -->
+                              <label class="chamfer-btn-primary w-full cursor-pointer select-none text-xs py-1.5 flex items-center justify-center gap-1.5 text-center">
+                                <i data-lucide="upload" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span class="truncate" x-text="field.value ? 'CAMBIAR' : 'SUBIR ARCHIVO'"></span>
+                                <input type="file" accept="image/*,image/gif" class="hidden"
+                                  @change="$store.characters.uploadCustomFieldImage($event, currentTabObj.id, field.id)" />
+                              </label>
+
+                              <!-- Botón Cargar por URL -->
+                              <button type="button" class="chamfer-btn-outline w-full cursor-pointer select-none text-xs py-1.5 flex items-center justify-center gap-1.5 text-center"
+                                :class="{ 'is-active': customUrlInputId === field.id }"
+                                @click="customUrlInputId = customUrlInputId === field.id ? null : field.id; customUrlValue = '';">
+                                <i data-lucide="link" class="w-3.5 h-3.5 shrink-0"></i>
+                                <span>DESDE URL</span>
+                              </button>
+                            </div>
+
+                            <!-- Mini-Formulario expandible para Carga por URL -->
+                            <div x-show="customUrlInputId === field.id" x-cloak class="p-2.5 rounded-lg border border-parchment-brown/30 bg-black/60 space-y-2 w-full">
+                              <label class="text-[10px] font-hud text-parchment-cream/80 uppercase block">Enlace directo a Imagen o GIF</label>
+                              <div class="flex items-center gap-2">
+                                <input type="url" x-model="customUrlValue" placeholder="https://ejemplo.com/media.gif"
+                                  class="form-input text-xs flex-1 !py-1 min-w-0"
+                                  @keydown.enter.prevent="$store.characters.setCustomFieldImageUrl(currentTabObj.id, field.id, customUrlValue); customUrlInputId = null;" />
+                                <button type="button" class="btn-primary-action text-xs px-2.5 py-1 shrink-0"
+                                  @click="$store.characters.setCustomFieldImageUrl(currentTabObj.id, field.id, customUrlValue); customUrlInputId = null;">
+                                  Cargar
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+<!-- 5. CATEGORÍA / TIPO CON PÍLDORAS SELECCIONABLES -->
+                    <template x-if="field?.type === 'badge_select'">
+                      <div class="p-2.5 rounded-lg border border-white/10 bg-black/50 space-y-2">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                          <template x-for="(opt, oIdx) in (field?.optionsText ? field.optionsText.split(',').map(s => s.trim()).filter(Boolean) : ['Activa', 'Pasiva'])" :key="oIdx">
+                            <button type="button" @click="field.value = opt; $store.characters.scheduleAutoSave()"
+                              class="px-3 py-1 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer border"
+                              :class="field.value === opt ? 'bg-emerald-500/25 border-emerald-400 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.25)]' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10'"
+                              x-text="opt"></button>
+                          </template>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- 6. TIEMPOS y RECURSOS (TD, CD, COSTE) -->
+                    <template x-if="field?.type === 'time_cost'">
+                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-2.5 rounded-lg border border-white/10 bg-black/50">
+                        <div>
+                          <label class="text-[10px] font-mono uppercase text-sky-400 font-bold block mb-1 flex items-center gap-1">
+                            <i data-lucide="timer" class="w-3 h-3"></i> TD (Duración)
+                          </label>
+                          <input type="text" x-model="field.td" @input="$store.characters.scheduleAutoSave()"
+                            placeholder="" class="form-input text-xs font-mono font-bold w-full bg-black/60" />
+                        </div>
+                        <div>
+                          <label class="text-[10px] font-mono uppercase text-amber-400 font-bold block mb-1 flex items-center gap-1">
+                            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> CD (Enfriamiento)
+                          </label>
+                          <input type="text" x-model="field.cd" @input="$store.characters.scheduleAutoSave()"
+                            placeholder="" class="form-input text-xs font-mono font-bold w-full bg-black/60" />
+                        </div>
+                        <div>
+                          <label class="text-[10px] font-mono uppercase text-rose-400 font-bold block mb-1 flex items-center gap-1">
+                            <i data-lucide="zap" class="w-3 h-3"></i> Coste / Recurso
+                          </label>
+                          <input type="text" x-model="field.cost" @input="$store.characters.scheduleAutoSave()"
+                            placeholder="" class="form-input text-xs font-mono font-bold w-full bg-black/60" />
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- 7. SELECTOR DE CALIDAD / RAREZA CON ILUMINACIÓN -->
+                    <template x-if="field?.type === 'rarity'">
+                      <div class="p-2.5 rounded-lg border border-white/10 bg-black/50 space-y-2">
+                        <div class="grid grid-cols-2 sm:grid-cols-6 gap-1.5">
+                          <button type="button" @click="field.value = 'comun'; $store.characters.scheduleAutoSave()"
+                            class="px-2 py-1.5 rounded text-[11px] font-mono font-bold border transition-all text-center cursor-pointer"
+                            :class="field.value === 'comun' ? 'bg-slate-500/30 border-slate-400 text-slate-200 shadow-sm' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'">
+                            Común
+                          </button>
+                          <button type="button" @click="field.value = 'poco_comun'; $store.characters.scheduleAutoSave()"
+                            class="px-2 py-1.5 rounded text-[11px] font-mono font-bold border transition-all text-center cursor-pointer"
+                            :class="field.value === 'poco_comun' ? 'bg-emerald-500/30 border-emerald-400 text-emerald-300 shadow-[0_0_8px_rgba(16,185,129,0.3)]' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'">
+                            Poco Común
+                          </button>
+                          <button type="button" @click="field.value = 'raro'; $store.characters.scheduleAutoSave()"
+                            class="px-2 py-1.5 rounded text-[11px] font-mono font-bold border transition-all text-center cursor-pointer"
+                            :class="field.value === 'raro' ? 'bg-blue-500/30 border-blue-400 text-blue-300 shadow-[0_0_8px_rgba(59,130,246,0.3)]' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'">
+                            Raro
+                          </button>
+                          <button type="button" @click="field.value = 'epico'; $store.characters.scheduleAutoSave()"
+                            class="px-2 py-1.5 rounded text-[11px] font-mono font-bold border transition-all text-center cursor-pointer"
+                            :class="field.value === 'epico' ? 'bg-purple-500/30 border-purple-400 text-purple-300 shadow-[0_0_8px_rgba(168,85,247,0.3)]' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'">
+                            Épico
+                          </button>
+                          <button type="button" @click="field.value = 'legendario'; $store.characters.scheduleAutoSave()"
+                            class="px-2 py-1.5 rounded text-[11px] font-mono font-bold border transition-all text-center cursor-pointer"
+                            :class="field.value === 'legendario' ? 'bg-amber-500/30 border-amber-400 text-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.3)]' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'">
+                            Legendario
+                          </button>
+                          <button type="button" @click="field.value = 'mitico'; $store.characters.scheduleAutoSave()"
+                            class="px-2 py-1.5 rounded text-[11px] font-mono font-bold border transition-all text-center cursor-pointer"
+                            :class="field.value === 'mitico' ? 'bg-rose-500/30 border-rose-400 text-rose-300 shadow-[0_0_8px_rgba(244,63,94,0.3)]' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'">
+                            Mítico
+                          </button>
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- 8. Vista de Separador en Edición -->
+                    <template x-if="field.type === 'divider'">
+                      <div class="py-2.5 flex items-center gap-3 relative group/divider w-full">
+                        <div class="h-px bg-white/20 flex-1"></div>
+                        <input type="text" x-model="field.label"
+                          @input="$store.characters.scheduleAutoSave()"
+                          placeholder=""
+                          class="text-xs font-mono font-bold uppercase tracking-wider text-white bg-transparent border-b border-dashed border-white/30 hover:border-white/60 text-center focus:outline-none focus:border-accent-cyan px-3 py-1 transition-colors" />
+                        <div class="h-px bg-white/20 flex-1"></div>
+                        <button type="button" @click="$store.characters.removeCustomFieldFromBlock(currentTabObj.id, bIndex, fIndex)"
+                          title="Eliminar separador"
+                          class="opacity-0 group-hover/divider:opacity-100 text-slate-500 hover:text-rose-400 p-1 transition-opacity cursor-pointer ml-1">
+                          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                        </button>
+                      </div>
+                    </template>
+
+                    <!-- 9. Vista de Espacio de Separación en Edición -->
+                    <template x-if="field.type === 'spacer'">
+                      <div class="py-3 flex items-center justify-center border border-dashed border-white/15 rounded-lg bg-black/30 text-slate-500 text-[10px] font-mono">
+                        <i data-lucide="space" class="w-3.5 h-3.5 mr-1.5 opacity-60"></i>
+                        <span>Espacio de Separación Directo</span>
+                      </div>
+                    </template>
+
+                  </div>
+                </template>
+              </div>
+            </template>
+
+            <!-- Botón Inferior de Campo Rápido dentro del Bloque -->
+            <div class="pt-1 flex items-center justify-between gap-2 border-t border-white/5">
+              <span class="text-[10px] text-text-muted font-mono">Añadir campo rápido:</span>
+              <div class="flex items-center gap-1.5">
+                <button type="button" @click="$store.characters.addQuickFieldToCustomBlock(currentTabObj.id, bIndex, 'textarea', 'half')"
+                  class="px-2 py-0.5 rounded border border-white/10 bg-white/5 hover:bg-white/15 text-[10px] font-mono text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer">
+                  <i data-lucide="file-text" class="w-3 h-3 text-accent-gold"></i>
+                  <span>Texto 50%</span>
+                </button>
+                <button type="button" @click="$store.characters.addQuickFieldToCustomBlock(currentTabObj.id, bIndex, 'textarea', 'third')"
+                  class="px-2 py-0.5 rounded border border-white/10 bg-white/5 hover:bg-white/15 text-[10px] font-mono text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer">
+                  <i data-lucide="file-text" class="w-3 h-3 text-accent-gold"></i>
+                  <span>Texto 33%</span>
+                </button>
+                <button type="button" @click="$store.characters.addQuickFieldToCustomBlock(currentTabObj.id, bIndex, 'input', 'half')"
+                  class="px-2 py-0.5 rounded border border-white/10 bg-white/5 hover:bg-white/15 text-[10px] font-mono text-slate-300 hover:text-white flex items-center gap-1 cursor-pointer">
+                  <i data-lucide="type" class="w-3 h-3 text-accent-cyan"></i>
+                  <span>Input 50%</span>
+                </button>
+                <button type="button" @click="$store.characters.openBlockBuilder(currentTabObj.id, bIndex)"
+                  class="px-2.5 py-0.5 rounded border border-accent-gold/40 bg-accent-gold/15 text-[10px] font-mono text-accent-gold font-bold hover:bg-accent-gold/25 cursor-pointer ml-1">
+                  Abrir Caja de Herramientas
+                </button>
+              </div>
+            </div>
+
+            <!-- RETROCOMPATIBILIDAD CON BLOQUES ANTIGUOS (TARJETAS, ATRIBUTOS, TEXTO) -->
+            <template x-if="!block.fields || block.fields.length === 0">
+              <div class="space-y-3">
+                <template x-if="block.type === 'cards'">
+                  <div class="space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <template x-for="(card, cIndex) in (block.items || [])" :key="card.id || cIndex">
+                        <div class="p-3.5 rounded-lg border border-white/10 bg-black/40 space-y-2">
+                          <input type="text" x-model="card.title" @input="$store.characters.scheduleAutoSave()" placeholder="" class="font-mono text-xs font-bold text-parchment-cream bg-transparent border-b border-white/10 w-full">
+                          <textarea x-model="card.description" @input="$store.characters.scheduleAutoSave()" placeholder="" rows="2" class="form-textarea text-xs w-full"></textarea>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+
+                <template x-if="block.type === 'text'">
+                  <textarea x-model="block.content" @input="$store.characters.scheduleAutoSave()" rows="4" placeholder="" class="form-textarea text-xs w-full"></textarea>
+                </template>
+              </div>
+            </template>
+            </div>
+
+          </div>
+        </template>
+      </div>
+
+      <!-- ══════════════════════════════════════════════════════════
+           MODO LECTURA / VISTA PREVIA (Estilo idéntico a Mente, Extras, Cuerpo)
+           ══════════════════════════════════════════════════════════ -->
+      <div x-show="!$store.app.editMode" class="space-y-6">
+
+        <!-- ESTADO VACÍO EN MODO LECTURA -->
+        <template x-if="!currentTabObj.blocks || currentTabObj.blocks.length === 0">
+          <div class="p-8 text-center text-xs font-mono text-text-muted italic border border-white/5 rounded-xl bg-black/20">
+            Esta sección no contiene información registrada aún.
+          </div>
+        </template>
+
+        <!-- RENDERIZADO DE LECTURA DE CADA SUB-SECCIÓN -->
+        <template x-for="block in (currentTabObj.blocks || [])" :key="block.id">
+          <div class="space-y-3">
+            
+            <!-- Encabezado de la Sub-sección en Lectura (Con botón de colapsar / expandir) -->
+            <div class="flex items-center justify-between border-b border-parchment-brown/20 pb-1.5 gap-2">
+              <div class="flex items-center gap-2 min-w-0">
+                <button type="button"
+                  @click="block.isCollapsed = !block.isCollapsed; $store.characters.scheduleAutoSave()"
+                  class="p-1 rounded text-slate-400 hover:text-white transition-transform duration-200 cursor-pointer shrink-0"
+                  :class="{ '-rotate-90': block.isCollapsed }"
+                  :title="block.isCollapsed ? 'Expandir sub-sección' : 'Colapsar sub-sección'">
+                  <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                </button>
+                <i :data-lucide="block.icon || 'layers'" class="w-4 h-4 shrink-0"
+                  :style="\`color: \${block.accentColor || currentTabObj.accentColor || '#eab308'};\`"></i>
+                <h4 class="text-xs font-mono font-bold uppercase tracking-wider truncate"
+                  :style="\`color: \${block.accentColor || currentTabObj.accentColor || '#eab308'};\`"
+                  x-text="block.title || 'Sub-sección'"></h4>
+              </div>
+              <span x-show="block.isCollapsed" class="text-[9px] font-mono text-slate-400 px-2 py-0.5 rounded bg-white/5 border border-white/10 shrink-0"
+                x-text="\`\${(block.fields || []).length} campos\`"></span>
+            </div>
+
+            <!-- CUERPO EXPANDIBLE EN MODO LECTURA -->
+            <div x-show="!block.isCollapsed" x-collapse x-cloak class="space-y-3">
+
+            <!-- CUADRÍCULA DE LECTURA MODULAR (12 COLUMNAS) -->
+            <template x-if="block.fields && block.fields.length > 0">
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <template x-for="(field, fIndex) in (block.fields || []).filter(Boolean)" :key="field?.id || fIndex">
+                  <div class="space-y-1.5"
+                    :class="(field?.type === 'divider' || field?.type === 'spacer') ? 'col-span-12' : (field?.width === 'half') ? 'col-span-12 md:col-span-6' : (field?.width === 'third') ? 'col-span-12 md:col-span-4' : (field?.width === 'quarter') ? 'col-span-12 sm:col-span-6 md:col-span-3' : (field?.width === 'two-thirds') ? 'col-span-12 md:col-span-8' : 'col-span-12'">
+                    
+                    <!-- 8. Vista de Separador en Lectura (Limpio y natural, sin recuadro ni etiqueta amarilla) -->
+                    <template x-if="field?.type === 'divider'">
+                      <div class="py-3.5 flex items-center gap-4 w-full my-1">
+                        <div class="h-px bg-white/20 flex-1"></div>
+                        <span x-show="field?.label && field.label.trim()"
+                          class="text-xs font-mono font-bold uppercase tracking-widest text-white px-3 py-0.5 select-none"
+                          x-text="field.label"></span>
+                        <div class="h-px bg-white/20 flex-1"></div>
+                      </div>
+                    </template>
+
+                    <!-- 9. Vista de Espacio de Separación en Lectura -->
+                    <template x-if="field?.type === 'spacer'">
+                      <div class="py-2"></div>
+                    </template>
+
+                    <!-- Tarjeta de Lectura Estándar (.read-card con borde de color) para campos normales -->
+                    <template x-if="field?.type !== 'divider' && field?.type !== 'spacer'">
+                      <div class="read-card border-l-4 h-full flex flex-col justify-between"
+                        :style="\`border-left-color: \${field?.color || block?.accentColor || currentTabObj?.accentColor || '#eab308'};\`">
+                        
+                        <!-- Etiqueta con Ícono -->
+                        <div>
+                          <span class="read-label"
+                            :style="\`color: \${field?.color || block?.accentColor || currentTabObj?.accentColor || '#eab308'};\`">
+                            <i :data-lucide="field?.icon || (field?.type === 'stat' ? 'gauge' : field?.type === 'input' ? 'tag' : 'file-text')" class="w-3.5 h-3.5"></i>
+                            <span x-text="field?.label || 'Campo'"></span>
+                          </span>
+
+                          <!-- Contenido en Lectura -->
+                          <template x-if="field?.type === 'textarea'">
+                            <div class="read-value text-xs leading-relaxed pt-1"
+                              x-html="$store.app.formatRichText(field?.value) || '<span class=\\'text-text-muted italic\\'>Sin información registrada</span>'"></div>
+                          </template>
+
+                          <template x-if="field?.type === 'input'">
+                            <p class="read-value text-xs font-mono font-bold pt-1"
+                              :style="\`color: \${field?.color || block?.accentColor || currentTabObj?.accentColor || '#00f0ff'};\`"
+                              x-text="field?.value?.trim() || 'Sin registrar'"></p>
+                          </template>
+                        </div>
+
+                        <!-- Parámetro Numérico con Barra de Progreso en Lectura -->
+                        <template x-if="field?.type === 'stat'">
+                          <div class="space-y-1.5 pt-1">
+                            <div class="flex items-center justify-between text-xs font-mono font-bold">
+                              <span class="text-parchment-cream">
+                                <span x-text="field?.current || 0"></span>
+                                <span class="text-slate-500"> / </span>
+                                <span x-text="field?.max || 100"></span>
+                                <span class="text-[10px] text-slate-400 font-normal ml-0.5" x-text="field?.unit || 'pts'"></span>
+                              </span>
+                            </div>
+                            <div class="w-full h-1.5 rounded-full bg-white/10 overflow-hidden">
+                              <div class="h-full rounded-full transition-all duration-300"
+                                :style="\`width: \${Math.min(100, Math.max(0, field?.max ? (field.current / field.max) * 100 : 100))}%; background-color: \${field?.color || block?.accentColor || '#a855f7'};\`"></div>
+                            </div>
+                          </div>
+                        </template>
+
+                        <!-- 4. Vista de Imagen / GIF en Lectura (Responsive) -->
+                        <template x-if="field?.type === 'image'">
+                          <div class="pt-2">
+                            <div x-show="field?.value"
+                              class="skill-thumb-box group cursor-pointer relative overflow-hidden transition-all duration-200"
+                              :class="{
+                                'is-fluid !w-full !max-w-full aspect-video': field?.width === 'third' || field?.width === 'quarter',
+                                'is-fluid !w-full xl:!w-72 aspect-video': field?.width === 'half',
+                                'is-fluid !w-full md:!w-80 aspect-video': !field?.width || field?.width === 'full' || field?.width === 'two-thirds'
+                              }"
+                              @click="$store.app.openLightbox(field.value)"
+                              title="Clic para ampliar a pantalla completa">
+                              <img :src="field.value" class="thumb-blur-backdrop" alt="" />
+                              <img :src="field.value" :alt="field.label || 'Imagen'"
+                                class="relative z-10 w-full h-full object-center transition-transform duration-200"
+                                :style="field.imageTransform || ''"
+                                :class="(field.imageFit || 'cover') === 'contain' ? 'fit-contain' : 'fit-cover'" />
+                              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center pointer-events-none">
+                                <span class="px-2 py-0.5 rounded bg-black/75 border border-white/20 text-white font-hud text-[10px] tracking-wider uppercase flex items-center gap-1 shadow-lg">
+                                  <i data-lucide="zoom-in" class="w-3 h-3 text-accent-gold"></i>
+                                  <span>Lightbox</span>
+                                </span>
+                              </div>
+                            </div>
+                            <div x-show="!field?.value" class="text-xs text-text-muted italic py-1">
+                              Sin imagen asignada
+                            </div>
+                          </div>
+                        </template>
+
+                        <!-- 5. Vista de Categoría / Tipo en Lectura -->
+                        <template x-if="field?.type === 'badge_select'">
+                          <div class="pt-1.5">
+                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-bold border"
+                              :style="\`background-color: \${(field?.color || block?.accentColor || '#10b981') + '20'}; border-color: \${(field?.color || block?.accentColor || '#10b981') + '50'}; color: \${field?.color || block?.accentColor || '#10b981'};\`"
+                              x-text="field?.value || 'Sin categoría'"></span>
+                          </div>
+                        </template>
+
+                        <!-- 6. Vista de Tiempos y Recursos en Lectura -->
+                        <template x-if="field?.type === 'time_cost'">
+                          <div class="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div class="p-2 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2">
+                              <i data-lucide="timer" class="w-3.5 h-3.5 text-sky-400"></i>
+                              <div>
+                                <span class="text-[9px] font-mono text-slate-500 uppercase block leading-none">TD</span>
+                                <span class="text-xs font-mono font-bold text-sky-300" x-text="field?.td || '—'"></span>
+                              </div>
+                            </div>
+                            <div class="p-2 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2">
+                              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-amber-400"></i>
+                              <div>
+                                <span class="text-[9px] font-mono text-slate-500 uppercase block leading-none">CD</span>
+                                <span class="text-xs font-mono font-bold text-amber-300" x-text="field?.cd || '—'"></span>
+                              </div>
+                            </div>
+                            <div class="p-2 rounded-lg bg-black/40 border border-white/10 flex items-center gap-2">
+                              <i data-lucide="zap" class="w-3.5 h-3.5 text-rose-400"></i>
+                              <div>
+                                <span class="text-[9px] font-mono text-slate-500 uppercase block leading-none">Coste</span>
+                                <span class="text-xs font-mono font-bold text-rose-300" x-text="field?.cost || '—'"></span>
+                              </div>
+                            </div>
+                          </div>
+                        </template>
+
+                        <!-- 7. Vista de Calidad / Rareza en Lectura -->
+                        <template x-if="field?.type === 'rarity'">
+                          <div class="pt-1.5">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold border uppercase tracking-wider"
+                              :class="{
+                                'bg-slate-500/20 border-slate-400 text-slate-200': field?.value === 'comun',
+                                'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.25)]': field?.value === 'poco_comun',
+                                'bg-blue-500/20 border-blue-400 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.25)]': field?.value === 'raro',
+                                'bg-purple-500/20 border-purple-400 text-purple-300 shadow-[0_0_10px_rgba(168,85,247,0.25)]': field?.value === 'epico',
+                                'bg-amber-500/20 border-amber-400 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)]': field?.value === 'legendario',
+                                'bg-rose-500/20 border-rose-400 text-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.35)]': field?.value === 'mitico'
+                              }">
+                              <i data-lucide="gem" class="w-3.5 h-3.5"></i>
+                              <span x-text="field?.value === 'comun' ? 'Común' : field?.value === 'poco_comun' ? 'Poco Común' : field?.value === 'raro' ? 'Raro' : field?.value === 'epico' ? 'Épico' : field?.value === 'legendario' ? 'Legendario' : field?.value === 'mitico' ? 'Mítico' : 'Común'"></span>
+                            </span>
+                          </div>
+                        </template>
+
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </template>
+
+            <!-- Retrocompatibilidad en Lectura con bloques antiguos -->
+            <template x-if="!block.fields || block.fields.length === 0">
+              <div>
+                <template x-if="block.type === 'text'">
+                  <div class="read-card border-l-4 border-l-accent-cyan">
+                    <div class="read-value text-xs leading-relaxed" x-html="$store.app.formatRichText(block.content) || '<span class=\\'text-text-muted italic\\'>Sin notas registradas</span>'"></div>
+                  </div>
+                </template>
+
+                <template x-if="block.type === 'cards'">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <template x-for="card in (block.items || [])" :key="card.id">
+                      <div class="read-card border-l-4 border-l-accent-gold space-y-1">
+                        <span class="font-title text-base text-parchment-cream font-bold" x-text="card.title"></span>
+                        <div class="read-value text-xs" x-html="$store.app.formatRichText(card.description)"></div>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </div>
+            </template>
+            </div>
+
+          </div>
+        </template>
+      </div>
+
+    </div>
+  </template>
+
+</div>
+`;
+}

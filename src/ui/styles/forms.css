@@ -63,12 +63,13 @@
   right: 0;
   top: calc(100% + 4px);
   z-index: 99999 !important;
-  background-color: #080a0d !important;
+  background-color: var(--wiki-bg-elevated, var(--bg-panel, #080a0d)) !important;
+  color: var(--text-primary, #f1f5f9);
   /* 100% SÓLIDO SIN ALFA - SIN SANGRADO DE TEXTO */
   background-image: var(--diagonal-stripe);
-  border: 1px solid var(--border-accent, rgba(0, 240, 255, 0.4)) !important;
-  border-radius: 0.85rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 24px var(--accent-glow-lg, rgba(0, 240, 255, 0.2)) !important;
+  border: var(--border-width, 1px) solid var(--border-custom, var(--border-accent, rgba(0, 240, 255, 0.4))) !important;
+  border-radius: var(--wiki-radius-md, 10px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 24px var(--accent-glow-lg, transparent) !important;
   overflow-y: auto;
   max-height: 24rem;
   opacity: 1 !important;
@@ -76,7 +77,7 @@
 
 .custom-dropdown-item {
   padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
+  border-radius: var(--wiki-radius-sm, 7px);
   cursor: pointer;
   transition: all 0.15s ease;
   color: var(--text-primary, #ffffff);
@@ -224,7 +225,9 @@ body.hide-icons-h2 .category-header-icon-box,
 body.hide-icons-h2 .module-parent-icon,
 body.hide-icons-h2 [data-tab-section] .form-card > div:first-child .w-9.h-9,
 body.hide-icons-h2 [data-tab-section] .form-card > div:first-child .w-9.h-9.rounded-xl,
-body.hide-icons-h2 [data-tab-section] .form-card > div.flex.items-center .w-9.h-9 {
+body.hide-icons-h2 [data-tab-section] .form-card > div.flex.items-center .w-9.h-9,
+body.hide-icons-h2 [data-tab-section] .form-card > div:first-child .w-8.h-8,
+body.hide-icons-h2 [data-tab-section] .form-card > div.flex.items-center .w-8.h-8 {
   display: none !important;
 }
 

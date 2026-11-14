@@ -27,6 +27,7 @@ import { settingsInteractiveGrid } from '@core/ui/interactiveGridHero.js';
 import { settingsMagneticRail } from '@core/ui/magneticTabs.js';
 import { registerBgPanController } from '@core/media/bgPanController.js';
 import { registerCyberColorPicker } from '@core/ui/cyberColorPicker.js';
+import { mountAppUi } from '@ui/mountAppUi';
 
 import 'cropperjs/dist/cropper.css';
 import '@ui/styles/main.css';
@@ -59,7 +60,7 @@ function bootstrapEarlyFavicon(): void {
 function bootstrapEarlyPlaceholders(): void {
   try {
     const saved = ls.getJSON<boolean>('superficha_show_placeholders');
-    const show = saved !== null ? saved : true;
+    const show = saved !== null ? saved : false;
     const val = show ? 'true' : 'false';
     if (typeof document !== 'undefined') {
       if (document.documentElement) document.documentElement.setAttribute('data-show-placeholders', val);
@@ -102,10 +103,11 @@ registerSteamEmojisStore(Alpine);
 registerBgPanController(Alpine);
 registerCyberColorPicker(Alpine);
 
-// ── 3. Arrancar Alpine ────────────────────────────────────────────────────────
+// ── 3. Montar UI modular y arrancar Alpine ────────────────────────────────────
 window.Alpine = Alpine;
 window.settingsInteractiveGrid = settingsInteractiveGrid;
 window.settingsMagneticRail = settingsMagneticRail;
+mountAppUi(Alpine);
 Alpine.start();
 
 // ── 4. Inicializar motores auxiliares ─────────────────────────────────────────
@@ -117,6 +119,7 @@ multilineInputEngine.init();
 emojiAutocompleteEngine.init();
 
 // Inicializar fondo dinámico interactivo para la vista de ajustes
+(window as unknown as Record<string, unknown>).settingsInteractiveGrid = settingsInteractiveGrid;
 settingsInteractiveGrid.init();
 
 Alpine.effect(() => {

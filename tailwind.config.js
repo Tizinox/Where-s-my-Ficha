@@ -12,11 +12,13 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        title:    ['var(--font-display)', '"Barlow Condensed"', 'sans-serif'],
-        sans:     ['var(--font-body)', '"Inter Tight"', 'sans-serif'],
-        mono:     ['var(--font-input)', '"JetBrains Mono"', 'monospace'],
-        hud:      ['var(--font-hud)', '"Chakra Petch"', 'sans-serif'],
-        tierlist: ['var(--font-tierlist)', '"Barlow Condensed"', 'sans-serif'],
+        title:          ['var(--font-display)', '"Barlow Condensed"', 'sans-serif'],
+        sans:           ['var(--font-body)', '"Inter Tight"', 'sans-serif'],
+        mono:           ['var(--font-input)', '"JetBrains Mono"', 'monospace'],
+        hud:            ['var(--font-hud)', '"Inter Tight"', 'sans-serif'],
+        tierlist:       ['var(--font-tierlist)', '"Barlow Condensed"', 'sans-serif'],
+        'wiki-serif':   ['var(--font-display)', '"Barlow Condensed"', 'serif'],
+        'wiki-heading': ['var(--font-display)', '"Barlow Condensed"', 'sans-serif'],
       },
       colors: {
         /* ── Fondos ── */

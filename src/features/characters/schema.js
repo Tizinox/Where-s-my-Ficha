@@ -521,7 +521,7 @@ export function ensureCharacterDefaults(char) {
     priorities,
     skills: Array.isArray(char.skills) ? char.skills.map(s => ({
       id: s.id || crypto.randomUUID(),
-      type: s.type === 'passive' ? 'passive' : 'active',
+      type: ['passive', 'pasiva'].includes(String(s.type || '').trim().toLowerCase()) ? 'passive' : 'active',
       title: s.title || '',
       summary: s.summary || s.shortSummary || '',
       effect: s.effect || '',

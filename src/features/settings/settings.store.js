@@ -75,7 +75,7 @@ function parseHexRgb(hex) {
  * Calcula todos los tokens CSS globales y --wiki-* de forma única
  * para garantizar coherencia entre applySettings() y scopedThemeStyle.
  */
-function buildThemeTokens(state) {
+export function buildThemeTokens(state) {
   const accent = state.accentColor || DEFAULT_SETTINGS.accentColor;
   const rgb = parseHexRgb(accent) || { r: 200, g: 170, b: 110 };
   const secondary = state.secondaryColor || DEFAULT_SETTINGS.secondaryColor;
@@ -106,11 +106,16 @@ function buildThemeTokens(state) {
   const cleanHud = (state.fontHud || DEFAULT_SETTINGS.fontHud || 'Inter Tight').trim().replace(/['"]/g, '');
   const cleanTier = (state.fontTierlist || DEFAULT_SETTINGS.fontTierlist || 'Barlow Condensed').trim().replace(/['"]/g, '');
 
+  const defaultDisp = (DEFAULT_SETTINGS.fontDisplay || 'Barlow Condensed').trim().replace(/['"]/g, '');
+  const defaultBody = (DEFAULT_SETTINGS.fontBody || 'Inter Tight').trim().replace(/['"]/g, '');
+
   const fDisp = `"${cleanDisp}", "Barlow Condensed", sans-serif`;
   const fBody = `"${cleanBody}", "Inter Tight", sans-serif`;
   const fInput = `"${cleanInput}", "Inter Tight", sans-serif`;
   const fHud = `"${cleanHud}", "Inter Tight", sans-serif`;
   const fTier = `"${cleanTier}", "Barlow Condensed", sans-serif`;
+  const fWikiHeading = cleanDisp !== defaultDisp ? fDisp : '"Source Serif 4", Georgia, serif';
+  const fWikiSerif = cleanBody !== defaultBody ? fBody : '"Source Serif 4", Georgia, serif';
 
   const isDefaultAccent = accent.trim().toUpperCase() === DEFAULT_SETTINGS.accentColor.toUpperCase();
   const isDefaultBorder = border.trim().toUpperCase() === DEFAULT_SETTINGS.borderColor.toUpperCase();
@@ -184,6 +189,8 @@ function buildThemeTokens(state) {
     '--wiki-text-muted': isLight ? '#545b69' : '#a0a4b8',
     '--wiki-text-dim': isLight ? '#798294' : '#717589',
     '--font-display': fDisp,
+    '--font-wiki-heading': fWikiHeading,
+    '--font-wiki-serif': fWikiSerif,
     '--font-body': fBody,
     '--font-sans': fBody,
     '--font-input': fInput,
@@ -276,9 +283,9 @@ export function registerSettingsStore(Alpine) {
     tierlistShowFrameTemplate: cached.tierlistShowFrameTemplate !== undefined ? cached.tierlistShowFrameTemplate : (DEFAULT_SETTINGS.tierlistShowFrameTemplate !== undefined ? DEFAULT_SETTINGS.tierlistShowFrameTemplate : true),
     tierlistShowFrameRegistered: cached.tierlistShowFrameRegistered !== undefined ? cached.tierlistShowFrameRegistered : (DEFAULT_SETTINGS.tierlistShowFrameRegistered !== undefined ? DEFAULT_SETTINGS.tierlistShowFrameRegistered : true),
     tierlistShowFrameGuest: cached.tierlistShowFrameGuest !== undefined ? cached.tierlistShowFrameGuest : (DEFAULT_SETTINGS.tierlistShowFrameGuest !== undefined ? DEFAULT_SETTINGS.tierlistShowFrameGuest : true),
-    tierlistBorderRadiusTemplate: cached.tierlistBorderRadiusTemplate !== undefined ? cached.tierlistBorderRadiusTemplate : (DEFAULT_SETTINGS.tierlistBorderRadiusTemplate !== undefined ? DEFAULT_SETTINGS.tierlistBorderRadiusTemplate : 25),
-    tierlistBorderRadiusRegistered: cached.tierlistBorderRadiusRegistered !== undefined ? cached.tierlistBorderRadiusRegistered : (DEFAULT_SETTINGS.tierlistBorderRadiusRegistered !== undefined ? DEFAULT_SETTINGS.tierlistBorderRadiusRegistered : 25),
-    tierlistBorderRadiusGuest: cached.tierlistBorderRadiusGuest !== undefined ? cached.tierlistBorderRadiusGuest : (DEFAULT_SETTINGS.tierlistBorderRadiusGuest !== undefined ? DEFAULT_SETTINGS.tierlistBorderRadiusGuest : 25),
+    tierlistBorderRadiusTemplate: cached.tierlistBorderRadiusTemplate !== undefined ? cached.tierlistBorderRadiusTemplate : (DEFAULT_SETTINGS.tierlistBorderRadiusTemplate !== undefined ? DEFAULT_SETTINGS.tierlistBorderRadiusTemplate : 12),
+    tierlistBorderRadiusRegistered: cached.tierlistBorderRadiusRegistered !== undefined ? cached.tierlistBorderRadiusRegistered : (DEFAULT_SETTINGS.tierlistBorderRadiusRegistered !== undefined ? DEFAULT_SETTINGS.tierlistBorderRadiusRegistered : 12),
+    tierlistBorderRadiusGuest: cached.tierlistBorderRadiusGuest !== undefined ? cached.tierlistBorderRadiusGuest : (DEFAULT_SETTINGS.tierlistBorderRadiusGuest !== undefined ? DEFAULT_SETTINGS.tierlistBorderRadiusGuest : 12),
     tierlistBorderRadiusSync: cached.tierlistBorderRadiusSync !== undefined ? cached.tierlistBorderRadiusSync : (DEFAULT_SETTINGS.tierlistBorderRadiusSync || false),
     hideTierCharacterCount: cached.hideTierCharacterCount !== undefined ? cached.hideTierCharacterCount : (DEFAULT_SETTINGS.hideTierCharacterCount || false),
     tierlistMemoryExpanded: cached.tierlistMemoryExpanded !== undefined ? cached.tierlistMemoryExpanded : (DEFAULT_SETTINGS.tierlistMemoryExpanded !== undefined ? DEFAULT_SETTINGS.tierlistMemoryExpanded : false),
@@ -374,6 +381,15 @@ export function registerSettingsStore(Alpine) {
         const _fwTier = this.fontWeightTierlist;
         const _density = this.density;
         const _cornerStyle = this.cornerStyle;
+        const _disableGlow = this.disableGlowEffects;
+        const _disableCustomColors = this.disableCustomColors;
+        const _hideAllIcons = this.hideAllIcons;
+        const _hideIconsH1 = this.hideIconsH1;
+        const _hideIconsH2 = this.hideIconsH2;
+        const _hideIconsH3 = this.hideIconsH3;
+        const _hideIconsLabels = this.hideIconsLabels;
+        const _hideAnimatedFrames = this.hideAnimatedFrames;
+        const _hideKeyboardBadges = this.hideKeyboardBadges;
 
         this.applySettings();
         if (!_isInitialEffectRun) {
@@ -574,6 +590,7 @@ export function registerSettingsStore(Alpine) {
       if (saved.bootSound !== undefined) this.bootSound = saved.bootSound;
       if (saved.bootQuotesCategory !== undefined) this.bootQuotesCategory = saved.bootQuotesCategory === 'mafalda' ? 'minecraft' : saved.bootQuotesCategory;
       if (saved.customBootQuotes !== undefined) this.customBootQuotes = saved.customBootQuotes;
+      if (saved.showPlaceholders !== undefined) this.showPlaceholders = !!saved.showPlaceholders;
     },
 
     async loadGlobalSettings() {
@@ -675,10 +692,12 @@ export function registerSettingsStore(Alpine) {
           bootSound: this.bootSound,
           bootQuotesCategory: this.bootQuotesCategory,
           customBootQuotes: this.customBootQuotes,
+          showPlaceholders: !!this.showPlaceholders,
         };
         const raw = window.Alpine?.raw ? window.Alpine.raw(toSave) : toSave;
         const serialized = JSON.parse(JSON.stringify(raw));
         ls.setJSON('superficha_global_settings', serialized);
+        ls.setJSON('superficha_show_placeholders', !!this.showPlaceholders);
         await db.meta.put({ key: 'global_settings', value: serialized });
       } catch (e) {
         console.warn('[settings] Error al guardar configuraciones globales:', e);
@@ -772,7 +791,8 @@ export function registerSettingsStore(Alpine) {
       this.fontWeightTierlist = DEFAULT_SETTINGS.fontWeightTierlist;
 
       this.density = DEFAULT_SETTINGS.density;
-      this.kitId = '';
+      this.cornerStyle = DEFAULT_SETTINGS.cornerStyle || 'rounded';
+      this.kitId = DEFAULT_SETTINGS.kitId || 'classic-rpg';
 
       this.hideAllIcons = DEFAULT_SETTINGS.hideAllIcons;
       this.hideIconsH1 = DEFAULT_SETTINGS.hideIconsH1;
@@ -783,6 +803,11 @@ export function registerSettingsStore(Alpine) {
       this.hideRecentSheetButton = DEFAULT_SETTINGS.hideRecentSheetButton;
       this.hideTabFieldCounters = DEFAULT_SETTINGS.hideTabFieldCounters;
       this.disableCustomColors = DEFAULT_SETTINGS.disableCustomColors;
+      this.disableGlowEffects = DEFAULT_SETTINGS.disableGlowEffects ?? true;
+      this.hideAnimatedFrames = DEFAULT_SETTINGS.hideAnimatedFrames || false;
+      this.hideKeyboardBadges = DEFAULT_SETTINGS.hideKeyboardBadges ?? true;
+      this.disableSettingsInteractiveGrid = DEFAULT_SETTINGS.disableSettingsInteractiveGrid || false;
+      this.hidePowerScalingTierBadge = DEFAULT_SETTINGS.hidePowerScalingTierBadge || false;
       this.persistGuestCharacters = DEFAULT_SETTINGS.persistGuestCharacters;
       this.hideGuestBadge = DEFAULT_SETTINGS.hideGuestBadge;
       this.hideTemplateBadge = DEFAULT_SETTINGS.hideTemplateBadge;
@@ -800,9 +825,23 @@ export function registerSettingsStore(Alpine) {
       this.folderExportExpanded = DEFAULT_SETTINGS.folderExportExpanded;
       this.bootSettingsExpanded = DEFAULT_SETTINGS.bootSettingsExpanded;
       this.iconHierarchyExpanded = DEFAULT_SETTINGS.iconHierarchyExpanded;
+      this.fastBoot = DEFAULT_SETTINGS.fastBoot || false;
+      this.showSplashScreen = DEFAULT_SETTINGS.showSplashScreen !== undefined ? DEFAULT_SETTINGS.showSplashScreen : true;
+      this.showSplashQuotes = DEFAULT_SETTINGS.showSplashQuotes !== undefined ? DEFAULT_SETTINGS.showSplashQuotes : true;
+      this.bootSound = DEFAULT_SETTINGS.bootSound !== undefined ? DEFAULT_SETTINGS.bootSound : true;
+      this.bootQuotesCategory = DEFAULT_SETTINGS.bootQuotesCategory || 'minecraft';
+      this.customBootQuotes = Array.isArray(DEFAULT_SETTINGS.customBootQuotes) ? [...DEFAULT_SETTINGS.customBootQuotes] : [];
+      this.showPlaceholders = !!DEFAULT_SETTINGS.showPlaceholders;
 
       await this.saveGlobalSettings();
       this.applySettings();
+      this.applyPlaceholderSettings();
+      if (this.disableSettingsInteractiveGrid) {
+        window.settingsInteractiveGrid?.sleep();
+      } else {
+        window.settingsInteractiveGrid?.updateMetrics();
+        window.settingsInteractiveGrid?.wakeUp();
+      }
       Alpine.store('app').toast('Configuración visual restablecida a valores por defecto.', 'info');
     },
 
@@ -824,15 +863,15 @@ export function registerSettingsStore(Alpine) {
     },
 
     getTierlistBorderRadius(category) {
-      if (category === 'template') return this.tierlistBorderRadiusTemplate ?? 25;
-      if (category === 'guest') return this.tierlistBorderRadiusGuest ?? 25;
-      return this.tierlistBorderRadiusRegistered ?? 25;
+      if (category === 'template') return this.tierlistBorderRadiusTemplate ?? DEFAULT_SETTINGS.tierlistBorderRadiusTemplate ?? 12;
+      if (category === 'guest') return this.tierlistBorderRadiusGuest ?? DEFAULT_SETTINGS.tierlistBorderRadiusGuest ?? 12;
+      return this.tierlistBorderRadiusRegistered ?? DEFAULT_SETTINGS.tierlistBorderRadiusRegistered ?? 12;
     },
 
     toggleTierlistBorderRadiusSync() {
       this.tierlistBorderRadiusSync = !this.tierlistBorderRadiusSync;
       if (this.tierlistBorderRadiusSync) {
-        const refVal = this.tierlistBorderRadiusRegistered ?? 25;
+        const refVal = this.tierlistBorderRadiusRegistered ?? DEFAULT_SETTINGS.tierlistBorderRadiusRegistered ?? 12;
         this.tierlistBorderRadiusTemplate = refVal;
         this.tierlistBorderRadiusGuest = refVal;
       }
@@ -1090,8 +1129,8 @@ export function registerSettingsStore(Alpine) {
 
     toggleDisableGlowEffects() {
       this.disableGlowEffects = !this.disableGlowEffects;
+      this.applySettings();
       this.saveGlobalSettings();
-      this._syncDocumentThemeClasses();
       Alpine.store('app')?.toast?.(
         this.disableGlowEffects ? 'Resplandores neón deshabilitados (modo mate).' : 'Resplandores neón activados.',
         'info'
@@ -1162,24 +1201,28 @@ export function registerSettingsStore(Alpine) {
     resetColor() {
       this.accentColor = DEFAULT_SETTINGS.accentColor;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Color de acento principal restablecido.', 'info');
     },
 
     resetSecondaryColor() {
       this.secondaryColor = DEFAULT_SETTINGS.secondaryColor;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Color secundario restablecido.', 'info');
     },
 
     resetTertiaryColor() {
       this.tertiaryColor = DEFAULT_SETTINGS.tertiaryColor;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Color terciario restablecido.', 'info');
     },
 
     resetSurfaceColor() {
       this.surfaceColor = DEFAULT_SETTINGS.surfaceColor;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Color de superficie restablecido.', 'info');
     },
 
@@ -1187,6 +1230,7 @@ export function registerSettingsStore(Alpine) {
       this.borderColor = DEFAULT_SETTINGS.borderColor;
       this.borderWidth = DEFAULT_SETTINGS.borderWidth || 1;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Color y grosor de bordes restablecido.', 'info');
     },
 
@@ -1201,6 +1245,7 @@ export function registerSettingsStore(Alpine) {
       this.glowMode = DEFAULT_SETTINGS.glowMode;
       this.glowColor = DEFAULT_SETTINGS.glowColor;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Resplandor restablecido.', 'info');
     },
 
@@ -1208,6 +1253,7 @@ export function registerSettingsStore(Alpine) {
       this.fontDisplay = DEFAULT_SETTINGS.fontDisplay;
       this.fontWeightDisplay = DEFAULT_SETTINGS.fontWeightDisplay;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Fuente Display restablecida.', 'info');
     },
 
@@ -1215,6 +1261,7 @@ export function registerSettingsStore(Alpine) {
       this.fontBody = DEFAULT_SETTINGS.fontBody;
       this.fontWeightBody = DEFAULT_SETTINGS.fontWeightBody;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Fuente de Cuerpo restablecida.', 'info');
     },
 
@@ -1222,6 +1269,7 @@ export function registerSettingsStore(Alpine) {
       this.fontInput = DEFAULT_SETTINGS.fontInput;
       this.fontWeightInput = DEFAULT_SETTINGS.fontWeightInput;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Fuente de Inputs restablecida.', 'info');
     },
 
@@ -1229,6 +1277,7 @@ export function registerSettingsStore(Alpine) {
       this.fontHud = DEFAULT_SETTINGS.fontHud;
       this.fontWeightHud = DEFAULT_SETTINGS.fontWeightHud;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Fuente de HUD restablecida.', 'info');
     },
 
@@ -1236,6 +1285,7 @@ export function registerSettingsStore(Alpine) {
       this.fontTierlist = DEFAULT_SETTINGS.fontTierlist;
       this.fontWeightTierlist = DEFAULT_SETTINGS.fontWeightTierlist;
       this.applySettings();
+      this.saveGlobalSettings();
       Alpine.store('app').toast('Fuente de Tier List restablecida.', 'info');
     },
 
@@ -1275,7 +1325,7 @@ export function registerSettingsStore(Alpine) {
     },
 
     resetCornerStyle() {
-      this.cornerStyle = DEFAULT_SETTINGS.cornerStyle || 'chamfer';
+      this.cornerStyle = DEFAULT_SETTINGS.cornerStyle || 'rounded';
       this.applySettings();
       this.saveGlobalSettings();
       Alpine.store('app')?.toast?.('Geometría de esquinas restablecida.', 'info');
@@ -1303,7 +1353,9 @@ export function registerSettingsStore(Alpine) {
         if (kit.borderColor) this.borderColor = kit.borderColor;
         if (kit.glowColor) {
           this.glowColor = kit.glowColor;
-          this.glowMode = 'custom';
+          this.glowMode = kit.glowMode || 'custom';
+        } else if (kit.glowMode) {
+          this.glowMode = kit.glowMode;
         }
       }
       this.fontDisplay = kit.fontDisplay || kit.font || DEFAULT_SETTINGS.fontDisplay;
@@ -1312,14 +1364,17 @@ export function registerSettingsStore(Alpine) {
       this.fontHud = kit.fontHud || DEFAULT_SETTINGS.fontHud;
       this.fontTierlist = kit.fontTierlist || kit.fontDisplay || kit.font || DEFAULT_SETTINGS.fontTierlist;
 
-      if (kit.fontWeightDisplay) this.fontWeightDisplay = kit.fontWeightDisplay;
-      if (kit.fontWeightBody) this.fontWeightBody = kit.fontWeightBody;
-      if (kit.fontWeightInput) this.fontWeightInput = kit.fontWeightInput;
-      if (kit.fontWeightHud) this.fontWeightHud = kit.fontWeightHud;
-      if (kit.fontWeightTierlist) this.fontWeightTierlist = kit.fontWeightTierlist;
+      this.fontWeightDisplay = kit.fontWeightDisplay || DEFAULT_SETTINGS.fontWeightDisplay;
+      this.fontWeightBody = kit.fontWeightBody || DEFAULT_SETTINGS.fontWeightBody;
+      this.fontWeightInput = kit.fontWeightInput || DEFAULT_SETTINGS.fontWeightInput;
+      this.fontWeightHud = kit.fontWeightHud || DEFAULT_SETTINGS.fontWeightHud;
+      this.fontWeightTierlist = kit.fontWeightTierlist || DEFAULT_SETTINGS.fontWeightTierlist;
 
-      if (kit.cornerStyle) this.cornerStyle = kit.cornerStyle;
+      this.borderWidth = Math.max(1, Math.min(5, parseInt(kit.borderWidth, 10) || DEFAULT_SETTINGS.borderWidth || 1));
+      this.cornerStyle = kit.cornerStyle || DEFAULT_SETTINGS.cornerStyle || 'rounded';
       this.density = kit.density || DEFAULT_SETTINGS.density;
+      this.disableGlowEffects = kit.disableGlowEffects !== undefined ? !!kit.disableGlowEffects : (kit.id === 'classic-rpg');
+      this.disableCustomColors = kit.disableCustomColors !== undefined ? !!kit.disableCustomColors : (kit.id === 'classic-rpg');
       this.kitId = kit.id || '';
 
       this.saveGlobalSettings();
@@ -1501,19 +1556,57 @@ export function registerSettingsStore(Alpine) {
     isKitActive(kit) {
       if (!kit) return false;
       const p = kit.palette || {};
-      const currentAccent = (this.accentColor || '').trim().toUpperCase();
-      const kitAccent = (kit.color || p.accent || '').trim().toUpperCase();
-      const currentSurf = (this.surfaceColor || '').trim().toUpperCase();
-      const kitSurf = (p.surface || kit.surfaceColor || '').trim().toUpperCase();
-      const currentDisp = (this.fontDisplay || '').trim().toLowerCase();
-      const kitDisp = (kit.fontDisplay || kit.font || '').trim().toLowerCase();
-      const currentBody = (this.fontBody || '').trim().toLowerCase();
-      const kitBody = (kit.fontBody || '').trim().toLowerCase();
+      const norm = (val) => (val || '').trim().toLowerCase();
+      const currentAccent = norm(this.accentColor);
+      const kitAccent = norm(kit.color || p.accent);
+      const currentSec = norm(this.secondaryColor);
+      const kitSec = norm(p.secondary || kit.secondaryColor);
+      const currentTert = norm(this.tertiaryColor);
+      const kitTert = norm(p.tertiary || kit.tertiaryColor);
+      const currentGlow = norm(this.glowColor);
+      const kitGlow = norm(p.glow || kit.glowColor);
+      const currentSurf = norm(this.surfaceColor);
+      const kitSurf = norm(p.surface || kit.surfaceColor);
+      const currentBorder = norm(this.borderColor);
+      const kitBorder = norm(p.border || kit.borderColor);
+      const currentDisp = norm(this.fontDisplay);
+      const kitDisp = norm(kit.fontDisplay || kit.font);
+      const currentHud = norm(this.fontHud);
+      const kitHud = norm(kit.fontHud);
+      const currentBody = norm(this.fontBody);
+      const kitBody = norm(kit.fontBody);
+      const currentInput = norm(this.fontInput);
+      const kitInput = norm(kit.fontInput);
+      const currentTier = norm(this.fontTierlist);
+      const kitTier = norm(kit.fontTierlist);
+      const currentCorner = norm(this.cornerStyle || 'rounded');
+      const kitCorner = norm(kit.cornerStyle);
+      const currentDensity = norm(this.density || 'normal');
+      const kitDensity = norm(kit.density);
 
-      if (this.kitId && this.kitId === kit.id) {
-        return currentAccent === kitAccent && (!kitSurf || currentSurf === kitSurf);
-      }
-      return currentAccent === kitAccent && (!kitSurf || currentSurf === kitSurf) && currentDisp === kitDisp && currentBody === kitBody;
+      if (currentAccent !== kitAccent) return false;
+      if (kitSec && currentSec !== kitSec) return false;
+      if (kitTert && currentTert !== kitTert) return false;
+      if (kitGlow && currentGlow !== kitGlow) return false;
+      if (kitSurf && currentSurf !== kitSurf) return false;
+      if (kitBorder && currentBorder !== kitBorder) return false;
+      if (kitDisp && currentDisp !== kitDisp) return false;
+      if (kitHud && currentHud !== kitHud) return false;
+      if (kitBody && currentBody !== kitBody) return false;
+      if (kitInput && currentInput !== kitInput) return false;
+      if (kitTier && currentTier !== kitTier) return false;
+      if (kitCorner && currentCorner !== kitCorner) return false;
+      if (kitDensity && currentDensity !== kitDensity) return false;
+      if (kit.glowMode !== undefined && norm(this.glowMode || 'medium') !== norm(kit.glowMode)) return false;
+      if (kit.borderWidth !== undefined && Number(this.borderWidth || 1) !== Number(kit.borderWidth)) return false;
+      if (kit.fontWeightDisplay !== undefined && String(this.fontWeightDisplay || '600') !== String(kit.fontWeightDisplay)) return false;
+      if (kit.fontWeightHud !== undefined && String(this.fontWeightHud || '500') !== String(kit.fontWeightHud)) return false;
+      if (kit.fontWeightBody !== undefined && String(this.fontWeightBody || '400') !== String(kit.fontWeightBody)) return false;
+      if (kit.fontWeightInput !== undefined && String(this.fontWeightInput || '400') !== String(kit.fontWeightInput)) return false;
+      if (kit.fontWeightTierlist !== undefined && String(this.fontWeightTierlist || '900') !== String(kit.fontWeightTierlist)) return false;
+      if (kit.disableGlowEffects !== undefined && Boolean(this.disableGlowEffects) !== Boolean(kit.disableGlowEffects)) return false;
+      if (kit.disableCustomColors !== undefined && Boolean(this.disableCustomColors) !== Boolean(kit.disableCustomColors)) return false;
+      return true;
     },
 
     hexToRgb(hex) {
@@ -1577,7 +1670,14 @@ export function registerSettingsStore(Alpine) {
         dashboardBgPosY: this.dashboardBgPosY ?? 50,
       };
 
-      // 1. Guardar en IndexedDB (sin límite de 5MB; almacena GIFs y fondos de alta resolución de forma persistente)
+      // 1. Guardar en localStorage solo versión ligera de forma síncrona ante cierres rápidos
+      try {
+        const isHeavyDataUrl = typeof toSave.dashboardBgUrl === 'string' && toSave.dashboardBgUrl.startsWith('data:') && toSave.dashboardBgUrl.length > 250000;
+        const lsCopy = isHeavyDataUrl ? { ...toSave, dashboardBgUrl: '' } : toSave;
+        ls.setJSON('superficha_dashboard_bg_settings', lsCopy);
+      } catch (_) {}
+
+      // 2. Guardar en IndexedDB (sin límite de 5MB; almacena GIFs y fondos de alta resolución de forma persistente)
       try {
         if (db && db.meta) {
           await db.meta.put({
@@ -1589,13 +1689,6 @@ export function registerSettingsStore(Alpine) {
       } catch (e) {
         console.warn('[settings] Error guardando fondo del dashboard en IndexedDB:', e);
       }
-
-      // 2. Guardar en localStorage solo versión ligera para evitar QuotaExceededError
-      try {
-        const isHeavyDataUrl = typeof toSave.dashboardBgUrl === 'string' && toSave.dashboardBgUrl.startsWith('data:') && toSave.dashboardBgUrl.length > 250000;
-        const lsCopy = isHeavyDataUrl ? { ...toSave, dashboardBgUrl: '' } : toSave;
-        ls.setJSON('superficha_dashboard_bg_settings', lsCopy);
-      } catch (_) {}
     },
 
     getDashboardBgStyle() {
@@ -1729,7 +1822,14 @@ export function registerSettingsStore(Alpine) {
         tierlistBgPosY: this.tierlistBgPosY ?? 50,
       };
 
-      // 1. Guardar en IndexedDB (sin límite de 5MB; almacena GIFs y fondos de alta resolución de forma persistente)
+      // 1. Guardar en localStorage solo versión ligera de forma síncrona ante cierres rápidos
+      try {
+        const isHeavyDataUrl = typeof toSave.tierlistBgUrl === 'string' && toSave.tierlistBgUrl.startsWith('data:') && toSave.tierlistBgUrl.length > 250000;
+        const lsCopy = isHeavyDataUrl ? { ...toSave, tierlistBgUrl: '' } : toSave;
+        ls.setJSON('superficha_tierlist_bg_settings', lsCopy);
+      } catch (_) {}
+
+      // 2. Guardar en IndexedDB (sin límite de 5MB; almacena GIFs y fondos de alta resolución de forma persistente)
       try {
         if (db && db.meta) {
           await db.meta.put({
@@ -1741,13 +1841,6 @@ export function registerSettingsStore(Alpine) {
       } catch (e) {
         console.warn('[settings] Error guardando fondo de tierlist en IndexedDB:', e);
       }
-
-      // 2. Guardar en localStorage solo versión ligera para evitar QuotaExceededError
-      try {
-        const isHeavyDataUrl = typeof toSave.tierlistBgUrl === 'string' && toSave.tierlistBgUrl.startsWith('data:') && toSave.tierlistBgUrl.length > 250000;
-        const lsCopy = isHeavyDataUrl ? { ...toSave, tierlistBgUrl: '' } : toSave;
-        ls.setJSON('superficha_tierlist_bg_settings', lsCopy);
-      } catch (_) {}
     },
 
     getTierlistBgStyle() {
@@ -1966,6 +2059,7 @@ export function registerSettingsStore(Alpine) {
 
     saveShowPlaceholders() {
       ls.setJSON('superficha_show_placeholders', this.showPlaceholders);
+      this.saveGlobalSettings();
       const appStore = Alpine.store('app');
       if (appStore && typeof appStore.toast === 'function') {
         appStore.toast(

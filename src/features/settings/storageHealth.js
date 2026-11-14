@@ -305,8 +305,9 @@ export function createStorageHealthMethods() {
         if (emojisStore && Array.isArray(emojisStore.list)) {
           let emBytes = 0;
           emojisStore.list.forEach(em => {
-            if (em.dataUrl && em.dataUrl.startsWith('data:')) {
-              const b = estimateStringBytes(em.dataUrl);
+            const src = em.url || em.dataUrl;
+            if (src && typeof src === 'string' && src.startsWith('data:')) {
+              const b = estimateStringBytes(src);
               emBytes += b;
               if (b > 500 * 1024) { // > 500 KB para un emoji es pesado
                 assets.push({
@@ -495,11 +496,12 @@ export function createStorageHealthMethods() {
         if (asset.targetId === 'dashboard') {
           this.dashboardBgUrl = '';
           this.dashboardBgMode = 'pattern';
+          this.saveDashboardBgSettings(true);
         } else if (asset.targetId === 'tierlist') {
           this.tierlistBgUrl = '';
           this.tierlistBgMode = 'pattern';
+          this.saveTierlistBgSettings(true);
         }
-        this.saveGlobalSettings();
         this.refreshStorageTelemetry();
         window.Alpine?.store('app')?.toast('Fondo pesado restablecido a la trama estándar.', 'info');
       }

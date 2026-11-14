@@ -29,6 +29,13 @@ import { createMediaMethods } from './media.js';
 import { createSteamMethods } from './steam.js';
 import { createSubmodelMethods } from './submodels.js';
 import { createCustomTabMethods } from './customTabs.js';
+import {
+  SHEET_TYPE_META,
+  normalizeSheetType,
+  getOppositeSheetType,
+  getSheetConversionSummary,
+  convertCharacterSheetData
+} from './sheetConverter.ts';
 
 // Re-exportar funciones de esquema para retrocompatibilidad total con cualquier módulo externo
 export {
@@ -47,6 +54,11 @@ export function registerCharactersStore(Alpine) {
     activeId: null,         // ID del personaje activo
     loading: true,
     createSheetModalOpen: false,
+    sheetConverterModal: {
+      isOpen: false,
+      charId: null,
+      targetType: 'classic'
+    },
     renameTarget: null,     // { id, name } para modal de renombre
     deleteTarget: null,     // ID para confirmación de borrado
     deleteCountdown: 0,     // Segundos de protección anti-missclick
@@ -1022,6 +1034,152 @@ export function registerCharactersStore(Alpine) {
       this.setPage(this.totalPages);
       Alpine.store('app').toast(`"${copy.name}" creado como copia.`, 'success');
       return copy;
+    },
+
+    // ── Conversor Lossless Ficha A (Simple) ⇄ Ficha B (Compleja) ─────
+    getSheetTypeMeta(type) {
+      return SHEET_TYPE_META[normalizeSheetType(type)];
+    },
+
+    getConversionSummary(charId = null, targetType = null) {
+      const targetId = charId || this.activeId;
+      const char = this.list.find(c => c.id === targetId) || (this.active?.id === targetId ? this.active : null);
+      if (!char) return null;
+      const resolvedTarget = targetType ? normalizeSheetType(targetType) : getOppositeSheetType(char.sheetType);
+      return getSheetConversionSummary(char, resolvedTarget);
+    },
+
+    openSheetConverterModal(charId = null, targetType = null) {
+      try {
+        window.globalTextFormatter?.syncAllEditorsToTextareas?.();
+      } catch (_) {}
+      const targetId = charId || this.activeId;
+      const char = this.list.find(c => c.id === targetId) || (this.active?.id === targetId ? this.active : null);
+      if (!char) {
+        Alpine.store('app')?.toast('No se encontró la ficha para convertir.', 'warning');
+        return;
+      }
+      const resolvedTarget = targetType ? normalizeSheetType(targetType) : getOppositeSheetType(char.sheetType);
+      this.sheetConverterModal = {
+        isOpen: true,
+        charId: char.id,
+        targetType: resolvedTarget
+      };
+      Alpine.nextTick?.(() => {
+        window.lucide?.createIcons?.();
+      });
+    },
+
+    closeSheetConverterModal() {
+      this.sheetConverterModal = {
+        isOpen: false,
+        charId: null,
+        targetType: 'classic'
+      };
+    },
+
+    async confirmSheetConversion({ createCopy = false } = {}) {
+      const { charId, targetType } = this.sheetConverterModal || {};
+      return await this.convertSheetType(charId || this.activeId, targetType, { createCopy });
+    },
+
+    async convertSheetType(charId = null, targetType = null, { createCopy = false, openAfterCopy = true } = {}) {
+      const targetId = charId || this.activeId;
+      const idx = this.list.findIndex(c => c.id === targetId);
+      const sourceChar = idx !== -1 ? this.list[idx] : (this.active?.id === targetId ? this.active : null);
+      if (!sourceChar) {
+        Alpine.store('app')?.toast('No se encontró el personaje para convertir.', 'warning');
+        return null;
+      }
+
+      const resolvedTarget = targetType ? normalizeSheetType(targetType) : getOppositeSheetType(sourceChar.sheetType);
+      const targetMeta = SHEET_TYPE_META[resolvedTarget];
+
+      if (!createCopy && normalizeSheetType(sourceChar.sheetType) === resolvedTarget) {
+        this.closeSheetConverterModal();
+        return sourceChar;
+      }
+
+      if (!createCopy && sourceChar.isLocked) {
+        Alpine.store('app')?.toast('Ficha bloqueada: desbloquéala o usa "Convertir en una copia".', 'warning');
+        return null;
+      }
+
+      try {
+        window.globalTextFormatter?.syncAllEditorsToTextareas?.();
+      } catch (_) {}
+
+      const rawSource = (typeof window !== 'undefined' && window.Alpine?.raw)
+        ? window.Alpine.raw(sourceChar)
+        : sourceChar;
+
+      const appStore = Alpine.store('app');
+
+      if (createCopy) {
+        const convertedCopy = convertCharacterSheetData(rawSource, resolvedTarget);
+        const baseName = convertedCopy.name || convertedCopy.basics?.fullName || 'Personaje';
+        convertedCopy.id = crypto.randomUUID();
+        convertedCopy.isLocked = false;
+        convertedCopy.createdAt = Date.now();
+        convertedCopy.updatedAt = Date.now();
+        convertedCopy.name = `${baseName} (${targetMeta.code})`;
+        if (convertedCopy.basics && (!convertedCopy.basics.fullName || convertedCopy.basics.fullName === baseName)) {
+          convertedCopy.basics.fullName = convertedCopy.name;
+        }
+
+        this.list.push(convertedCopy);
+        await this._persist(convertedCopy);
+        this.closeSheetConverterModal();
+
+        if (openAfterCopy) {
+          await this.selectActive(convertedCopy.id);
+          appStore?.openEditorView?.(convertedCopy.id);
+        } else {
+          this.setPage?.(this.totalPages);
+        }
+
+        Alpine.nextTick?.(() => {
+          window.lucide?.createIcons?.();
+        });
+        appStore?.toast(`Copia "${convertedCopy.name}" creada en ${targetMeta.name} sin alterar la original.`, 'success');
+        return convertedCopy;
+      }
+
+      if (this.activeId === sourceChar.id) {
+        this.pushUndoSnapshot?.(`Conversión a ${targetMeta.name}`);
+      }
+
+      const convertedChar = convertCharacterSheetData(rawSource, resolvedTarget);
+      for (const k of Object.keys(sourceChar)) {
+        if (!(k in convertedChar)) {
+          delete sourceChar[k];
+        }
+      }
+      Object.assign(sourceChar, convertedChar);
+
+      if (this.activeId === sourceChar.id) {
+        if (appStore) {
+          const keepTabs = new Set(['basics']);
+          if (appStore.currentTab) keepTabs.add(appStore.currentTab);
+          appStore.visitedTabs = Array.from(keepTabs);
+        }
+        this.syncTabsToApp?.(sourceChar);
+        this.clearTabCompletionCache?.();
+        this.updateOverallCompletion?.();
+        appStore?.saveNavigationState?.();
+        this.hasPendingChanges = false;
+        this.saveStatus = 'saved';
+        this.lastSavedTime = Date.now();
+      }
+
+      await this._persist(sourceChar);
+      this.closeSheetConverterModal();
+
+      Alpine.nextTick?.(() => {
+        window.lucide?.createIcons?.();
+      });
+      appStore?.toast(`"${sourceChar.name}" convertido a ${targetMeta.name} sin pérdida de datos.`, 'success');
+      return sourceChar;
     },
 
     async rename(id, newName) {
